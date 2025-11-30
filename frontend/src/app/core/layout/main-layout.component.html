@@ -1,0 +1,37 @@
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">QC</div>
+    <div>
+      <p class="brand-label">Qatar Charity</p>
+      <p class="brand-subtitle">Standalone Angular workspace</p>
+    </div>
+  </div>
+  <nav class="nav-links">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Overview</a>
+    <a routerLink="/architecture" routerLinkActive="active">Architecture</a>
+  </nav>
+</header>
+
+<main class="content">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Feature-first organization</p>
+      <h1>Standalone Angular architecture</h1>
+      <p class="lead">
+        A lightweight shell with feature-owned routes, reusable shared primitives, and a clear core boundary.
+      </p>
+    </div>
+    <div class="hero-card">
+      <p class="card-label">Project snapshot</p>
+      <ul>
+        <li><span>Angular</span><span>v19 standalone</span></li>
+        <li><span>Routing</span><span>Feature-level lazy loading</span></li>
+        <li><span>Layout</span><span>Core shell + shared utilities</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="router-surface">
+    <router-outlet></router-outlet>
+  </div>
+</main>

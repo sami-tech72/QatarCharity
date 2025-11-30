@@ -1,0 +1,28 @@
+<section class="section">
+  <p class="eyebrow">Routing</p>
+  <h2>Lazy, feature-owned routes</h2>
+  <p class="muted">
+    The root route mounts a single <code>MainLayoutComponent</code> from <code>core/layout</code>. Each feature is lazy loaded
+    with <code>loadComponent</code>, aligning the URL tree to the folder tree.
+  </p>
+
+  <div class="diagram">
+    <pre>
+app/
+ ├─ core/
+ │   └─ layout/main-layout.component
+ ├─ features/
+ │   ├─ home/home.component
+ │   └─ architecture/architecture.component
+ └─ shared/
+    </pre>
+  </div>
+</section>
+
+<section class="section">
+  <p class="eyebrow">Guardrails</p>
+  <h2>Checklist for new slices</h2>
+  <ul class="checklist">
+    <li *ngFor="let item of checklist">{{ item }}</li>
+  </ul>
+</section>

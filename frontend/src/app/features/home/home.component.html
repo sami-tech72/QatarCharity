@@ -1,0 +1,41 @@
+<section class="section">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">Why feature-first?</p>
+      <h2>Organize by domain, not by artifact</h2>
+      <p class="muted">
+        Each folder under <code>features/</code> owns its routes, UI, and logic. The architecture stays discoverable as the
+        product grows, without long import chains.
+      </p>
+    </div>
+  </div>
+
+  <div class="cards">
+    <article class="card" *ngFor="let principle of principles">
+      <h3>{{ principle.title }}</h3>
+      <p>{{ principle.description }}</p>
+    </article>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-header">
+    <p class="eyebrow">Folder layout</p>
+    <h2>Clear separation of concerns</h2>
+  </div>
+
+  <div class="layout-grid">
+    <div class="layout-card">
+      <p class="badge primary">core/</p>
+      <p class="muted">Hosts app-wide layout, configuration, and interceptors. Should stay small and stable.</p>
+    </div>
+    <div class="layout-card">
+      <p class="badge info">features/</p>
+      <p class="muted">Domain slices with self-contained entry routes, components, and data access.</p>
+    </div>
+    <div class="layout-card">
+      <p class="badge primary">shared/</p>
+      <p class="muted">Reusable UI elements and utilities that remain framework-agnostic.</p>
+    </div>
+  </div>
+</section>

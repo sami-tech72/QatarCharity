@@ -1,26 +1,6 @@
-.app-sidebar-menu {
-  .menu-link {
-    border-radius: 0.65rem;
-    padding: 0.75rem 0.9rem;
-    gap: 0.75rem;
-    color: #4b5675;
-
-    .menu-icon {
-      color: #4b5675;
-    }
-
-    &.active {
-      background-color: #0d6efd;
-      color: #ffffff;
-      box-shadow: 0 10px 20px rgba(13, 110, 253, 0.25);
-
-      .menu-icon {
-        color: #ffffff;
-      }
-    }
-  }
-
-  .menu-item + .menu-item {
-    margin-top: 0.4rem;
-  }
+.app-shell {
+  min-height: 100vh;
+  background: radial-gradient(circle at 10% 20%, #f2f7ff 0, #eef2ff 35%, #e9f3ff 70%, #f9fbff 100%);
+  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
