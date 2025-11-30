@@ -1,0 +1,28 @@
+<section class="hero">
+  <p class="eyebrow">Dashboard overview</p>
+  <h1>Welcome to the Qatar Charity workspace</h1>
+  <p class="lede">
+    Get a quick pulse on campaigns, donor engagement, and operational readiness so your team can
+    focus on impact.
+  </p>
+
+  <div class="actions">
+    <button type="button" class="primary">Launch new campaign</button>
+    <button type="button" class="ghost">Invite a teammate</button>
+  </div>
+</section>
+
+<section class="grid">
+  <article class="card" *ngFor="let highlight of highlights">
+    <p class="label">{{ highlight.label }}</p>
+    <p class="value">{{ highlight.value }}</p>
+    <p class="detail">{{ highlight.detail }}</p>
+  </article>
+</section>
+
+<section class="card">
+  <p class="label">Quick actions</p>
+  <ul>
+    <li *ngFor="let action of quickActions">{{ action }}</li>
+  </ul>
+</section>
