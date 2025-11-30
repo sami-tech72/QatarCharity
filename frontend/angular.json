@@ -28,24 +28,50 @@
             "assets": [
               {
                 "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+              },
+              {
+                "glob": "**/*",
                 "input": "public"
               }
             ],
             "styles": [
+              "src/assets/plugins/custom/fullcalendar/fullcalendar.bundle.css",
+              "src/assets/plugins/custom/datatables/datatables.bundle.css",
+              "src/assets/plugins/global/plugins.bundle.css",
+              "src/assets/css/style.bundle.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "src/assets/plugins/global/plugins.bundle.js",
+              "src/assets/js/scripts.bundle.js",
+              "src/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js",
+              "src/assets/plugins/custom/datatables/datatables.bundle.js",
+              "src/assets/js/widgets.bundle.js",
+              "src/assets/js/custom/widgets.js",
+              "src/assets/js/custom/apps/chat/chat.js",
+              "src/assets/js/custom/utilities/modals/upgrade-plan.js",
+              "src/assets/js/custom/utilities/modals/create-app.js",
+              "src/assets/js/custom/utilities/modals/new-target.js",
+              "src/assets/js/custom/utilities/modals/users-search.js"
+            ]
           },
-          "configurations": {
-            "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+            "configurations": {
+              "production": {
+                "optimization": {
+                  "fonts": {
+                    "inline": false
+                  }
                 },
-                {
-                  "type": "anyComponentStyle",
+                "budgets": [
+                  {
+                    "type": "initial",
+                    "maximumWarning": "10MB",
+                    "maximumError": "12MB"
+                  },
+                  {
+                    "type": "anyComponentStyle",
                   "maximumWarning": "4kB",
                   "maximumError": "8kB"
                 }
@@ -87,16 +113,40 @@
             "assets": [
               {
                 "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+              },
+              {
+                "glob": "**/*",
                 "input": "public"
               }
             ],
             "styles": [
+              "src/assets/plugins/custom/fullcalendar/fullcalendar.bundle.css",
+              "src/assets/plugins/custom/datatables/datatables.bundle.css",
+              "src/assets/plugins/global/plugins.bundle.css",
+              "src/assets/css/style.bundle.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "src/assets/plugins/global/plugins.bundle.js",
+              "src/assets/js/scripts.bundle.js",
+              "src/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js",
+              "src/assets/plugins/custom/datatables/datatables.bundle.js",
+              "src/assets/js/widgets.bundle.js",
+              "src/assets/js/custom/widgets.js",
+              "src/assets/js/custom/apps/chat/chat.js",
+              "src/assets/js/custom/utilities/modals/upgrade-plan.js",
+              "src/assets/js/custom/utilities/modals/create-app.js",
+              "src/assets/js/custom/utilities/modals/new-target.js",
+              "src/assets/js/custom/utilities/modals/users-search.js"
+            ]
           }
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
