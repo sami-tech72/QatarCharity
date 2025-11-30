@@ -1,0 +1,109 @@
+##############################
+# GLOBAL IGNORE
+##############################
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.*
+*.secret.json
+secrets.json
+
+##############################
+# DOTNET BACKEND – CLEAN ARCH
+##############################
+
+# Build outputs
+bin/
+obj/
+out/
+**/bin/
+**/obj/
+
+# VS temporary
+.vs/
+*.user
+*.suo
+*.cache
+*.db
+*.opendb
+
+# Rider/JetBrains
+.idea/
+*.iml
+
+# Auto-generated files
+Generated/
+Generated/*
+*.g.cs
+*.g.i.cs
+
+# Publish outputs
+publish/
+artifacts/
+
+##############################
+# ANGULAR FRONTEND
+##############################
+
+# Node modules
+frontend/node_modules/
+node_modules/
+
+# Angular build outputs
+frontend/dist/
+dist/
+build/
+
+# Angular cache
+frontend/.angular/
+.angular/
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Editor config
+frontend/.vscode/
+.vscode/
+
+# Angular environment files
+frontend/src/environments/environment.ts
+frontend/src/environments/environment.prod.ts
+frontend/src/environments/*.ts
+
+##############################
+# GENERAL IDE / EDITOR
+##############################
+
+.vscode/
+*.code-workspace
+
+# Optional backup files
+*.bak
+*.tmp
+*.temp
+*.swp
+
+##############################
+# GLOBAL JSON / CONFIG
+##############################
+global.json
+
+##############################
+# OPTIONAL: FRONTEND PUBLIC IGNORES
+##############################
+frontend/public/.DS_Store
+frontend/public/*.log
+
