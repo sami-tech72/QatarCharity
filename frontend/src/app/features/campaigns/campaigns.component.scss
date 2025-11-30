@@ -1,0 +1,59 @@
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-header__eyebrow {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #0ea5e9;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.section-header h2 {
+  margin: 0.35rem 0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.section-header__lead {
+  margin: 0;
+  color: #475569;
+}
+
+.campaign-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.campaign-card {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 1.25rem;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+}
+
+.campaign-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.badge {
+  margin: 0;
+  background: #ecfeff;
+  color: #0e7490;
+  border: 1px solid #67e8f9;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.campaign-card__summary {
+  margin: 0.75rem 0 0 0;
+  color: #475569;
+}

@@ -1,0 +1,19 @@
+<header class="nav">
+  <div class="nav__brand">
+    <div class="nav__mark">QC</div>
+    <div>
+      <p class="nav__title">Qatar Charity Admin</p>
+      <p class="nav__subtitle">Standalone Angular architecture</p>
+    </div>
+  </div>
+  <nav class="nav__links" aria-label="Primary">
+    <a
+      *ngFor="let link of links"
+      [routerLink]="link.path"
+      routerLinkActive="nav__link--active"
+      class="nav__link"
+    >
+      {{ link.label }}
+    </a>
+  </nav>
+</header>

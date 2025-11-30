@@ -1,0 +1,17 @@
+<section class="section-header">
+  <p class="section-header__eyebrow">Feature example</p>
+  <h2>Campaigns are a dedicated feature area</h2>
+  <p class="section-header__lead">
+    Each campaign lives within the <code>features/campaigns</code> folder so routing, UI, and logic stay cohesive.
+  </p>
+</section>
+
+<section class="campaign-grid">
+  <article class="campaign-card" *ngFor="let campaign of campaigns">
+    <div class="campaign-card__header">
+      <p class="badge">{{ campaign.status }}</p>
+      <h3>{{ campaign.name }}</h3>
+    </div>
+    <p class="campaign-card__summary">{{ campaign.summary }}</p>
+  </article>
+</section>
