@@ -42,19 +42,6 @@
               "src/assets/plugins/global/plugins.bundle.css",
               "src/assets/css/style.bundle.css",
               "src/styles.scss"
-            ],
-            "scripts": [
-              "src/assets/plugins/global/plugins.bundle.js",
-              "src/assets/js/scripts.bundle.js",
-              "src/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js",
-              "src/assets/plugins/custom/datatables/datatables.bundle.js",
-              "src/assets/js/widgets.bundle.js",
-              "src/assets/js/custom/widgets.js",
-              "src/assets/js/custom/apps/chat/chat.js",
-              "src/assets/js/custom/utilities/modals/upgrade-plan.js",
-              "src/assets/js/custom/utilities/modals/create-app.js",
-              "src/assets/js/custom/utilities/modals/new-target.js",
-              "src/assets/js/custom/utilities/modals/users-search.js"
             ]
           },
             "configurations": {
@@ -127,19 +114,6 @@
               "src/assets/plugins/global/plugins.bundle.css",
               "src/assets/css/style.bundle.css",
               "src/styles.scss"
-            ],
-            "scripts": [
-              "src/assets/plugins/global/plugins.bundle.js",
-              "src/assets/js/scripts.bundle.js",
-              "src/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js",
-              "src/assets/plugins/custom/datatables/datatables.bundle.js",
-              "src/assets/js/widgets.bundle.js",
-              "src/assets/js/custom/widgets.js",
-              "src/assets/js/custom/apps/chat/chat.js",
-              "src/assets/js/custom/utilities/modals/upgrade-plan.js",
-              "src/assets/js/custom/utilities/modals/create-app.js",
-              "src/assets/js/custom/utilities/modals/new-target.js",
-              "src/assets/js/custom/utilities/modals/users-search.js"
             ]
           }
         }
