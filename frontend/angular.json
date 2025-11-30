@@ -37,8 +37,6 @@
               }
             ],
             "styles": [
-              "src/assets/plugins/custom/fullcalendar/fullcalendar.bundle.css",
-              "src/assets/plugins/custom/datatables/datatables.bundle.css",
               "src/assets/plugins/global/plugins.bundle.css",
               "src/assets/css/style.bundle.css",
               "src/styles.scss"
@@ -109,8 +107,6 @@
               }
             ],
             "styles": [
-              "src/assets/plugins/custom/fullcalendar/fullcalendar.bundle.css",
-              "src/assets/plugins/custom/datatables/datatables.bundle.css",
               "src/assets/plugins/global/plugins.bundle.css",
               "src/assets/css/style.bundle.css",
               "src/styles.scss"
