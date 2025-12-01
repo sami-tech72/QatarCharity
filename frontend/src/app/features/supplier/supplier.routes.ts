@@ -9,45 +9,45 @@ export const supplierRoutes: Routes = [
         path: 'dashboard',
         title: 'Supplier Dashboard',
         loadComponent: () =>
-          import('./pages/dashboard/supplier-dashboard.component').then((m) => m.SupplierDashboardComponent),
+          import('./dashboard/supplier-dashboard.component').then((m) => m.SupplierDashboardComponent),
       },
       {
         path: 'available-tenders',
         title: 'Available Tenders',
         loadComponent: () =>
-          import('./pages/available-tenders/available-tenders.component').then((m) => m.AvailableTendersComponent),
+          import('./available-tenders/available-tenders.component').then((m) => m.AvailableTendersComponent),
       },
       {
         path: 'my-bids',
         title: 'My Bids',
-        loadComponent: () => import('./pages/my-bids/my-bids.component').then((m) => m.MyBidsComponent),
+        loadComponent: () => import('./my-bids/my-bids.component').then((m) => m.MyBidsComponent),
       },
       {
         path: 'my-contracts',
         title: 'My Contracts',
         loadComponent: () =>
-          import('./pages/my-contracts/my-contracts.component').then((m) => m.MyContractsComponent),
+          import('./my-contracts/my-contracts.component').then((m) => m.MyContractsComponent),
       },
       {
         path: 'performance',
         title: 'Performance',
-        loadComponent: () => import('./pages/performance/performance.component').then((m) => m.PerformanceComponent),
+        loadComponent: () => import('./performance/performance.component').then((m) => m.PerformanceComponent),
       },
       {
         path: 'company-profile',
         title: 'Company Profile',
         loadComponent: () =>
-          import('./pages/company-profile/company-profile.component').then((m) => m.CompanyProfileComponent),
+          import('./company-profile/company-profile.component').then((m) => m.CompanyProfileComponent),
       },
       {
         path: 'documents',
         title: 'Documents',
-        loadComponent: () => import('./pages/documents/documents.component').then((m) => m.DocumentsComponent),
+        loadComponent: () => import('./documents/documents.component').then((m) => m.DocumentsComponent),
       },
       {
         path: 'settings',
         title: 'Supplier Settings',
-        loadComponent: () => import('./pages/settings/supplier-settings.component').then((m) => m.SupplierSettingsComponent),
+        loadComponent: () => import('./settings/supplier-settings.component').then((m) => m.SupplierSettingsComponent),
       },
     ],
   },

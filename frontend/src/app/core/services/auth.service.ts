@@ -1,16 +1,14 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
-import { SidebarRole } from '../../shared/components/sidebar/sidebar.component';
-import { LoginRequest, LoginResponse, UserSession } from '../../shared/models/auth.models';
+import { UserRole, LoginRequest, LoginResponse, UserSession } from '../../shared/models/user.model';
+import { ApiService } from './api.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiBaseUrl = 'http://localhost:5112/api';
   private readonly storageKey = 'qcharity-session';
 
   private readonly sessionSubject = new BehaviorSubject<UserSession | null>(
@@ -19,10 +17,13 @@ export class AuthService {
 
   readonly session$: Observable<UserSession | null> = this.sessionSubject.asObservable();
 
-  constructor(private readonly http: HttpClient, private readonly router: Router) {}
+  constructor(
+    private readonly api: ApiService,
+    private readonly router: Router,
+  ) {}
 
   login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiBaseUrl}/auth/login`, request).pipe(
+    return this.api.post<LoginResponse>('auth/login', request).pipe(
       tap((response) => this.persistSession(response)),
     );
   }
@@ -37,8 +38,8 @@ export class AuthService {
     return this.sessionSubject.value;
   }
 
-  defaultPathForRole(role: SidebarRole): string {
-    const map: Record<SidebarRole, string> = {
+  defaultPathForRole(role: UserRole): string {
+    const map: Record<UserRole, string> = {
       Admin: adminSidebarMenu[0].path,
       Procurement: procurementSidebarMenu[0].path,
       Supplier: supplierSidebarMenu[0].path,

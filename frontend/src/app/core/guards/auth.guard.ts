@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanMatchFn, Router } from '@angular/router';
-import { SidebarRole } from '../../shared/components/sidebar/sidebar.component';
+import { UserRole } from '../../shared/models/user.model';
 import { AuthService } from '../services/auth.service';
 
 export const authGuard: CanMatchFn = (route) => {
@@ -14,7 +14,7 @@ export const authGuard: CanMatchFn = (route) => {
     return false;
   }
 
-  const requiredRole = route.data?.['role'] as SidebarRole | undefined;
+  const requiredRole = route.data?.['role'] as UserRole | undefined;
 
   if (requiredRole && session.role !== requiredRole) {
     router.navigateByUrl(authService.defaultPathForRole(session.role));

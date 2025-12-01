@@ -7,48 +7,48 @@ export const adminRoutes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
         path: 'dashboard',
-        title: 'Dashboard',
-        loadComponent: () => import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+        title: 'Admin Dashboard',
+        loadComponent: () => import('./dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
         path: 'user-management',
         title: 'User Management',
-        loadComponent: () => import('./pages/user-management/user-management.component').then((m) => m.UserManagementComponent),
+        loadComponent: () => import('./user-management/user-management.component').then((m) => m.UserManagementComponent),
       },
       {
         path: 'supplier-management',
         title: 'Supplier Management',
         loadComponent: () =>
-          import('./pages/supplier-management/supplier-management.component').then((m) => m.SupplierManagementComponent),
+          import('./supplier-management/supplier-management.component').then((m) => m.SupplierManagementComponent),
       },
       {
         path: 'workflow-configuration',
         title: 'Workflow Configuration',
         loadComponent: () =>
-          import('./pages/workflow-configuration/workflow-configuration.component').then((m) => m.WorkflowConfigurationComponent),
+          import('./workflow-configuration/workflow-configuration.component').then((m) => m.WorkflowConfigurationComponent),
       },
       {
         path: 'document-templates',
         title: 'Document Templates',
         loadComponent: () =>
-          import('./pages/document-templates/document-templates.component').then((m) => m.DocumentTemplatesComponent),
+          import('./document-templates/document-templates.component').then((m) => m.DocumentTemplatesComponent),
       },
       {
         path: 'system-integrations',
         title: 'System Integrations',
         loadComponent: () =>
-          import('./pages/system-integrations/system-integrations.component').then((m) => m.SystemIntegrationsComponent),
+          import('./system-integrations/system-integrations.component').then((m) => m.SystemIntegrationsComponent),
       },
       {
         path: 'audit-logs',
         title: 'Audit Logs',
-        loadComponent: () => import('./pages/audit-logs/audit-logs.component').then((m) => m.AuditLogsComponent),
+        loadComponent: () => import('./audit-logs/audit-logs.component').then((m) => m.AuditLogsComponent),
       },
       {
         path: 'system-settings',
         title: 'System Settings',
         loadComponent: () =>
-          import('./pages/system-settings/system-settings.component').then((m) => m.SystemSettingsComponent),
+          import('./system-settings/system-settings.component').then((m) => m.SystemSettingsComponent),
       },
     ],
   },

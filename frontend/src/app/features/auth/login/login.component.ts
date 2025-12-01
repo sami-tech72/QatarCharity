@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { LoginRequest } from '../../../shared/models/auth.models';
+import { LoginRequest } from '../../../shared/models/user.model';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
