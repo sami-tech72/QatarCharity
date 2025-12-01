@@ -1,18 +1,39 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+
+interface SettingToggle {
+  label: string;
+  description: string;
+  enabled: boolean;
+}
 
 @Component({
   selector: 'app-system-settings-page',
   standalone: true,
-  template: `
-    <section class="card shadow-sm border-0">
-      <div class="card-body py-10">
-        <h2 class="fw-bold mb-4">System Settings</h2>
-        <p class="text-muted mb-0">
-          Adjust platform defaults, environment variables, and feature flags to
-          align the experience with organizational standards.
-        </p>
-      </div>
-    </section>
-  `,
+  imports: [CommonModule],
+  templateUrl: './system-settings.component.html',
+  styleUrl: './system-settings.component.scss',
 })
-export class SystemSettingsComponent {}
+export class SystemSettingsComponent {
+  toggles: SettingToggle[] = [
+    {
+      label: 'Require MFA for all administrators',
+      description: 'Enforce time-based one-time passwords for console access.',
+      enabled: true,
+    },
+    {
+      label: 'Send weekly operational digest',
+      description: 'Email key metrics and SLA summaries to platform owners.',
+      enabled: true,
+    },
+    {
+      label: 'Auto-archive inactive requests',
+      description: 'Move inactive items to cold storage after 180 days.',
+      enabled: false,
+    },
+  ];
+
+  trackByLabel(_: number, toggle: SettingToggle): string {
+    return toggle.label;
+  }
+}

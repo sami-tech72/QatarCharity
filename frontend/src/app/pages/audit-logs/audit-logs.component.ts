@@ -1,18 +1,29 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+
+interface AuditLog {
+  actor: string;
+  action: string;
+  target: string;
+  timestamp: string;
+}
 
 @Component({
   selector: 'app-audit-logs-page',
   standalone: true,
-  template: `
-    <section class="card shadow-sm border-0">
-      <div class="card-body py-10">
-        <h2 class="fw-bold mb-4">Audit Logs</h2>
-        <p class="text-muted mb-0">
-          Explore immutable activity logs to trace decisions, approvals, and
-          changes for compliance reviews.
-        </p>
-      </div>
-    </section>
-  `,
+  imports: [CommonModule],
+  templateUrl: './audit-logs.component.html',
+  styleUrl: './audit-logs.component.scss',
 })
-export class AuditLogsComponent {}
+export class AuditLogsComponent {
+  logs: AuditLog[] = [
+    { actor: 'Jane Cooper', action: 'Updated role', target: 'Robert Fox → Reviewer', timestamp: '5 minutes ago' },
+    { actor: 'Devon Lane', action: 'Exported audit trail', target: 'Last 30 days', timestamp: '22 minutes ago' },
+    { actor: 'Courtney Henry', action: 'Acknowledged policy', target: 'Document retention', timestamp: '1 hour ago' },
+    { actor: 'Robert Fox', action: 'Signed document', target: 'Supplier contract renewal', timestamp: '3 hours ago' },
+  ];
+
+  trackByTimestamp(_: number, log: AuditLog): string {
+    return log.timestamp + log.actor;
+  }
+}

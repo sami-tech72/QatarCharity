@@ -1,0 +1,71 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow text-uppercase">Partners</p>
+    <h1 class="page-title">Supplier management</h1>
+    <p class="lead text-muted">Track strategic suppliers, monitor spend, and surface relationship health.</p>
+  </div>
+  <button class="btn btn-primary">Add supplier</button>
+</section>
+
+<section class="grid two-up">
+  <article class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Supplier portfolio</h2>
+      <button class="btn btn-outline-secondary btn-sm">Export list</button>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Supplier</th>
+            <th scope="col">Category</th>
+            <th scope="col">Health</th>
+            <th scope="col" class="text-end">Quarter spend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let supplier of suppliers; trackBy: trackByName">
+            <td class="fw-semibold">{{ supplier.name }}</td>
+            <td>{{ supplier.category }}</td>
+            <td>
+              <span
+                class="badge"
+                [ngClass]="{
+                  'bg-success-subtle text-success-emphasis': supplier.health === 'Good',
+                  'bg-warning-subtle text-warning-emphasis': supplier.health === 'Attention',
+                  'bg-info-subtle text-info-emphasis': supplier.health === 'Review'
+                }"
+                >{{ supplier.health }}</span
+              >
+            </td>
+            <td class="text-end fw-semibold">{{ supplier.spend }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="panel accent">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow text-uppercase">Observations</p>
+        <h2 class="panel-title">Relationship notes</h2>
+      </div>
+      <span class="badge bg-primary-subtle text-primary-emphasis">Quarterly</span>
+    </div>
+    <ul class="notes">
+      <li>
+        <div class="note-title">Rebid logistics contract</div>
+        <p class="text-muted mb-0">Request for proposal drafts due next week; shortlist three providers.</p>
+      </li>
+      <li>
+        <div class="note-title">Supplier scorecards</div>
+        <p class="text-muted mb-0">Performance scorecards will be refreshed after the March SLA review.</p>
+      </li>
+      <li>
+        <div class="note-title">Diversity reporting</div>
+        <p class="text-muted mb-0">Collect updated ESG attestations before onboarding new vendors.</p>
+      </li>
+    </ul>
+  </article>
+</section>

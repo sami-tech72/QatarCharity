@@ -1,18 +1,28 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+
+interface TemplateCard {
+  title: string;
+  category: string;
+  updated: string;
+}
 
 @Component({
   selector: 'app-document-templates-page',
   standalone: true,
-  template: `
-    <section class="card shadow-sm border-0">
-      <div class="card-body py-10">
-        <h2 class="fw-bold mb-4">Document Templates</h2>
-        <p class="text-muted mb-0">
-          Maintain reusable templates for proposals, agreements, and reviews so
-          teams generate consistent documentation quickly.
-        </p>
-      </div>
-    </section>
-  `,
+  imports: [CommonModule],
+  templateUrl: './document-templates.component.html',
+  styleUrl: './document-templates.component.scss',
 })
-export class DocumentTemplatesComponent {}
+export class DocumentTemplatesComponent {
+  templates: TemplateCard[] = [
+    { title: 'Procurement request', category: 'Operations', updated: 'Updated 1 day ago' },
+    { title: 'Vendor onboarding', category: 'Compliance', updated: 'Updated 6 days ago' },
+    { title: 'Travel advance', category: 'Finance', updated: 'Updated 2 weeks ago' },
+    { title: 'Project charter', category: 'Projects', updated: 'Updated 1 month ago' },
+  ];
+
+  trackByTitle(_: number, template: TemplateCard): string {
+    return template.title;
+  }
+}
