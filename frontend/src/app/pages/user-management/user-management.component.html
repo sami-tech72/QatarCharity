@@ -1,0 +1,44 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow text-uppercase">Access control</p>
+    <h1 class="page-title">User management</h1>
+    <p class="lead text-muted">Invite teammates, assign roles, and review recent account activity.</p>
+  </div>
+  <div class="btn-group gap-2">
+    <button class="btn btn-outline-secondary">Import CSV</button>
+    <button class="btn btn-primary">Invite user</button>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Role</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="text-end">Last active</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users; trackBy: trackByName">
+          <td class="fw-semibold">{{ user.name }}</td>
+          <td>{{ user.role }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'bg-success-subtle text-success-emphasis': user.status === 'Active',
+                'bg-warning-subtle text-warning-emphasis': user.status === 'Invited',
+                'bg-danger-subtle text-danger-emphasis': user.status === 'Suspended'
+              }"
+              >{{ user.status }}</span
+            >
+          </td>
+          <td class="text-end text-muted">{{ user.lastActive }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

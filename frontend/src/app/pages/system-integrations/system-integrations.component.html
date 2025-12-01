@@ -1,0 +1,32 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow text-uppercase">Connectivity</p>
+    <h1 class="page-title">System integrations</h1>
+    <p class="lead text-muted">Manage authentication, data syncs, and notifications across connected systems.</p>
+  </div>
+  <button class="btn btn-primary">Add integration</button>
+</section>
+
+<section class="grid two-up">
+  <article class="panel" *ngFor="let integration of integrations; trackBy: trackByName">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow text-uppercase">{{ integration.status }}</p>
+        <h2 class="panel-title">{{ integration.name }}</h2>
+      </div>
+      <span
+        class="badge"
+        [ngClass]="{
+          'bg-success-subtle text-success-emphasis': integration.status === 'Connected',
+          'bg-warning-subtle text-warning-emphasis': integration.status === 'Action required'
+        }"
+        >{{ integration.status }}</span
+      >
+    </div>
+    <p class="text-muted mb-3">{{ integration.detail }}</p>
+    <div class="actions">
+      <button class="btn btn-outline-secondary btn-sm">Settings</button>
+      <button class="btn btn-primary btn-sm">Sync now</button>
+    </div>
+  </article>
+</section>
