@@ -1,3 +1,4 @@
+using Api.Models;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,37 +13,43 @@ public class SummaryController : ControllerBase
 {
     [Authorize(Roles = Roles.Admin)]
     [HttpGet("admin/summary")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult<object> GetAdminSummary()
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public ActionResult<ApiResponse<object>> GetAdminSummary()
     {
-        return Ok(new
+        var summary = new
         {
             Message = "Welcome, Admin",
             Timestamp = DateTimeOffset.UtcNow
-        });
+        };
+
+        return Ok(ApiResponse<object>.Ok(summary, "Summary retrieved successfully."));
     }
 
     [Authorize(Roles = Roles.Procurement)]
     [HttpGet("procurement/summary")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult<object> GetProcurementSummary()
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public ActionResult<ApiResponse<object>> GetProcurementSummary()
     {
-        return Ok(new
+        var summary = new
         {
             Message = "Welcome, Procurement",
             Timestamp = DateTimeOffset.UtcNow
-        });
+        };
+
+        return Ok(ApiResponse<object>.Ok(summary, "Summary retrieved successfully."));
     }
 
     [Authorize(Roles = Roles.Supplier)]
     [HttpGet("supplier/summary")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult<object> GetSupplierSummary()
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public ActionResult<ApiResponse<object>> GetSupplierSummary()
     {
-        return Ok(new
+        var summary = new
         {
             Message = "Welcome, Supplier",
             Timestamp = DateTimeOffset.UtcNow
-        });
+        };
+
+        return Ok(ApiResponse<object>.Ok(summary, "Summary retrieved successfully."));
     }
 }

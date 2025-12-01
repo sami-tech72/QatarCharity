@@ -1,3 +1,4 @@
+using Api.Models;
 using Application.Interfaces.Authentication;
 using Application.DTOs.Authentication;
 using Domain.Entities;
@@ -29,22 +30,26 @@ public class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
-    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<LoginResponse>> Login(LoginRequest request)
+    [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ApiResponse<LoginResponse>>> Login(LoginRequest request)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
 
         if (user is null)
         {
-            return Unauthorized();
+            return Unauthorized(ApiResponse<object>.Fail(
+                "Invalid email or password.",
+                errorCode: "auth_invalid_credentials"));
         }
 
         var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
 
         if (!signInResult.Succeeded)
         {
-            return Unauthorized();
+            return Unauthorized(ApiResponse<object>.Fail(
+                "Invalid email or password.",
+                errorCode: "auth_invalid_credentials"));
         }
 
         var roles = await _userManager.GetRolesAsync(user);
@@ -57,6 +62,6 @@ public class AuthController : ControllerBase
             Token: tokenResult.Token,
             ExpiresAt: tokenResult.ExpiresAt);
 
-        return Ok(response);
+        return Ok(ApiResponse<LoginResponse>.Ok(response, "Login successful."));
     }
 }

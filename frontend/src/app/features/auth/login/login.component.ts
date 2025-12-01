@@ -50,8 +50,9 @@ export class LoginComponent {
         const path = this.authService.defaultPathForRole(session.role);
         this.router.navigateByUrl(path);
       },
-      error: () => {
-        this.errorMessage = 'Invalid email or password.';
+      error: (error) => {
+        const serverMessage = error?.error?.message ?? error?.message;
+        this.errorMessage = serverMessage || 'Invalid email or password.';
         this.isSubmitting = false;
       },
       complete: () => {

@@ -1,15 +1,16 @@
 export type UserRole = 'Admin' | 'Procurement' | 'Supplier';
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface LoginResponse {
-  token: string;
+  email: string;
+  displayName: string;
   role: UserRole;
-  username?: string;
-  expiresAt?: string;
+  token: string;
+  expiresAt: string;
 }
 
 export interface UserSession extends LoginResponse {}

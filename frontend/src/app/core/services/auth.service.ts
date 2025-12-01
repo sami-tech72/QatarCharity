@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
 import { UserRole, LoginRequest, LoginResponse, UserSession } from '../../shared/models/user.model';
 import { ApiService } from './api.service';
+import { ApiResponse } from '../../shared/models/api-response.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -22,9 +23,16 @@ export class AuthService {
     private readonly router: Router,
   ) {}
 
-  login(request: LoginRequest): Observable<LoginResponse> {
+  login(request: LoginRequest): Observable<UserSession> {
     return this.api.post<LoginResponse>('auth/login', request).pipe(
-      tap((response) => this.persistSession(response)),
+      map((response: ApiResponse<LoginResponse>) => {
+        if (!response.success || !response.data) {
+          throw new Error(response.message || 'Login failed.');
+        }
+
+        return response.data;
+      }),
+      tap((session) => this.persistSession(session)),
     );
   }
 
@@ -48,11 +56,7 @@ export class AuthService {
     return map[role];
   }
 
-  private persistSession(response: LoginResponse) {
-    const session: UserSession = {
-      ...response,
-    };
-
+  private persistSession(session: UserSession) {
     localStorage.setItem(this.storageKey, JSON.stringify(session));
     this.sessionSubject.next(session);
   }

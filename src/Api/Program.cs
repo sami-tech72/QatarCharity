@@ -1,3 +1,4 @@
+using Api.Middleware;
 using Api.Configurations;
 using Application;
 using Infrastructure;
@@ -38,6 +39,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseCors(CorsPolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
