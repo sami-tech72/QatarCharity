@@ -1,10 +1,10 @@
-using Api.Endpoints;
 using Api.Extensions;
 using Persistence;
 using Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddPersistence(builder.Configuration);
@@ -25,8 +25,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-var api = app.MapGroup("/api");
-api.MapAuthenticationEndpoints();
-api.MapSummaryEndpoints();
+app.MapControllers();
 
 app.Run();
