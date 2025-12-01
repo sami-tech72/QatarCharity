@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 import { SidebarComponent, SidebarMenuItem } from './sidebar/sidebar.component';
@@ -17,7 +17,6 @@ import { UserRole, UserSession } from '../../shared/models/user.model';
     CommonModule,
     RouterOutlet,
     RouterLink,
-    RouterLinkActive,
     SidebarComponent,
   ],
   templateUrl: './layout.component.html',
