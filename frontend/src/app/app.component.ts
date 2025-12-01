@@ -9,10 +9,24 @@ import {
 } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
+import {
+  SidebarComponent,
+  SidebarMenuItem,
+  SidebarRole,
+} from './components/sidebar/sidebar.component';
+import { adminSidebarMenu } from './roles/admin/menu';
+import { procurementSidebarMenu } from './roles/procurement/menu';
+import { supplierSidebarMenu } from './roles/supplier/menu';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    SidebarComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -21,36 +35,19 @@ export class AppComponent {
 
   activePageTitle = 'Dashboard';
 
-  readonly sidebarMenu = [
-    { title: 'Dashboard', icon: 'ki-duotone ki-element-11 fs-2', path: '/dashboard' },
-    { title: 'User Management', icon: 'ki-duotone ki-people fs-2', path: '/user-management' },
-    {
-      title: 'Supplier Management',
-      icon: 'ki-duotone ki-briefcase fs-2',
-      path: '/supplier-management',
-    },
-    {
-      title: 'Workflow Configuration',
-      icon: 'ki-duotone ki-setting-3 fs-2',
-      path: '/workflow-configuration',
-    },
-    {
-      title: 'Document Templates',
-      icon: 'ki-duotone ki-folder fs-2',
-      path: '/document-templates',
-    },
-    {
-      title: 'System Integrations',
-      icon: 'ki-duotone ki-abstract-33 fs-2',
-      path: '/system-integrations',
-    },
-    { title: 'Audit Logs', icon: 'ki-duotone ki-shield-search fs-2', path: '/audit-logs' },
-    {
-      title: 'System Settings',
-      icon: 'ki-duotone ki-setting-2 fs-2',
-      path: '/system-settings',
-    },
-  ];
+  readonly sidebarMenus: Record<SidebarRole, SidebarMenuItem[]> = {
+    Admin: adminSidebarMenu,
+    Procurement: procurementSidebarMenu,
+    Supplier: supplierSidebarMenu,
+  } as const;
+
+  readonly roles: SidebarRole[] = Object.keys(this.sidebarMenus) as SidebarRole[];
+
+  currentRole: SidebarRole = 'Admin';
+
+  get sidebarMenu() {
+    return this.sidebarMenus[this.currentRole];
+  }
 
   constructor(private readonly router: Router, destroyRef: DestroyRef) {
     this.router.events
@@ -58,9 +55,30 @@ export class AppComponent {
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         takeUntilDestroyed(destroyRef),
       )
-      .subscribe(({ urlAfterRedirects }) => {
-        const match = this.sidebarMenu.find((item) => urlAfterRedirects.startsWith(item.path));
-        this.activePageTitle = match?.title ?? this.sidebarMenu[0].title;
-      });
+      .subscribe(({ urlAfterRedirects }) => this.updateActivePageTitle(urlAfterRedirects));
+  }
+
+  setRole(role: SidebarRole) {
+    if (this.currentRole === role) {
+      return;
+    }
+
+    this.currentRole = role;
+    const activeUrl = this.router.url;
+    const match = this.sidebarMenu.find((item) => activeUrl.startsWith(item.path));
+
+    if (!match) {
+      const [firstItem] = this.sidebarMenu;
+      this.activePageTitle = firstItem.title;
+      this.router.navigateByUrl(firstItem.path);
+      return;
+    }
+
+    this.activePageTitle = match.title;
+  }
+
+  private updateActivePageTitle(url: string) {
+    const match = this.sidebarMenu.find((item) => url.startsWith(item.path));
+    this.activePageTitle = match?.title ?? this.sidebarMenu[0].title;
   }
 }
