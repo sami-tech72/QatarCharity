@@ -1,5 +1,8 @@
 export interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  success?: boolean;
+  success: boolean;
+  message: string;
+  data?: T;
+  errorCode?: string;
+  details?: Record<string, unknown>;
+  timestamp: string;
 }
