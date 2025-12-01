@@ -1,5 +1,6 @@
 using Api.Configurations;
 using Application;
+using Infrastructure;
 using Persistence;
 using Persistence.Seed;
 

@@ -1,3 +1,4 @@
+using Application.DTOs.Authentication;
 using Domain.Entities;
 
 namespace Application.Interfaces.Authentication;
