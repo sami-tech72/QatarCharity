@@ -1,4 +1,4 @@
-namespace Api.Contracts.Authentication;
+namespace Application.DTOs.Authentication;
 
 public record LoginResponse(
     string Email,

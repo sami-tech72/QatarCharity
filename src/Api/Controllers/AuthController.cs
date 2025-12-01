@@ -1,5 +1,5 @@
-using Api.Contracts.Authentication;
 using Application.Interfaces.Authentication;
+using Application.DTOs.Authentication;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
