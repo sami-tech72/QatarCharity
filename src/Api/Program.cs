@@ -1,44 +1,92 @@
+using Application.Auth;
+using Domain.Users;
+using Infrastructure.Auth;
+using Microsoft.EntityFrameworkCore;
+using Persistence;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DevelopmentCors", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+builder.Services.AddDbContext<AuthDbContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseSqlServer(connectionString);
+});
+
+builder.Services.AddScoped<IAuthService, SqlAuthService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+
+    await db.Database.EnsureCreatedAsync();
+
+    if (!await db.UserAccounts.AnyAsync())
+    {
+        db.UserAccounts.AddRange(
+            new UserAccount
+            {
+                Username = "admin",
+                Password = "password123",
+                DisplayName = "Admin User",
+                Role = "Admin",
+            },
+            new UserAccount
+            {
+                Username = "procurement",
+                Password = "procure!23",
+                DisplayName = "Procurement Lead",
+                Role = "Procurement",
+            },
+            new UserAccount
+            {
+                Username = "supplier",
+                Password = "supply!23",
+                DisplayName = "Supplier Partner",
+                Role = "Supplier",
+            });
+
+        await db.SaveChangesAsync();
+    }
+}
+
 app.UseHttpsRedirection();
+app.UseCors("DevelopmentCors");
 
-var summaries = new[]
+app.MapPost("/api/auth/login", async (LoginRequest request, IAuthService authService) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+    {
+        return Results.BadRequest(new { message = "Username and password are required." });
+    }
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    var result = await authService.AuthenticateAsync(request);
+
+    return result is null
+        ? Results.BadRequest(new { message = "Invalid username or password." })
+        : Results.Ok(result);
 })
-.WithName("GetWeatherForecast")
+.WithName("Login")
 .WithOpenApi();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

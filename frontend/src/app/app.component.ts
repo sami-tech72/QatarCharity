@@ -4,7 +4,6 @@ import {
   NavigationEnd,
   Router,
   RouterLink,
-  RouterLinkActive,
   RouterOutlet,
 } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -24,7 +23,6 @@ import { supplierSidebarMenu } from './roles/supplier/menu';
     CommonModule,
     RouterOutlet,
     RouterLink,
-    RouterLinkActive,
     SidebarComponent,
   ],
   templateUrl: './app.component.html',
@@ -44,12 +42,14 @@ export class AppComponent {
   readonly roles: SidebarRole[] = Object.keys(this.sidebarMenus) as SidebarRole[];
 
   currentRole: SidebarRole = 'Admin';
+  isLoginRoute = false;
 
   get sidebarMenu() {
     return this.sidebarMenus[this.currentRole];
   }
 
   constructor(private readonly router: Router, destroyRef: DestroyRef) {
+    this.updateActivePageTitle(this.router.url);
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -78,7 +78,15 @@ export class AppComponent {
   }
 
   private updateActivePageTitle(url: string) {
-    const match = this.sidebarMenu.find((item) => url.startsWith(item.path));
+    const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+    this.isLoginRoute = normalizedUrl.startsWith('/login');
+
+    if (this.isLoginRoute) {
+      this.activePageTitle = 'Login';
+      return;
+    }
+
+    const match = this.sidebarMenu.find((item) => normalizedUrl.startsWith(item.path));
     this.activePageTitle = match?.title ?? this.sidebarMenu[0].title;
   }
 }

@@ -1,3 +1,4 @@
+<ng-container *ngIf="!isLoginRoute; else authPage">
 <!--begin::App-->
 <div class="d-flex flex-column flex-root app-root" id="kt_app_root">
   <!--begin::Page-->
@@ -533,3 +534,9 @@
   </i>
 </div>
 <!--end::Scrolltop-->
+<!-- Layout fallback for authentication pages -->
+</ng-container>
+
+<ng-template #authPage>
+  <router-outlet />
+</ng-template>
