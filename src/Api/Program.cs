@@ -1,8 +1,9 @@
 using Application.Auth;
-using Domain.Users;
 using Infrastructure.Auth;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
+using Persistence.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,24 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseSqlServer(connectionString);
 });
 
-builder.Services.AddScoped<IAuthService, SqlAuthService>();
+builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
+builder.Services.AddAuthorization();
+
+builder.Services
+    .AddIdentityCore<ApplicationUser>(options =>
+    {
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireDigit = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequiredLength = 6;
+    })
+    .AddRoles<IdentityRole>()
+    .AddSignInManager()
+    .AddEntityFrameworkStores<AuthDbContext>()
+    .AddApiEndpoints();
+
+builder.Services.AddScoped<IAuthService, IdentityAuthService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -38,40 +56,26 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-
     await db.Database.EnsureCreatedAsync();
 
-    if (!await db.UserAccounts.AnyAsync())
-    {
-        db.UserAccounts.AddRange(
-            new UserAccount
-            {
-                Username = "admin",
-                Password = "password123",
-                DisplayName = "Admin User",
-                Role = "Admin",
-            },
-            new UserAccount
-            {
-                Username = "procurement",
-                Password = "procure!23",
-                DisplayName = "Procurement Lead",
-                Role = "Procurement",
-            },
-            new UserAccount
-            {
-                Username = "supplier",
-                Password = "supply!23",
-                DisplayName = "Supplier Partner",
-                Role = "Supplier",
-            });
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        await db.SaveChangesAsync();
-    }
+    await EnsureRoleAsync(roleManager, "Admin");
+    await EnsureRoleAsync(roleManager, "Procurement");
+    await EnsureRoleAsync(roleManager, "Supplier");
+
+    await EnsureUserAsync(userManager, "admin", "Admin User", "password123", "Admin");
+    await EnsureUserAsync(userManager, "procurement", "Procurement Lead", "procure!23", "Procurement");
+    await EnsureUserAsync(userManager, "supplier", "Supplier Partner", "supply!23", "Supplier");
 }
 
 app.UseHttpsRedirection();
 app.UseCors("DevelopmentCors");
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapGroup("/api/auth").MapIdentityApi<ApplicationUser>();
 
 app.MapPost("/api/auth/login", async (LoginRequest request, IAuthService authService) =>
 {
@@ -90,3 +94,34 @@ app.MapPost("/api/auth/login", async (LoginRequest request, IAuthService authSer
 .WithOpenApi();
 
 app.Run();
+
+static async Task EnsureRoleAsync(RoleManager<IdentityRole> roleManager, string roleName)
+{
+    if (!await roleManager.RoleExistsAsync(roleName))
+    {
+        await roleManager.CreateAsync(new IdentityRole(roleName));
+    }
+}
+
+static async Task EnsureUserAsync(UserManager<ApplicationUser> userManager, string username, string displayName, string password, string role)
+{
+    var existing = await userManager.FindByNameAsync(username);
+    if (existing is not null)
+    {
+        return;
+    }
+
+    var user = new ApplicationUser
+    {
+        UserName = username,
+        Email = $"{username}@example.com",
+        DisplayName = displayName,
+        EmailConfirmed = true,
+    };
+
+    var result = await userManager.CreateAsync(user, password);
+    if (result.Succeeded)
+    {
+        await userManager.AddToRoleAsync(user, role);
+    }
+}
