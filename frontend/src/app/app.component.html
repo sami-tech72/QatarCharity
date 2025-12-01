@@ -1,3 +1,4 @@
+<ng-container *ngIf="isAuthenticated; else authRoutes">
 <!--begin::App-->
 <div class="d-flex flex-column flex-root app-root" id="kt_app_root">
   <!--begin::Page-->
@@ -435,11 +436,9 @@
                 <!--end::Menu item-->
                 <!--begin::Menu item-->
                 <div class="menu-item px-5">
-                  <a
-                    href="../../demo1/dist/authentication/layouts/corporate/sign-in.html"
-                    class="menu-link px-5"
-                    >Sign Out</a
-                  >
+                  <button type="button" class="menu-link px-5 w-100 text-start" (click)="logout()">
+                    Sign Out
+                  </button>
                 </div>
                 <!--end::Menu item-->
               </div>
@@ -478,7 +477,7 @@
         [currentRole]="currentRole"
         [menuItems]="sidebarMenu"
         [roles]="roles"
-        (roleChange)="setRole($event)"
+        (roleChange)="onRoleChange($event)"
       ></app-sidebar>
       <!--end::Sidebar-->
       <!--begin::Main-->
@@ -533,3 +532,8 @@
   </i>
 </div>
 <!--end::Scrolltop-->
+</ng-container>
+
+<ng-template #authRoutes>
+  <router-outlet />
+</ng-template>
