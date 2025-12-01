@@ -7,12 +7,12 @@ import {
   SidebarComponent,
   SidebarMenuItem,
   SidebarRole,
-} from './components/sidebar/sidebar.component';
-import { adminSidebarMenu } from './roles/admin/menu';
-import { procurementSidebarMenu } from './roles/procurement/menu';
-import { supplierSidebarMenu } from './roles/supplier/menu';
-import { AuthService } from './auth/auth.service';
-import { UserSession } from './auth/auth.models';
+} from './shared/components/sidebar/sidebar.component';
+import { adminSidebarMenu } from './features/admin/models/menu';
+import { procurementSidebarMenu } from './features/procurement/models/menu';
+import { supplierSidebarMenu } from './features/supplier/models/menu';
+import { AuthService } from './core/services/auth.service';
+import { UserSession } from './shared/models/auth.models';
 
 @Component({
   selector: 'app-root',

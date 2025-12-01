@@ -2,11 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { adminSidebarMenu } from '../roles/admin/menu';
-import { procurementSidebarMenu } from '../roles/procurement/menu';
-import { supplierSidebarMenu } from '../roles/supplier/menu';
-import { SidebarRole } from '../components/sidebar/sidebar.component';
-import { LoginRequest, LoginResponse, UserSession } from './auth.models';
+import { adminSidebarMenu } from '../../features/admin/models/menu';
+import { procurementSidebarMenu } from '../../features/procurement/models/menu';
+import { supplierSidebarMenu } from '../../features/supplier/models/menu';
+import { SidebarRole } from '../../shared/components/sidebar/sidebar.component';
+import { LoginRequest, LoginResponse, UserSession } from '../../shared/models/auth.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

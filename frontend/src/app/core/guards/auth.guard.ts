@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanMatchFn, Router } from '@angular/router';
-import { SidebarRole } from '../components/sidebar/sidebar.component';
-import { AuthService } from './auth.service';
+import { SidebarRole } from '../../shared/components/sidebar/sidebar.component';
+import { AuthService } from '../services/auth.service';
 
 export const authGuard: CanMatchFn = (route) => {
   const authService = inject(AuthService);

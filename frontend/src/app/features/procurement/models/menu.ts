@@ -1,4 +1,4 @@
-import { SidebarMenuItem } from '../../components/sidebar/sidebar.component';
+import { SidebarMenuItem } from '../../../shared/components/sidebar/sidebar.component';
 
 export const procurementSidebarMenu: SidebarMenuItem[] = [
   { title: 'Dashboard', icon: 'ki-duotone ki-element-11 fs-2', path: '/procurement/dashboard' },
