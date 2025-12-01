@@ -14,6 +14,9 @@ import {
   SidebarMenuItem,
   SidebarRole,
 } from './components/sidebar/sidebar.component';
+import { adminSidebarMenu } from './roles/admin/menu';
+import { procurementSidebarMenu } from './roles/procurement/menu';
+import { supplierSidebarMenu } from './roles/supplier/menu';
 
 @Component({
   selector: 'app-root',
@@ -33,56 +36,9 @@ export class AppComponent {
   activePageTitle = 'Dashboard';
 
   readonly sidebarMenus: Record<SidebarRole, SidebarMenuItem[]> = {
-    Admin: [
-      { title: 'Dashboard', icon: 'ki-duotone ki-element-11 fs-2', path: '/dashboard' },
-      { title: 'User Management', icon: 'ki-duotone ki-people fs-2', path: '/user-management' },
-      {
-        title: 'Supplier Management',
-        icon: 'ki-duotone ki-briefcase fs-2',
-        path: '/supplier-management',
-      },
-      {
-        title: 'Workflow Configuration',
-        icon: 'ki-duotone ki-setting-3 fs-2',
-        path: '/workflow-configuration',
-      },
-      {
-        title: 'Document Templates',
-        icon: 'ki-duotone ki-folder fs-2',
-        path: '/document-templates',
-      },
-      {
-        title: 'System Integrations',
-        icon: 'ki-duotone ki-abstract-33 fs-2',
-        path: '/system-integrations',
-      },
-      { title: 'Audit Logs', icon: 'ki-duotone ki-shield-search fs-2', path: '/audit-logs' },
-      {
-        title: 'System Settings',
-        icon: 'ki-duotone ki-setting-2 fs-2',
-        path: '/system-settings',
-      },
-    ],
-    Procurement: [
-      { title: 'Dashboard', icon: 'ki-duotone ki-element-11 fs-2', path: '/dashboard' },
-      { title: 'RFx Management', icon: 'ki-duotone ki-row-horizontal fs-2', path: '/rfx-management' },
-      { title: 'Bid Evaluation', icon: 'ki-duotone ki-abstract-44 fs-2', path: '/bid-evaluation' },
-      { title: 'Tender Committee', icon: 'ki-duotone ki-people fs-2', path: '/tender-committee' },
-      { title: 'Contract Management', icon: 'ki-duotone ki-file-added fs-2', path: '/contract-management' },
-      { title: 'Supplier Performance', icon: 'ki-duotone ki-activity fs-2', path: '/supplier-performance' },
-      { title: 'Reports & Analytics', icon: 'ki-duotone ki-chart-line-up fs-2', path: '/reports-analytics' },
-      { title: 'Settings', icon: 'ki-duotone ki-setting-2 fs-2', path: '/settings' },
-    ],
-    Supplier: [
-      { title: 'Dashboard', icon: 'ki-duotone ki-element-11 fs-2', path: '/dashboard' },
-      { title: 'Available Tenders', icon: 'ki-duotone ki-search-list fs-2', path: '/available-tenders' },
-      { title: 'My Bids', icon: 'ki-duotone ki-send fs-2', path: '/my-bids' },
-      { title: 'My Contracts', icon: 'ki-duotone ki-folder-up fs-2', path: '/my-contracts' },
-      { title: 'Performance', icon: 'ki-duotone ki-chart-line-up fs-2', path: '/performance' },
-      { title: 'Company Profile', icon: 'ki-duotone ki-profile-user fs-2', path: '/company-profile' },
-      { title: 'Documents', icon: 'ki-duotone ki-file-up fs-2', path: '/documents' },
-      { title: 'Settings', icon: 'ki-duotone ki-setting-2 fs-2', path: '/settings' },
-    ],
+    Admin: adminSidebarMenu,
+    Procurement: procurementSidebarMenu,
+    Supplier: supplierSidebarMenu,
   } as const;
 
   readonly roles: SidebarRole[] = Object.keys(this.sidebarMenus) as SidebarRole[];

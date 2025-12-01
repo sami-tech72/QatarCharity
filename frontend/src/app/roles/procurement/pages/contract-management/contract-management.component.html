@@ -1,0 +1,11 @@
+<div class="role-page container py-10">
+  <div class="card shadow-sm">
+    <div class="card-body p-8">
+      <h2 class="fs-1 fw-semibold mb-4">Contract Management</h2>
+      <p class="text-muted">Track contract versions, signature status, and renewal timelines.</p>
+      <div class="d-flex flex-wrap gap-3 mt-6">
+        <span class="badge badge-light-warning px-4 py-3" *ngFor="let status of statusBadges">{{ status }}</span>
+      </div>
+    </div>
+  </div>
+</div>
