@@ -1,13 +1,23 @@
 import { Routes } from '@angular/router';
-import { adminRoutes } from './roles/admin/admin.routes';
-import { procurementRoutes } from './roles/procurement/procurement.routes';
-import { supplierRoutes } from './roles/supplier/supplier.routes';
+import { authGuard } from './core/guards/auth.guard';
+import { UserRole } from './shared/models/user.model';
+import { authRoutes } from './features/auth/auth.routes';
+import { adminRoutes } from './features/admin/admin.routes';
+import { procurementRoutes } from './features/procurement/procurement.routes';
+import { supplierRoutes } from './features/supplier/supplier.routes';
+
+const withGuard = (role: UserRole, routes: Routes): Routes =>
+  routes.map((route) => ({
+    ...route,
+    canMatch: [...(route.canMatch ?? []), authGuard],
+    data: { ...(route.data ?? {}), role },
+  }));
 
 export const routes: Routes = [
-  ...adminRoutes,
-  ...procurementRoutes,
-  ...supplierRoutes,
-  { path: '', pathMatch: 'full', redirectTo: 'admin/dashboard' },
-  { path: 'dashboard', redirectTo: 'admin/dashboard', pathMatch: 'full' },
-  { path: '**', redirectTo: 'admin/dashboard' },
+  ...authRoutes,
+  ...withGuard('Admin', adminRoutes),
+  ...withGuard('Procurement', procurementRoutes),
+  ...withGuard('Supplier', supplierRoutes),
+  { path: '', pathMatch: 'full', redirectTo: 'login' },
+  { path: '**', redirectTo: 'login' },
 ];

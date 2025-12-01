@@ -1,0 +1,41 @@
+<div class="auth-wrapper d-flex align-items-center justify-content-center min-vh-100">
+  <div class="card shadow-sm auth-card">
+    <div class="card-body p-5">
+      <h2 class="fw-bold mb-4 text-center">Sign in</h2>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="d-flex flex-column gap-3">
+        <div>
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" formControlName="email" placeholder="user@qcharity.test" />
+          <div class="text-danger mt-1" *ngIf="form.controls.email.touched && form.controls.email.invalid">
+            A valid email is required.
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" formControlName="password" placeholder="P@ssw0rd!" />
+          <div class="text-danger mt-1" *ngIf="form.controls.password.touched && form.controls.password.invalid">
+            Password is required.
+          </div>
+        </div>
+
+        <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+        <button class="btn btn-primary w-100" type="submit" [disabled]="isSubmitting">
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          Sign in
+        </button>
+
+        <div class="alert alert-secondary small" role="note">
+          <div class="fw-semibold mb-2">Demo accounts</div>
+          <ul class="mb-0">
+            <li><strong>Admin:</strong> admin&#64;qcharity.test / P&#64;ssw0rd!</li>
+            <li><strong>Procurement:</strong> procurement&#64;qcharity.test / P&#64;ssw0rd!</li>
+            <li><strong>Supplier:</strong> supplier&#64;qcharity.test / P&#64;ssw0rd!</li>
+          </ul>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

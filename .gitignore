@@ -78,10 +78,6 @@ pnpm-lock.yaml
 frontend/.vscode/
 .vscode/
 
-# Angular environment files
-frontend/src/environments/environment.ts
-frontend/src/environments/environment.prod.ts
-frontend/src/environments/*.ts
 
 ##############################
 # GENERAL IDE / EDITOR
