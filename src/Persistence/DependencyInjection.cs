@@ -11,8 +11,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
+        var connectionString = configuration.GetConnectionString("Default");
+
         services.AddDbContext<AppDbContext>(options =>
-            options.UseInMemoryDatabase("QatarCharityDb"));
+            options.UseSqlServer(connectionString, builder =>
+                builder.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 
         services
             .AddIdentity<ApplicationUser, IdentityRole>(options =>
