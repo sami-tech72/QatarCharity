@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Collections.Generic;
 using Application.DTOs.Authentication;
 using Application.Interfaces.Authentication;
 using Domain.Entities;
@@ -13,7 +14,7 @@ public class JwtTokenService(IOptions<JwtSettings> settings) : IJwtTokenService
 {
     private readonly JwtSettings _settings = settings.Value;
 
-    public JwtTokenResult CreateToken(ApplicationUser user, IReadOnlyCollection<string> roles)
+    public JwtTokenResult CreateToken(ApplicationUser user, IEnumerable<string> roles)
     {
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key)),
