@@ -1,6 +1,6 @@
-using Domain.Constants;
-using Microsoft.AspNetCore.Http;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;

@@ -1,11 +1,13 @@
 using System.Security.Claims;
-using Domain.Constants;
-using Infrastructure.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Domain.Enums;
+using Infrastructure.Services.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
-namespace Api.Extensions;
+namespace Api.Configurations;
 
 public static class AuthServiceCollectionExtensions
 {

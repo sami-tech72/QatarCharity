@@ -1,4 +1,4 @@
-using Api.Extensions;
+using Api.Configurations;
 using Persistence;
 using Persistence.Seed;
 

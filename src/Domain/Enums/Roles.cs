@@ -1,4 +1,4 @@
-namespace Domain.Constants;
+namespace Domain.Enums;
 
 public static class Roles
 {

@@ -1,9 +1,9 @@
 using Api.Contracts.Authentication;
-using Application.Authentication;
-using Domain.Constants;
+using Application.Interfaces.Authentication;
 using Domain.Entities;
-using Microsoft.AspNetCore.Http;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,4 +1,4 @@
-namespace Infrastructure.Authentication;
+namespace Infrastructure.Services.Authentication;
 
 public class JwtSettings
 {

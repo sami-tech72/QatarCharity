@@ -1,6 +1,6 @@
 using Domain.Entities;
 
-namespace Application.Authentication;
+namespace Application.Interfaces.Authentication;
 
 public interface IJwtTokenService
 {
