@@ -75,7 +75,7 @@
             </thead>
             <tbody class="text-gray-600 fw-semibold">
               <tr *ngIf="!filteredSuppliers.length">
-                <td colspan="9" class="text-center py-10 text-muted">No suppliers found.</td>
+                <td colspan="10" class="text-center py-10 text-muted">No suppliers found.</td>
               </tr>
               <tr *ngFor="let supplier of filteredSuppliers; trackBy: trackById">
                 <td class="fw-semibold text-gray-800">{{ supplier.id }}</td>
@@ -198,13 +198,17 @@
             </div>
             <div class="col-md-6">
               <label class="required fw-semibold fs-6 mb-2">Business Categories</label>
-              <input
-                type="text"
-                class="form-control form-control-solid"
-                placeholder="Construction, Logistics"
+              <select
+                class="form-select form-select-solid"
                 formControlName="businessCategories"
-              />
-              <div class="form-text">Separate multiple categories with commas.</div>
+                multiple
+                size="6"
+              >
+                <option *ngFor="let category of categoriesOptions" [ngValue]="category">
+                  {{ category }}
+                </option>
+              </select>
+              <div class="form-text">Select all categories that apply.</div>
             </div>
             <div class="col-md-6">
               <label class="required fw-semibold fs-6 mb-2">Company Address</label>
@@ -238,12 +242,19 @@
             <div class="col-md-6">
               <label class="fw-semibold fs-6 mb-2">Uploaded Documents</label>
               <input
-                type="text"
-                class="form-control form-control-solid"
-                placeholder="Trade License.pdf, Insurance.pdf"
-                formControlName="uploadedDocuments"
+                type="file"
+                class="form-control"
+                multiple
+                accept=".pdf,image/*"
+                (change)="onDocumentsSelected($event)"
               />
-              <div class="form-text">Enter file names separated by commas.</div>
+              <div class="form-text">Upload supporting PDFs or images.</div>
+              <div class="mt-3" *ngIf="selectedDocuments.length">
+                <div class="fw-semibold text-gray-800 mb-2">Selected files:</div>
+                <ul class="list-unstyled mb-0 small text-gray-700">
+                  <li *ngFor="let doc of selectedDocuments">{{ doc }}</li>
+                </ul>
+              </div>
             </div>
             <div class="col-md-6">
               <label class="fw-semibold fs-6 mb-2">Status</label>

@@ -1,6 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormControl,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 
 interface Supplier {
   id: string;
@@ -33,6 +40,24 @@ export class SupplierManagementComponent {
   readonly fb = new FormBuilder();
   isSubmitting = false;
   editingSupplier: Supplier | null = null;
+  selectedDocuments: string[] = [];
+
+  readonly categoriesOptions: string[] = [
+    'Construction',
+    'Logistics',
+    'Warehousing',
+    'Medical',
+    'Pharmaceutical',
+    'Print',
+    'Media',
+    'Print & Media',
+    'Technology',
+    'Cloud Services',
+    'Facilities Management',
+    'Consulting',
+    'Energy',
+    'General',
+  ];
 
   readonly supplierForm = this.fb.nonNullable.group({
     companyName: ['', [Validators.required, Validators.maxLength(150)]],
@@ -40,12 +65,12 @@ export class SupplierManagementComponent {
     primaryContactName: ['', [Validators.required, Validators.maxLength(120)]],
     primaryContactEmail: ['', [Validators.required, Validators.email]],
     primaryContactPhone: ['', [Validators.required, Validators.maxLength(20)]],
-    businessCategories: ['', [Validators.required]],
+    businessCategories: this.fb.nonNullable.control<string[]>([], [this.requireAtLeastOne]),
     companyAddress: ['', [Validators.required, Validators.maxLength(250)]],
     website: ['', [Validators.maxLength(150)]],
     yearEstablished: [new Date().getFullYear(), [Validators.required, Validators.min(1800)]],
-    numberOfEmployees: [0, [Validators.required, Validators.min(1)]],
-    uploadedDocuments: [''],
+    numberOfEmployees: [1, [Validators.required, Validators.min(1)]],
+    uploadedDocuments: this.fb.nonNullable.control<string[]>([]),
     status: this.fb.nonNullable.control<Supplier['status']>('Pending'),
   });
 
@@ -163,36 +188,38 @@ export class SupplierManagementComponent {
 
   startCreate(): void {
     this.editingSupplier = null;
+    this.selectedDocuments = [];
     this.supplierForm.reset({
       companyName: '',
       registrationNumber: '',
       primaryContactName: '',
       primaryContactEmail: '',
       primaryContactPhone: '',
-      businessCategories: '',
+      businessCategories: [],
       companyAddress: '',
       website: '',
       yearEstablished: new Date().getFullYear(),
       numberOfEmployees: 1,
-      uploadedDocuments: '',
+      uploadedDocuments: [],
       status: 'Pending',
     });
   }
 
   startEdit(supplier: Supplier): void {
     this.editingSupplier = supplier;
+    this.selectedDocuments = supplier.uploadedDocuments;
     this.supplierForm.reset({
       companyName: supplier.companyName,
       registrationNumber: supplier.registrationNumber,
       primaryContactName: supplier.primaryContactName,
       primaryContactEmail: supplier.primaryContactEmail,
       primaryContactPhone: supplier.primaryContactPhone,
-      businessCategories: supplier.businessCategories.join(', '),
+      businessCategories: supplier.businessCategories,
       companyAddress: supplier.companyAddress,
       website: supplier.website,
       yearEstablished: supplier.yearEstablished,
       numberOfEmployees: supplier.numberOfEmployees,
-      uploadedDocuments: supplier.uploadedDocuments.join(', '),
+      uploadedDocuments: supplier.uploadedDocuments,
       status: supplier.status,
     });
   }
@@ -209,14 +236,8 @@ export class SupplierManagementComponent {
 
     this.isSubmitting = true;
     const formValue = this.supplierForm.getRawValue();
-    const parsedCategories = formValue.businessCategories
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean);
-    const parsedDocuments = formValue.uploadedDocuments
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean);
+    const parsedCategories = formValue.businessCategories;
+    const parsedDocuments = formValue.uploadedDocuments;
 
     const payload: Supplier = {
       id: this.editingSupplier?.id ?? this.generateId(),
@@ -251,6 +272,22 @@ export class SupplierManagementComponent {
 
   clearSearch(): void {
     this.searchControl.setValue('', { emitEvent: true });
+  }
+
+  onDocumentsSelected(event: Event): void {
+    const files = (event.target as HTMLInputElement).files;
+    if (!files) {
+      return;
+    }
+
+    const fileNames = Array.from(files).map((file) => file.name);
+    this.selectedDocuments = fileNames;
+    this.supplierForm.patchValue({ uploadedDocuments: fileNames });
+  }
+
+  private requireAtLeastOne(control: AbstractControl<string[] | null>): ValidationErrors | null {
+    const value = control.value || [];
+    return value.length ? null : { required: true };
   }
 
   private generateId(): string {
