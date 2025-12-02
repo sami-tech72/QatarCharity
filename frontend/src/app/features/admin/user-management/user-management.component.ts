@@ -227,6 +227,26 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     return this.usersPage?.pageNumber ?? this.paginationState.pageNumber;
   }
 
+  get pageNumbers(): number[] {
+    const total = this.totalPages;
+
+    if (!total) {
+      return [1];
+    }
+
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(1, this.currentPage - half);
+    let end = start + maxVisible - 1;
+
+    if (end > total) {
+      end = total;
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, idx) => start + idx);
+  }
+
   private refreshFromServer(): void {
     this.loadUsers();
   }
