@@ -66,7 +66,7 @@ export class UserManagementComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.setAlert(error.message || 'Failed to load users.', 'danger');
+        this.setAlert(this.getErrorMessage(error, 'Failed to load users.'), 'danger');
       },
     });
   }
@@ -89,7 +89,7 @@ export class UserManagementComponent implements OnInit {
       },
       error: (error) => {
         this.isSubmitting = false;
-        this.setAlert(error.message || 'Unable to create user.', 'danger');
+        this.setAlert(this.getErrorMessage(error, 'Unable to create user.'), 'danger');
       },
     });
   }
@@ -110,5 +110,11 @@ export class UserManagementComponent implements OnInit {
   private setAlert(message: string, type: 'success' | 'danger' | 'info'): void {
     this.alertMessage = message;
     this.alertType = type;
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    const apiError = (error as { error?: { message?: string }; message?: string }) || {};
+
+    return apiError.error?.message || apiError.message || fallback;
   }
 }

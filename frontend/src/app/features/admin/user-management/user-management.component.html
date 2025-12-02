@@ -520,31 +520,33 @@
                         <!--end::Input group-->
                       </div>
                       <!--end::Scroll-->
-                      <!--begin::Actions-->
-                      <div class="text-center pt-15">
-                        <button
-                          type="reset"
-                          class="btn btn-light me-3"
-                          data-kt-users-modal-action="cancel"
-                        >
-                          Discard
-                        </button>
-                        <button
-                          type="submit"
-                          class="btn btn-primary"
-                          data-kt-users-modal-action="submit"
-                        >
-                          <span class="indicator-label">Submit</span>
-                          <span class="indicator-progress"
-                            >Please wait...
-                            <span
-                              class="spinner-border spinner-border-sm align-middle ms-2"
-                            ></span
-                          ></span>
-                        </button>
-                      </div>
-                      <!--end::Actions-->
-                    </form>
+                        <!--begin::Actions-->
+                        <div class="text-center pt-15">
+                          <button
+                            type="reset"
+                            class="btn btn-light me-3"
+                            data-kt-users-modal-action="cancel"
+                            [disabled]="isSubmitting"
+                          >
+                            Discard
+                          </button>
+                          <button
+                            type="submit"
+                            class="btn btn-primary"
+                            data-kt-users-modal-action="submit"
+                            [disabled]="userForm.invalid || isSubmitting"
+                          >
+                            <span class="indicator-label" *ngIf="!isSubmitting">Submit</span>
+                            <span class="indicator-progress" *ngIf="isSubmitting"
+                              >Please wait...
+                              <span
+                                class="spinner-border spinner-border-sm align-middle ms-2"
+                              ></span
+                            ></span>
+                          </button>
+                        </div>
+                        <!--end::Actions-->
+                      </form>
                     <!--end::Form-->
                   </div>
                   <!--end::Modal body-->
@@ -557,14 +559,17 @@
           </div>
           <!--end::Card toolbar-->
         </div>
-        <!--end::Card header-->
-        <!--begin::Card body-->
-        <div class="card-body py-4">
-          <!--begin::Table-->
-          <table
-            class="table align-middle table-row-dashed fs-6 gy-5"
-            id="kt_table_users"
-          >
+          <!--end::Card header-->
+          <!--begin::Card body-->
+          <div class="card-body py-4">
+            <div *ngIf="alertMessage" class="alert" [ngClass]="'alert-' + alertType" role="alert">
+              {{ alertMessage }}
+            </div>
+            <!--begin::Table-->
+            <table
+              class="table align-middle table-row-dashed fs-6 gy-5"
+              id="kt_table_users"
+            >
             <thead>
               <tr
                 class="text-start text-muted fw-bold fs-7 text-uppercase gs-0"
