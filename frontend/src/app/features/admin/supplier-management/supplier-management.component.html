@@ -32,7 +32,13 @@
           </div>
           <div class="card-toolbar">
             <div class="d-flex justify-content-end">
-              <button type="button" class="btn btn-primary">
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#kt_modal_add_supplier"
+                (click)="startCreate()"
+              >
                 <i class="ki-duotone ki-plus fs-2"></i>Add Supplier
               </button>
             </div>
@@ -56,32 +62,44 @@
             <thead>
               <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
                 <th class="min-w-125px">Supplier ID</th>
-                <th class="min-w-125px">Supplier Name</th>
-                <th class="min-w-125px">Category</th>
-                <th class="min-w-150px">Contact Person</th>
+                <th class="min-w-150px">Company Name</th>
+                <th class="min-w-150px">Registration No.</th>
+                <th class="min-w-175px">Primary Contact</th>
+                <th class="min-w-150px">Contact Email</th>
+                <th class="min-w-150px">Contact Phone</th>
                 <th class="min-w-150px">Submission Date</th>
+                <th class="min-w-125px">Categories</th>
                 <th class="min-w-100px">Status</th>
-                <th class="text-end min-w-100px">Action</th>
+                <th class="text-end min-w-125px">Action</th>
               </tr>
             </thead>
             <tbody class="text-gray-600 fw-semibold">
               <tr *ngIf="!filteredSuppliers.length">
-                <td colspan="7" class="text-center py-10 text-muted">No suppliers found.</td>
+                <td colspan="9" class="text-center py-10 text-muted">No suppliers found.</td>
               </tr>
               <tr *ngFor="let supplier of filteredSuppliers; trackBy: trackById">
                 <td class="fw-semibold text-gray-800">{{ supplier.id }}</td>
-                <td class="fw-semibold text-gray-800">{{ supplier.name }}</td>
-                <td>{{ supplier.category }}</td>
-                <td>{{ supplier.contactPerson }}</td>
+                <td class="fw-semibold text-gray-800">{{ supplier.companyName }}</td>
+                <td>{{ supplier.registrationNumber }}</td>
+                <td>{{ supplier.primaryContactName }}</td>
+                <td>{{ supplier.primaryContactEmail }}</td>
+                <td>{{ supplier.primaryContactPhone }}</td>
                 <td>{{ supplier.submissionDate }}</td>
+                <td>{{ supplier.businessCategories.join(', ') }}</td>
                 <td>
                   <div class="badge fw-bold" [ngClass]="getStatusClass(supplier.status)">
                     {{ supplier.status }}
                   </div>
                 </td>
                 <td class="text-end">
-                  <button type="button" class="btn btn-sm btn-light btn-active-light-primary">
-                    View
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-light btn-active-light-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#kt_modal_add_supplier"
+                    (click)="startEdit(supplier)"
+                  >
+                    Edit
                   </button>
                 </td>
               </tr>
@@ -97,3 +115,172 @@
   <!--end::Content-->
 </div>
 <!--end::Content wrapper-->
+
+<div
+  class="modal fade"
+  id="kt_modal_add_supplier"
+  tabindex="-1"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="fw-bold">{{ editingSupplier ? 'Edit Supplier' : 'Add Supplier' }}</h2>
+        <button
+          type="button"
+          class="btn btn-icon btn-sm btn-active-icon-primary"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+          (click)="onCancel()"
+        >
+          <i class="ki-duotone ki-cross fs-1">
+            <span class="path1"></span>
+            <span class="path2"></span>
+          </i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="form" [formGroup]="supplierForm" (ngSubmit)="onSubmit()">
+          <div class="row g-6">
+            <div class="col-md-6">
+              <label class="required fw-semibold fs-6 mb-2">Company Name</label>
+              <input
+                type="text"
+                class="form-control form-control-solid"
+                placeholder="Enter company name"
+                formControlName="companyName"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="required fw-semibold fs-6 mb-2">Commercial Registration No.</label>
+              <input
+                type="text"
+                class="form-control form-control-solid"
+                placeholder="e.g. CR-123456"
+                formControlName="registrationNumber"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="required fw-semibold fs-6 mb-2">Primary Contact Name</label>
+              <input
+                type="text"
+                class="form-control form-control-solid"
+                placeholder="Enter contact name"
+                formControlName="primaryContactName"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="required fw-semibold fs-6 mb-2">Primary Contact Email</label>
+              <input
+                type="email"
+                class="form-control form-control-solid"
+                placeholder="name@company.com"
+                formControlName="primaryContactEmail"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="required fw-semibold fs-6 mb-2">Primary Contact Phone</label>
+              <input
+                type="text"
+                class="form-control form-control-solid"
+                placeholder="e.g. +974 5555 5555"
+                formControlName="primaryContactPhone"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="fw-semibold fs-6 mb-2">Website</label>
+              <input
+                type="text"
+                class="form-control form-control-solid"
+                placeholder="https://example.com"
+                formControlName="website"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="required fw-semibold fs-6 mb-2">Business Categories</label>
+              <input
+                type="text"
+                class="form-control form-control-solid"
+                placeholder="Construction, Logistics"
+                formControlName="businessCategories"
+              />
+              <div class="form-text">Separate multiple categories with commas.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="required fw-semibold fs-6 mb-2">Company Address</label>
+              <input
+                type="text"
+                class="form-control form-control-solid"
+                placeholder="Street, Building, City"
+                formControlName="companyAddress"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="required fw-semibold fs-6 mb-2">Year Established</label>
+              <input
+                type="number"
+                min="1800"
+                class="form-control form-control-solid"
+                placeholder="YYYY"
+                formControlName="yearEstablished"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="required fw-semibold fs-6 mb-2">Number of Employees</label>
+              <input
+                type="number"
+                min="1"
+                class="form-control form-control-solid"
+                placeholder="e.g. 25"
+                formControlName="numberOfEmployees"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="fw-semibold fs-6 mb-2">Uploaded Documents</label>
+              <input
+                type="text"
+                class="form-control form-control-solid"
+                placeholder="Trade License.pdf, Insurance.pdf"
+                formControlName="uploadedDocuments"
+              />
+              <div class="form-text">Enter file names separated by commas.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="fw-semibold fs-6 mb-2">Status</label>
+              <select class="form-select form-select-solid" formControlName="status">
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="On Hold">On Hold</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="text-center pt-10">
+            <button
+              type="reset"
+              class="btn btn-light me-3"
+              data-bs-dismiss="modal"
+              (click)="onCancel()"
+              [disabled]="isSubmitting"
+            >
+              Discard
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="supplierForm.invalid || isSubmitting"
+            >
+              <span class="indicator-label" *ngIf="!isSubmitting">
+                {{ editingSupplier ? 'Save Changes' : 'Add Supplier' }}
+              </span>
+              <span class="indicator-progress" *ngIf="isSubmitting">
+                Please wait...
+                <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
