@@ -41,6 +41,24 @@ export class SupplierManagementComponent {
   isSubmitting = false;
   editingSupplier: Supplier | null = null;
   selectedDocuments: string[] = [];
+  activeTab: TabId = 'company';
+
+  readonly companyStepControls: TabControlKey[] = [
+    'companyName',
+    'registrationNumber',
+    'primaryContactName',
+    'primaryContactEmail',
+    'primaryContactPhone',
+  ];
+
+  readonly businessStepControls: TabControlKey[] = [
+    'businessCategories',
+    'companyAddress',
+    'website',
+    'yearEstablished',
+    'numberOfEmployees',
+    'status',
+  ];
 
   readonly categoriesOptions: string[] = [
     'Construction',
@@ -189,6 +207,7 @@ export class SupplierManagementComponent {
   startCreate(): void {
     this.editingSupplier = null;
     this.selectedDocuments = [];
+    this.activeTab = 'company';
     this.supplierForm.reset({
       companyName: '',
       registrationNumber: '',
@@ -208,6 +227,7 @@ export class SupplierManagementComponent {
   startEdit(supplier: Supplier): void {
     this.editingSupplier = supplier;
     this.selectedDocuments = supplier.uploadedDocuments;
+    this.activeTab = 'company';
     this.supplierForm.reset({
       companyName: supplier.companyName,
       registrationNumber: supplier.registrationNumber,
@@ -290,6 +310,37 @@ export class SupplierManagementComponent {
     return value.length ? null : { required: true };
   }
 
+  goToTab(tab: TabId): void {
+    if (tab === 'business' && !this.ensureStepValid(this.companyStepControls)) {
+      return;
+    }
+
+    if (
+      tab === 'documents' &&
+      (!this.ensureStepValid(this.companyStepControls) || !this.ensureStepValid(this.businessStepControls))
+    ) {
+      return;
+    }
+
+    this.activeTab = tab;
+  }
+
+  goToNextFromCompany(): void {
+    if (this.ensureStepValid(this.companyStepControls)) {
+      this.activeTab = 'business';
+    }
+  }
+
+  goToNextFromBusiness(): void {
+    if (this.ensureStepValid(this.businessStepControls)) {
+      this.activeTab = 'documents';
+    }
+  }
+
+  goToPrevious(tab: TabId): void {
+    this.activeTab = tab;
+  }
+
   private generateId(): string {
     const random = Math.floor(Math.random() * 9000) + 1000;
     return `#SUB-${random}`;
@@ -302,4 +353,38 @@ export class SupplierManagementComponent {
       year: 'numeric',
     }).format(date);
   }
+
+  private ensureStepValid(controlNames: TabControlKey[]): boolean {
+    let valid = true;
+
+    controlNames.forEach((name) => {
+      const control = this.supplierForm.get(name);
+      if (!control) {
+        return;
+      }
+
+      control.markAsTouched();
+      control.updateValueAndValidity();
+
+      if (control.invalid) {
+        valid = false;
+      }
+    });
+
+    return valid;
+  }
 }
+
+type TabId = 'company' | 'business' | 'documents';
+type TabControlKey =
+  | 'companyName'
+  | 'registrationNumber'
+  | 'primaryContactName'
+  | 'primaryContactEmail'
+  | 'primaryContactPhone'
+  | 'businessCategories'
+  | 'companyAddress'
+  | 'website'
+  | 'yearEstablished'
+  | 'numberOfEmployees'
+  | 'status';

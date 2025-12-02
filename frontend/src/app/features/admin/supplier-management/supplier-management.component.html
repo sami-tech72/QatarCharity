@@ -141,154 +141,246 @@
       </div>
       <div class="modal-body">
         <form class="form" [formGroup]="supplierForm" (ngSubmit)="onSubmit()">
-          <div class="row g-6">
-            <div class="col-md-6">
-              <label class="required fw-semibold fs-6 mb-2">Company Name</label>
-              <input
-                type="text"
-                class="form-control form-control-solid"
-                placeholder="Enter company name"
-                formControlName="companyName"
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="required fw-semibold fs-6 mb-2">Commercial Registration No.</label>
-              <input
-                type="text"
-                class="form-control form-control-solid"
-                placeholder="e.g. CR-123456"
-                formControlName="registrationNumber"
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="required fw-semibold fs-6 mb-2">Primary Contact Name</label>
-              <input
-                type="text"
-                class="form-control form-control-solid"
-                placeholder="Enter contact name"
-                formControlName="primaryContactName"
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="required fw-semibold fs-6 mb-2">Primary Contact Email</label>
-              <input
-                type="email"
-                class="form-control form-control-solid"
-                placeholder="name@company.com"
-                formControlName="primaryContactEmail"
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="required fw-semibold fs-6 mb-2">Primary Contact Phone</label>
-              <input
-                type="text"
-                class="form-control form-control-solid"
-                placeholder="e.g. +974 5555 5555"
-                formControlName="primaryContactPhone"
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="fw-semibold fs-6 mb-2">Website</label>
-              <input
-                type="text"
-                class="form-control form-control-solid"
-                placeholder="https://example.com"
-                formControlName="website"
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="required fw-semibold fs-6 mb-2">Business Categories</label>
-              <select
-                class="form-select form-select-solid"
-                formControlName="businessCategories"
-                multiple
-                size="6"
+          <ul class="nav nav-line-tabs nav-line-tabs-2x fs-5 mb-6">
+            <li class="nav-item">
+              <a
+                href="javascript:void(0)"
+                class="nav-link"
+                [class.active]="activeTab === 'company'"
+                (click)="goToTab('company')"
               >
-                <option *ngFor="let category of categoriesOptions" [ngValue]="category">
-                  {{ category }}
-                </option>
-              </select>
-              <div class="form-text">Select all categories that apply.</div>
-            </div>
-            <div class="col-md-6">
-              <label class="required fw-semibold fs-6 mb-2">Company Address</label>
-              <input
-                type="text"
-                class="form-control form-control-solid"
-                placeholder="Street, Building, City"
-                formControlName="companyAddress"
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="required fw-semibold fs-6 mb-2">Year Established</label>
-              <input
-                type="number"
-                min="1800"
-                class="form-control form-control-solid"
-                placeholder="YYYY"
-                formControlName="yearEstablished"
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="required fw-semibold fs-6 mb-2">Number of Employees</label>
-              <input
-                type="number"
-                min="1"
-                class="form-control form-control-solid"
-                placeholder="e.g. 25"
-                formControlName="numberOfEmployees"
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="fw-semibold fs-6 mb-2">Uploaded Documents</label>
-              <input
-                type="file"
-                class="form-control"
-                multiple
-                accept=".pdf,image/*"
-                (change)="onDocumentsSelected($event)"
-              />
-              <div class="form-text">Upload supporting PDFs or images.</div>
-              <div class="mt-3" *ngIf="selectedDocuments.length">
-                <div class="fw-semibold text-gray-800 mb-2">Selected files:</div>
-                <ul class="list-unstyled mb-0 small text-gray-700">
-                  <li *ngFor="let doc of selectedDocuments">{{ doc }}</li>
-                </ul>
+                Company Info
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                href="javascript:void(0)"
+                class="nav-link"
+                [class.active]="activeTab === 'business'"
+                (click)="goToTab('business')"
+              >
+                Business Details
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                href="javascript:void(0)"
+                class="nav-link"
+                [class.active]="activeTab === 'documents'"
+                (click)="goToTab('documents')"
+              >
+                Documents
+              </a>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane fade" [class.show]="activeTab === 'company'" [class.active]="activeTab === 'company'">
+              <div class="row g-6">
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Company Name</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="Enter company name"
+                    formControlName="companyName"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Commercial Registration No.</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="e.g. CR-123456"
+                    formControlName="registrationNumber"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Primary Contact Name</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="Enter contact name"
+                    formControlName="primaryContactName"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Primary Contact Email</label>
+                  <input
+                    type="email"
+                    class="form-control form-control-solid"
+                    placeholder="name@company.com"
+                    formControlName="primaryContactEmail"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Primary Contact Phone</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="e.g. +974 5555 5555"
+                    formControlName="primaryContactPhone"
+                  />
+                </div>
               </div>
             </div>
-            <div class="col-md-6">
-              <label class="fw-semibold fs-6 mb-2">Status</label>
-              <select class="form-select form-select-solid" formControlName="status">
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="On Hold">On Hold</option>
-              </select>
+
+            <div class="tab-pane fade" [class.show]="activeTab === 'business'" [class.active]="activeTab === 'business'">
+              <div class="row g-6">
+                <div class="col-md-6">
+                  <label class="fw-semibold fs-6 mb-2">Website</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="https://example.com"
+                    formControlName="website"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Business Categories</label>
+                  <select
+                    class="form-select form-select-solid"
+                    formControlName="businessCategories"
+                    multiple
+                    size="6"
+                  >
+                    <option *ngFor="let category of categoriesOptions" [ngValue]="category">
+                      {{ category }}
+                    </option>
+                  </select>
+                  <div class="form-text">Select all categories that apply.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Company Address</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="Street, Building, City"
+                    formControlName="companyAddress"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Year Established</label>
+                  <input
+                    type="number"
+                    min="1800"
+                    class="form-control form-control-solid"
+                    placeholder="YYYY"
+                    formControlName="yearEstablished"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Number of Employees</label>
+                  <input
+                    type="number"
+                    min="1"
+                    class="form-control form-control-solid"
+                    placeholder="e.g. 25"
+                    formControlName="numberOfEmployees"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="fw-semibold fs-6 mb-2">Status</label>
+                  <select class="form-select form-select-solid" formControlName="status">
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="On Hold">On Hold</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="tab-pane fade"
+              [class.show]="activeTab === 'documents'"
+              [class.active]="activeTab === 'documents'"
+            >
+              <div class="row g-6">
+                <div class="col-md-6">
+                  <label class="fw-semibold fs-6 mb-2">Uploaded Documents</label>
+                  <input
+                    type="file"
+                    class="form-control"
+                    multiple
+                    accept=".pdf,image/*"
+                    (change)="onDocumentsSelected($event)"
+                  />
+                  <div class="form-text">Upload supporting PDFs or images.</div>
+                  <div class="mt-3" *ngIf="selectedDocuments.length">
+                    <div class="fw-semibold text-gray-800 mb-2">Selected files:</div>
+                    <ul class="list-unstyled mb-0 small text-gray-700">
+                      <li *ngFor="let doc of selectedDocuments">{{ doc }}</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="h-100 d-flex flex-column justify-content-center bg-light-primary rounded p-6">
+                    <div class="fw-bold fs-6 text-gray-800 mb-2">Submission Tips</div>
+                    <ul class="mb-0 text-gray-600">
+                      <li>Include trade license, compliance, and certifications.</li>
+                      <li>Accepted formats: PDF or image files.</li>
+                      <li>Ensure details match the company information.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="text-center pt-10">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-10">
             <button
               type="reset"
-              class="btn btn-light me-3"
+              class="btn btn-light"
               data-bs-dismiss="modal"
               (click)="onCancel()"
               [disabled]="isSubmitting"
             >
               Discard
             </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="supplierForm.invalid || isSubmitting"
-            >
-              <span class="indicator-label" *ngIf="!isSubmitting">
-                {{ editingSupplier ? 'Save Changes' : 'Add Supplier' }}
-              </span>
-              <span class="indicator-progress" *ngIf="isSubmitting">
-                Please wait...
-                <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-              </span>
-            </button>
+
+            <div class="d-flex align-items-center gap-3 ms-auto">
+              <button
+                type="button"
+                class="btn btn-light-primary"
+                *ngIf="activeTab !== 'company'"
+                (click)="goToPrevious(activeTab === 'documents' ? 'business' : 'company')"
+              >
+                Previous
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-primary"
+                *ngIf="activeTab === 'company'"
+                (click)="goToNextFromCompany()"
+              >
+                Next: Business Details
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-primary"
+                *ngIf="activeTab === 'business'"
+                (click)="goToNextFromBusiness()"
+              >
+                Next: Documents
+              </button>
+
+              <button
+                type="submit"
+                class="btn btn-primary"
+                *ngIf="activeTab === 'documents'"
+                [disabled]="supplierForm.invalid || isSubmitting"
+              >
+                <span class="indicator-label" *ngIf="!isSubmitting">
+                  {{ editingSupplier ? 'Save Changes' : 'Add Supplier' }}
+                </span>
+                <span class="indicator-progress" *ngIf="isSubmitting">
+                  Please wait...
+                  <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                </span>
+              </button>
+            </div>
           </div>
         </form>
       </div>
