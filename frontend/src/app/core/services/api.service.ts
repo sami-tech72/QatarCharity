@@ -11,6 +11,10 @@ export class ApiService {
     private readonly config: ConfigService,
   ) {}
 
+  get<T>(endpoint: string, headers?: HttpHeaders): Observable<ApiResponse<T>> {
+    return this.http.get<ApiResponse<T>>(`${this.config.apiBaseUrl}/${endpoint}`, { headers });
+  }
+
   post<T>(endpoint: string, body: unknown, headers?: HttpHeaders): Observable<ApiResponse<T>> {
     return this.http.post<ApiResponse<T>>(`${this.config.apiBaseUrl}/${endpoint}`, body, { headers });
   }
