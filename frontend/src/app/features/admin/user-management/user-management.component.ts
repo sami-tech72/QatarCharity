@@ -15,7 +15,23 @@ import { UserRole } from '../../../shared/models/user.model';
 })
 export class UserManagementComponent implements OnInit {
   users: ManagedUser[] = [];
-  roles: UserRole[] = ['Admin', 'Procurement', 'Supplier'];
+  roleOptions: Array<{ value: UserRole; title: string; description: string }> = [
+    {
+      value: 'Admin',
+      title: 'Administrator',
+      description: 'Best for business owners and company administrators.',
+    },
+    {
+      value: 'Procurement',
+      title: 'Procurement',
+      description: 'Manage procurement workflows and approvals.',
+    },
+    {
+      value: 'Supplier',
+      title: 'Supplier',
+      description: 'Access supplier-specific tools and updates.',
+    },
+  ];
   isLoading = false;
   isSubmitting = false;
   alertMessage = '';
