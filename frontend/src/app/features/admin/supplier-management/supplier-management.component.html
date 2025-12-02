@@ -63,30 +63,24 @@
               <thead>
                 <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
                   <th class="min-w-125px">Supplier ID</th>
-                  <th class="min-w-150px">Company Name</th>
-                  <th class="min-w-150px">Registration No.</th>
-                  <th class="min-w-175px">Primary Contact</th>
-                  <th class="min-w-150px">Contact Email</th>
-                  <th class="min-w-150px">Contact Phone</th>
+                  <th class="min-w-175px">Supplier Name</th>
+                  <th class="min-w-175px">Category</th>
+                  <th class="min-w-175px">Contact Person</th>
                   <th class="min-w-150px">Submission Date</th>
-                  <th class="min-w-125px">Categories</th>
                   <th class="min-w-100px">Status</th>
                   <th class="text-end min-w-125px">Action</th>
                 </tr>
               </thead>
               <tbody class="text-gray-600 fw-semibold">
                 <tr *ngIf="!filteredSuppliers.length">
-                  <td colspan="10" class="text-center py-10 text-muted">No suppliers found.</td>
+                  <td colspan="7" class="text-center py-10 text-muted">No suppliers found.</td>
                 </tr>
                 <tr *ngFor="let supplier of filteredSuppliers; trackBy: trackById">
                   <td data-label="Supplier ID" class="fw-semibold text-gray-800">{{ supplier.id }}</td>
-                  <td data-label="Company Name" class="fw-semibold text-gray-800">{{ supplier.companyName }}</td>
-                  <td data-label="Registration No.">{{ supplier.registrationNumber }}</td>
-                  <td data-label="Primary Contact">{{ supplier.primaryContactName }}</td>
-                  <td data-label="Contact Email" class="text-break">{{ supplier.primaryContactEmail }}</td>
-                  <td data-label="Contact Phone">{{ supplier.primaryContactPhone }}</td>
+                  <td data-label="Supplier Name" class="fw-semibold text-gray-800">{{ supplier.companyName }}</td>
+                  <td data-label="Category" class="text-break">{{ supplier.businessCategories.join(', ') }}</td>
+                  <td data-label="Contact Person">{{ supplier.primaryContactName }}</td>
                   <td data-label="Submission Date">{{ supplier.submissionDate }}</td>
-                  <td data-label="Categories" class="text-break">{{ supplier.businessCategories.join(', ') }}</td>
                   <td data-label="Status">
                     <div class="badge fw-bold" [ngClass]="getStatusClass(supplier.status)">
                       {{ supplier.status }}
