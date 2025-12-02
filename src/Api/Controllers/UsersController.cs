@@ -108,6 +108,86 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<UserResponse>.Ok(response, "User created successfully."));
     }
 
+    [HttpPut("{id}")]
+    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ApiResponse<UserResponse>>> UpdateUser(string id, UpdateUserRequest request)
+    {
+        if (!Roles.All.Contains(request.Role))
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                "Invalid role provided.",
+                errorCode: "users_invalid_role"));
+        }
+
+        var user = await _userManager.FindByIdAsync(id);
+
+        if (user is null)
+        {
+            return NotFound(ApiResponse<UserResponse>.Fail(
+                "User not found.",
+                errorCode: "users_not_found"));
+        }
+
+        var otherUserWithEmail = await _userManager.FindByEmailAsync(request.Email);
+
+        if (otherUserWithEmail is not null && otherUserWithEmail.Id != user.Id)
+        {
+            return Conflict(ApiResponse<UserResponse>.Fail(
+                "A user with this email already exists.",
+                errorCode: "users_duplicate_email"));
+        }
+
+        user.DisplayName = request.DisplayName;
+        user.Email = request.Email;
+        user.UserName = request.Email;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+
+        if (!updateResult.Succeeded)
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                "Unable to update user.",
+                errorCode: "users_update_failed",
+                details: BuildErrorDetails(updateResult)));
+        }
+
+        var currentRoles = await _userManager.GetRolesAsync(user);
+
+        if (!currentRoles.Contains(request.Role))
+        {
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+
+            if (!removeResult.Succeeded)
+            {
+                return BadRequest(ApiResponse<UserResponse>.Fail(
+                    "Unable to update user role.",
+                    errorCode: "users_role_remove_failed",
+                    details: BuildErrorDetails(removeResult)));
+            }
+
+            var addResult = await _userManager.AddToRoleAsync(user, request.Role);
+
+            if (!addResult.Succeeded)
+            {
+                return BadRequest(ApiResponse<UserResponse>.Fail(
+                    "Unable to assign role to the user.",
+                    errorCode: "users_role_assignment_failed",
+                    details: BuildErrorDetails(addResult)));
+            }
+        }
+
+        var response = new UserResponse(
+            Id: user.Id,
+            DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
+            Email: user.Email ?? string.Empty,
+            Role: request.Role);
+
+        return Ok(ApiResponse<UserResponse>.Ok(response, "User updated successfully."));
+    }
+
     [HttpDelete("{id}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]

@@ -37,6 +37,7 @@ export class UserManagementComponent implements OnInit {
   alertMessage = '';
   alertType: 'success' | 'danger' | 'info' = 'info';
   deletingIds = new Set<string>();
+  editingUser: ManagedUser | null = null;
 
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserManagementService);
@@ -79,20 +80,31 @@ export class UserManagementComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    const payload = this.userForm.getRawValue() as CreateUserRequest;
+    if (this.editingUser) {
+      const { displayName, email, role } = this.userForm.getRawValue();
 
-    this.userService.createUser(payload).subscribe({
-      next: (user) => {
-        this.users = [user, ...this.users.filter((existing) => existing.id !== user.id)];
-        this.isSubmitting = false;
-        this.resetForm();
-        this.setAlert('User created successfully.', 'success');
-      },
-      error: (error) => {
-        this.isSubmitting = false;
-        this.setAlert(this.getErrorMessage(error, 'Unable to create user.'), 'danger');
-      },
-    });
+      this.userService.updateUser(this.editingUser.id, { displayName, email, role }).subscribe({
+        next: (user) => {
+          this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
+          this.finishSubmit('User updated successfully.', 'success');
+        },
+        error: (error) => {
+          this.finishSubmit(this.getErrorMessage(error, 'Unable to update user.'), 'danger');
+        },
+      });
+    } else {
+      const payload = this.userForm.getRawValue() as CreateUserRequest;
+
+      this.userService.createUser(payload).subscribe({
+        next: (user) => {
+          this.users = [user, ...this.users.filter((existing) => existing.id !== user.id)];
+          this.finishSubmit('User created successfully.', 'success');
+        },
+        error: (error) => {
+          this.finishSubmit(this.getErrorMessage(error, 'Unable to create user.'), 'danger');
+        },
+      });
+    }
   }
 
   trackById(_: number, user: ManagedUser): string {
@@ -125,6 +137,27 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
+  startCreate(): void {
+    this.editingUser = null;
+    this.enablePasswordValidators();
+    this.resetForm();
+  }
+
+  startEdit(user: ManagedUser): void {
+    this.editingUser = user;
+    this.disablePasswordValidators();
+    this.userForm.patchValue({
+      displayName: user.displayName,
+      email: user.email,
+      password: '',
+      role: user.role,
+    });
+  }
+
+  onCancel(): void {
+    this.startCreate();
+  }
+
   private resetForm(): void {
     this.userForm.reset({
       displayName: '',
@@ -134,9 +167,27 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
+  private finishSubmit(message: string, type: 'success' | 'danger' | 'info'): void {
+    this.isSubmitting = false;
+    this.setAlert(message, type);
+    this.startCreate();
+  }
+
   private setAlert(message: string, type: 'success' | 'danger' | 'info'): void {
     this.alertMessage = message;
     this.alertType = type;
+  }
+
+  private disablePasswordValidators(): void {
+    const control = this.userForm.controls.password;
+    control.clearValidators();
+    control.updateValueAndValidity();
+  }
+
+  private enablePasswordValidators(): void {
+    const control = this.userForm.controls.password;
+    control.setValidators([Validators.required, Validators.minLength(6)]);
+    control.updateValueAndValidity();
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

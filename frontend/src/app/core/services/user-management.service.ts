@@ -2,7 +2,11 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { CreateUserRequest, ManagedUser } from '../../shared/models/user-management.model';
+import {
+  CreateUserRequest,
+  ManagedUser,
+  UpdateUserRequest,
+} from '../../shared/models/user-management.model';
 import { ApiService } from './api.service';
 
 @Injectable({ providedIn: 'root' })
@@ -15,6 +19,10 @@ export class UserManagementService {
 
   createUser(request: CreateUserRequest): Observable<ManagedUser> {
     return this.api.post<ManagedUser>('users', request).pipe(map((response) => this.unwrap(response)));
+  }
+
+  updateUser(id: string, request: UpdateUserRequest): Observable<ManagedUser> {
+    return this.api.put<ManagedUser>(`users/${id}`, request).pipe(map((response) => this.unwrap(response)));
   }
 
   deleteUser(id: string): Observable<void> {
