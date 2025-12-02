@@ -108,6 +108,33 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<UserResponse>.Ok(response, "User created successfully."));
     }
 
+    [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<object>>> DeleteUser(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+
+        if (user is null)
+        {
+            return NotFound(ApiResponse<object>.Fail(
+                "User not found.",
+                errorCode: "users_not_found"));
+        }
+
+        var deleteResult = await _userManager.DeleteAsync(user);
+
+        if (!deleteResult.Succeeded)
+        {
+            return BadRequest(ApiResponse<object>.Fail(
+                "Unable to delete user.",
+                errorCode: "users_delete_failed",
+                details: BuildErrorDetails(deleteResult)));
+        }
+
+        return Ok(ApiResponse<object>.Ok(null, "User deleted successfully."));
+    }
+
     private static Dictionary<string, object?> BuildErrorDetails(IdentityResult result)
     {
         return new Dictionary<string, object?>

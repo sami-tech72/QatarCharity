@@ -17,6 +17,18 @@ export class UserManagementService {
     return this.api.post<ManagedUser>('users', request).pipe(map((response) => this.unwrap(response)));
   }
 
+  deleteUser(id: string): Observable<void> {
+    return this.api.delete<null>(`users/${id}`).pipe(
+      map((response) => {
+        if (!response.success) {
+          throw new Error(response.message || 'Request failed.');
+        }
+
+        return;
+      }),
+    );
+  }
+
   private unwrap<T>(response: ApiResponse<T>): T {
     if (!response.success || response.data === undefined || response.data === null) {
       throw new Error(response.message || 'Request failed.');

@@ -36,6 +36,7 @@ export class UserManagementComponent implements OnInit {
   isSubmitting = false;
   alertMessage = '';
   alertType: 'success' | 'danger' | 'info' = 'info';
+  deletingIds = new Set<string>();
 
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserManagementService);
@@ -96,6 +97,32 @@ export class UserManagementComponent implements OnInit {
 
   trackById(_: number, user: ManagedUser): string {
     return user.id;
+  }
+
+  deleteUser(user: ManagedUser): void {
+    if (this.deletingIds.has(user.id)) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Are you sure you want to delete ${user.displayName}?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.deletingIds.add(user.id);
+
+    this.userService.deleteUser(user.id).subscribe({
+      next: () => {
+        this.users = this.users.filter((existing) => existing.id !== user.id);
+        this.deletingIds.delete(user.id);
+        this.setAlert('User deleted successfully.', 'success');
+      },
+      error: (error) => {
+        this.deletingIds.delete(user.id);
+        this.setAlert(this.getErrorMessage(error, 'Unable to delete user.'), 'danger');
+      },
+    });
   }
 
   private resetForm(): void {

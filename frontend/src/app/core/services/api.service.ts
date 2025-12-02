@@ -18,4 +18,8 @@ export class ApiService {
   post<T>(endpoint: string, body: unknown, headers?: HttpHeaders): Observable<ApiResponse<T>> {
     return this.http.post<ApiResponse<T>>(`${this.config.apiBaseUrl}/${endpoint}`, body, { headers });
   }
+
+  delete<T>(endpoint: string, headers?: HttpHeaders): Observable<ApiResponse<T>> {
+    return this.http.delete<ApiResponse<T>>(`${this.config.apiBaseUrl}/${endpoint}`, { headers });
+  }
 }

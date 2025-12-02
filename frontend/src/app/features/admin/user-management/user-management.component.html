@@ -247,17 +247,18 @@
                 <th class="min-w-125px">User</th>
                 <th class="min-w-125px">Role</th>
                 <th class="min-w-125px">Last login</th>
-                <th class="text-end min-w-100px">Status</th>
+                <th class="min-w-100px">Status</th>
+                <th class="text-end min-w-125px">Actions</th>
               </tr>
             </thead>
             <tbody class="text-gray-600 fw-semibold">
               <tr *ngIf="isLoading">
-                <td colspan="4" class="text-center py-10">
+                <td colspan="5" class="text-center py-10">
                   <span class="spinner-border text-primary" role="status" aria-hidden="true"></span>
                 </td>
               </tr>
               <tr *ngIf="!isLoading && !users.length">
-                <td colspan="4" class="text-center py-10 text-muted">
+                <td colspan="5" class="text-center py-10 text-muted">
                   No users found.
                 </td>
               </tr>
@@ -270,7 +271,37 @@
                 </td>
                 <td>{{ user.role }}</td>
                 <td>
+                  <span class="text-muted">—</span>
+                </td>
+                <td>
                   <div class="badge badge-light fw-bold">Active</div>
+                </td>
+                <td class="text-end">
+                  <div class="dropdown">
+                    <button
+                      class="btn btn-light btn-active-light-primary btn-flex btn-center btn-sm dropdown-toggle"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      [disabled]="deletingIds.has(user.id)"
+                    >
+                      Actions
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <button
+                          type="button"
+                          class="dropdown-item"
+                          (click)="deleteUser(user)"
+                          [disabled]="deletingIds.has(user.id)"
+                        >
+                          <span *ngIf="!deletingIds.has(user.id)">Delete</span>
+                          <span *ngIf="deletingIds.has(user.id)">
+                            Deleting...
+                          </span>
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
                 </td>
               </tr>
             </tbody>
