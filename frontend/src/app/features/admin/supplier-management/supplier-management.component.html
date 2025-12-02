@@ -79,7 +79,15 @@
                   <td data-label="Supplier ID" class="fw-semibold text-gray-800">{{ supplier.id }}</td>
                   <td data-label="Supplier Name" class="fw-semibold text-gray-800">{{ supplier.companyName }}</td>
                   <td data-label="Category" class="text-break">{{ supplier.businessCategories.join(', ') }}</td>
-                  <td data-label="Contact Person">{{ supplier.primaryContactName }}</td>
+                  <td data-label="Contact Person">
+                    <div class="d-flex flex-column gap-1">
+                      <span class="fw-semibold text-gray-800">{{ supplier.primaryContactName }}</span>
+                      <span class="text-gray-600 fs-8" *ngIf="supplier.hasPortalAccess">
+                        Supplier user · {{ supplier.portalUserEmail || supplier.primaryContactEmail }}
+                      </span>
+                      <span class="text-gray-500 fs-8" *ngIf="!supplier.hasPortalAccess">No portal account</span>
+                    </div>
+                  </td>
                   <td data-label="Submission Date">{{ supplier.submissionDate }}</td>
                   <td data-label="Status">
                     <div class="badge fw-bold" [ngClass]="getStatusClass(supplier.status)">
@@ -201,6 +209,22 @@
                   />
                 </div>
                 <div class="col-md-6">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="fw-semibold fs-6">Portal Access</label>
+                    <span class="badge badge-light-primary fw-semibold">User Role: Supplier</span>
+                  </div>
+                  <div class="form-switch form-check-solid d-flex align-items-center gap-3">
+                    <input
+                      class="form-check-input h-20px w-35px"
+                      type="checkbox"
+                      role="switch"
+                      formControlName="hasPortalAccess"
+                      (change)="onTogglePortalAccess()"
+                    />
+                    <div class="text-muted">Allow this supplier to sign in to the portal.</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
                   <label class="required fw-semibold fs-6 mb-2">Primary Contact Email</label>
                   <input
                     type="email"
@@ -208,6 +232,21 @@
                     placeholder="name@company.com"
                     formControlName="primaryContactEmail"
                   />
+                </div>
+                <div class="col-md-6" *ngIf="supplierForm.controls.hasPortalAccess.value">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="required fw-semibold fs-6">Supplier User Email</label>
+                    <button type="button" class="btn btn-link p-0" (click)="syncPortalEmailWithPrimary()">
+                      Use primary contact email
+                    </button>
+                  </div>
+                  <input
+                    type="email"
+                    class="form-control form-control-solid"
+                    placeholder="login@company.com"
+                    formControlName="portalUserEmail"
+                  />
+                  <div class="form-text">This account will be created with the Supplier role.</div>
                 </div>
                 <div class="col-md-6">
                   <label class="required fw-semibold fs-6 mb-2">Primary Contact Phone</label>

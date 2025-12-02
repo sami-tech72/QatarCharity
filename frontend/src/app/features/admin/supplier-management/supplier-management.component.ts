@@ -4,6 +4,7 @@ import {
   AbstractControl,
   FormBuilder,
   FormControl,
+  FormGroup,
   ReactiveFormsModule,
   ValidationErrors,
   Validators,
@@ -26,6 +27,9 @@ interface Supplier {
   contactPerson: string;
   submissionDate: string;
   status: 'Approved' | 'Pending' | 'On Hold';
+  hasPortalAccess: boolean;
+  portalUserEmail: string;
+  userRole: 'Supplier';
 }
 
 @Component({
@@ -43,12 +47,20 @@ export class SupplierManagementComponent {
   selectedDocuments: string[] = [];
   activeTab: TabId = 'company';
 
+  constructor() {
+    this.setPortalAccessValidation(this.supplierForm.controls.hasPortalAccess.value);
+    this.supplierForm.controls.hasPortalAccess.valueChanges.subscribe((hasAccess) => {
+      this.setPortalAccessValidation(hasAccess);
+    });
+  }
+
   readonly companyStepControls: TabControlKey[] = [
     'companyName',
     'registrationNumber',
     'primaryContactName',
     'primaryContactEmail',
     'primaryContactPhone',
+    'portalUserEmail',
   ];
 
   readonly businessStepControls: TabControlKey[] = [
@@ -90,6 +102,8 @@ export class SupplierManagementComponent {
     numberOfEmployees: [1, [Validators.required, Validators.min(1)]],
     uploadedDocuments: this.fb.nonNullable.control<string[]>([]),
     status: this.fb.nonNullable.control<Supplier['status']>('Pending'),
+    hasPortalAccess: this.fb.nonNullable.control(true),
+    portalUserEmail: ['', [Validators.email, Validators.maxLength(150)]],
   });
 
   suppliers: Supplier[] = [
@@ -110,6 +124,9 @@ export class SupplierManagementComponent {
       contactPerson: 'Dr. Amina Rahman',
       submissionDate: '12/01/2024',
       status: 'Approved',
+      hasPortalAccess: true,
+      portalUserEmail: 'amina.rahman@ibnsina.qa',
+      userRole: 'Supplier',
     },
     {
       id: '#SUB-5120',
@@ -128,6 +145,9 @@ export class SupplierManagementComponent {
       contactPerson: 'Yousef Al-Khaled',
       submissionDate: '11/22/2024',
       status: 'Pending',
+      hasPortalAccess: true,
+      portalUserEmail: 'yousef.khaled@dohalogistics.com',
+      userRole: 'Supplier',
     },
     {
       id: '#SUB-4416',
@@ -146,6 +166,9 @@ export class SupplierManagementComponent {
       contactPerson: 'Mariam Al-Thani',
       submissionDate: '11/10/2024',
       status: 'Approved',
+      hasPortalAccess: true,
+      portalUserEmail: 'portal@gulfprintworks.qa',
+      userRole: 'Supplier',
     },
     {
       id: '#SUB-2334',
@@ -164,6 +187,9 @@ export class SupplierManagementComponent {
       contactPerson: 'Omar Haddad',
       submissionDate: '10/28/2024',
       status: 'On Hold',
+      hasPortalAccess: false,
+      portalUserEmail: '',
+      userRole: 'Supplier',
     },
   ];
 
@@ -182,6 +208,7 @@ export class SupplierManagementComponent {
         supplier.primaryContactName,
         supplier.primaryContactEmail,
         supplier.primaryContactPhone,
+        supplier.portalUserEmail,
         supplier.businessCategories.join(', '),
         supplier.companyAddress,
         supplier.website,
@@ -221,7 +248,11 @@ export class SupplierManagementComponent {
       numberOfEmployees: 1,
       uploadedDocuments: [],
       status: 'Pending',
+      hasPortalAccess: true,
+      portalUserEmail: '',
     });
+
+    this.setPortalAccessValidation(this.supplierForm.controls.hasPortalAccess.value);
   }
 
   startEdit(supplier: Supplier): void {
@@ -241,7 +272,11 @@ export class SupplierManagementComponent {
       numberOfEmployees: supplier.numberOfEmployees,
       uploadedDocuments: supplier.uploadedDocuments,
       status: supplier.status,
+      hasPortalAccess: supplier.hasPortalAccess,
+      portalUserEmail: supplier.portalUserEmail,
     });
+
+    this.setPortalAccessValidation(supplier.hasPortalAccess);
   }
 
   onCancel(): void {
@@ -276,6 +311,9 @@ export class SupplierManagementComponent {
       contactPerson: formValue.primaryContactName.trim(),
       submissionDate: this.editingSupplier?.submissionDate ?? this.formatDate(new Date()),
       status: formValue.status,
+      hasPortalAccess: formValue.hasPortalAccess,
+      portalUserEmail: formValue.hasPortalAccess ? formValue.portalUserEmail.trim() : '',
+      userRole: 'Supplier',
     };
 
     if (this.editingSupplier) {
@@ -303,6 +341,24 @@ export class SupplierManagementComponent {
     const fileNames = Array.from(files).map((file) => file.name);
     this.selectedDocuments = fileNames;
     this.supplierForm.patchValue({ uploadedDocuments: fileNames });
+  }
+
+  onTogglePortalAccess(): void {
+    const hasAccess = this.supplierForm.controls.hasPortalAccess.value;
+    this.setPortalAccessValidation(hasAccess);
+
+    if (!hasAccess) {
+      this.supplierForm.patchValue({ portalUserEmail: '' });
+    } else if (!this.supplierForm.controls.portalUserEmail.value) {
+      this.syncPortalEmailWithPrimary();
+    }
+  }
+
+  syncPortalEmailWithPrimary(): void {
+    const primaryEmail = this.supplierForm.controls.primaryContactEmail.value;
+    if (primaryEmail) {
+      this.supplierForm.patchValue({ portalUserEmail: primaryEmail });
+    }
   }
 
   private requireAtLeastOne(control: AbstractControl<string[] | null>): ValidationErrors | null {
@@ -373,6 +429,25 @@ export class SupplierManagementComponent {
 
     return valid;
   }
+
+  private setPortalAccessValidation(hasAccess: boolean): void {
+    this.applyPortalEmailValidators(this.supplierForm, hasAccess);
+  }
+
+  private applyPortalEmailValidators(form: FormGroup, hasAccess: boolean): void {
+    const portalEmail = form.get('portalUserEmail');
+    if (!portalEmail) {
+      return;
+    }
+
+    const validators = [Validators.email, Validators.maxLength(150)];
+    if (hasAccess) {
+      validators.unshift(Validators.required);
+    }
+
+    portalEmail.setValidators(validators);
+    portalEmail.updateValueAndValidity();
+  }
 }
 
 type TabId = 'company' | 'business' | 'documents';
@@ -382,6 +457,7 @@ type TabControlKey =
   | 'primaryContactName'
   | 'primaryContactEmail'
   | 'primaryContactPhone'
+  | 'portalUserEmail'
   | 'businessCategories'
   | 'companyAddress'
   | 'website'
