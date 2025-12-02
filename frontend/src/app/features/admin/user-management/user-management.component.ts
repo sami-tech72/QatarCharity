@@ -1,9 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 
 import { UserManagementService } from '../../../core/services/user-management.service';
-import { CreateUserRequest, ManagedUser } from '../../../shared/models/user-management.model';
+import { PagedResult } from '../../../shared/models/pagination.model';
+import {
+  CreateUserRequest,
+  ManagedUser,
+  UserQueryRequest,
+} from '../../../shared/models/user-management.model';
 import { UserRole } from '../../../shared/models/user.model';
 
 @Component({
@@ -13,8 +19,9 @@ import { UserRole } from '../../../shared/models/user.model';
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss',
 })
-export class UserManagementComponent implements OnInit {
+export class UserManagementComponent implements OnInit, OnDestroy {
   users: ManagedUser[] = [];
+  usersPage: PagedResult<ManagedUser> | null = null;
   roleOptions: Array<{ value: UserRole; title: string; description: string }> = [
     {
       value: 'Admin',
@@ -38,6 +45,15 @@ export class UserManagementComponent implements OnInit {
   alertType: 'success' | 'danger' | 'info' = 'info';
   deletingIds = new Set<string>();
   editingUser: ManagedUser | null = null;
+  readonly pageSizes = [5, 10, 20, 50];
+  readonly searchControl = new FormControl('', { nonNullable: true });
+  private readonly destroy$ = new Subject<void>();
+
+  paginationState: UserQueryRequest = {
+    pageNumber: 1,
+    pageSize: 10,
+    search: '',
+  };
 
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserManagementService);
@@ -50,17 +66,35 @@ export class UserManagementComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.searchControl.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((search) => {
+        this.paginationState = { ...this.paginationState, pageNumber: 1, search: search.trim() };
+        this.loadUsers();
+      });
+
     this.loadUsers();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadUsers(): void {
     this.isLoading = true;
-    this.userService.loadUsers().subscribe({
-      next: (users) => {
-        this.users = users;
+    this.userService.loadUsers(this.paginationState).subscribe({
+      next: (page) => {
+        this.usersPage = page;
+        this.users = page.items;
+        this.paginationState = {
+          pageNumber: page.pageNumber,
+          pageSize: page.pageSize,
+          search: this.paginationState.search,
+        };
         this.isLoading = false;
 
-        if (!users.length) {
+        if (!page.totalCount) {
           this.setAlert('No users found yet. Add your first collaborator to get started.', 'info');
         } else {
           this.alertMessage = '';
@@ -86,6 +120,7 @@ export class UserManagementComponent implements OnInit {
       this.userService.updateUser(this.editingUser.id, { displayName, email, role }).subscribe({
         next: (user) => {
           this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
+          this.refreshFromServer();
           this.finishSubmit('User updated successfully.', 'success');
         },
         error: (error) => {
@@ -98,6 +133,7 @@ export class UserManagementComponent implements OnInit {
       this.userService.createUser(payload).subscribe({
         next: (user) => {
           this.users = [user, ...this.users.filter((existing) => existing.id !== user.id)];
+          this.refreshFromServer();
           this.finishSubmit('User created successfully.', 'success');
         },
         error: (error) => {
@@ -156,6 +192,43 @@ export class UserManagementComponent implements OnInit {
 
   onCancel(): void {
     this.startCreate();
+  }
+
+  changePage(pageNumber: number): void {
+    if (!this.usersPage) {
+      return;
+    }
+
+    const safePage = Math.min(Math.max(pageNumber, 1), this.usersPage.totalPages || 1);
+
+    if (safePage === this.paginationState.pageNumber) {
+      return;
+    }
+
+    this.paginationState = { ...this.paginationState, pageNumber: safePage };
+    this.loadUsers();
+  }
+
+  changePageSize(pageSize: string): void {
+    const parsedSize = Number(pageSize) || this.paginationState.pageSize;
+    this.paginationState = { ...this.paginationState, pageSize: parsedSize, pageNumber: 1 };
+    this.loadUsers();
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue('', { emitEvent: true });
+  }
+
+  get totalPages(): number {
+    return this.usersPage?.totalPages ?? 0;
+  }
+
+  get currentPage(): number {
+    return this.usersPage?.pageNumber ?? this.paginationState.pageNumber;
+  }
+
+  private refreshFromServer(): void {
+    this.loadUsers();
   }
 
   private resetForm(): void {

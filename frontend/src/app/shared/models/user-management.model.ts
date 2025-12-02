@@ -1,3 +1,4 @@
+import { PageRequest } from './pagination.model';
 import { UserRole } from './user.model';
 
 export interface ManagedUser {
@@ -19,3 +20,5 @@ export interface UpdateUserRequest {
   email: string;
   role: UserRole;
 }
+
+export interface UserQueryRequest extends PageRequest {}
