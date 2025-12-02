@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Api.Models;
 using Api.Models.Users;
@@ -24,11 +25,30 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(ApiResponse<IEnumerable<UserResponse>>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<IEnumerable<UserResponse>>>> GetUsers()
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<UserResponse>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<PagedResult<UserResponse>>>> GetUsers([FromQuery] UserQueryParameters query)
     {
-        var users = await _userManager.Users
+        var pageSize = Math.Clamp(query.PageSize, 1, 100);
+        var pageNumber = query.PageNumber <= 0 ? 1 : query.PageNumber;
+        var searchTerm = query.Search?.Trim();
+
+        var usersQuery = _userManager.Users.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var loweredSearch = searchTerm.ToLower();
+
+            usersQuery = usersQuery.Where(user =>
+                (user.DisplayName ?? string.Empty).ToLower().Contains(loweredSearch) ||
+                (user.Email ?? string.Empty).ToLower().Contains(loweredSearch));
+        }
+
+        var totalCount = await usersQuery.CountAsync();
+
+        var users = await usersQuery
             .OrderBy(u => u.Email)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         var response = new List<UserResponse>(users.Count);
@@ -44,7 +64,13 @@ public class UsersController : ControllerBase
                 Role: roles.FirstOrDefault() ?? Roles.Supplier));
         }
 
-        return Ok(ApiResponse<IEnumerable<UserResponse>>.Ok(response, "Users retrieved successfully."));
+        var pagedResult = new PagedResult<UserResponse>(
+            response,
+            totalCount,
+            pageNumber,
+            pageSize);
+
+        return Ok(ApiResponse<PagedResult<UserResponse>>.Ok(pagedResult, "Users retrieved successfully."));
     }
 
     [HttpPost]

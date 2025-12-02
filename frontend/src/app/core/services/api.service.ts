@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ConfigService } from './config.service';
@@ -11,8 +11,20 @@ export class ApiService {
     private readonly config: ConfigService,
   ) {}
 
-  get<T>(endpoint: string, headers?: HttpHeaders): Observable<ApiResponse<T>> {
-    return this.http.get<ApiResponse<T>>(`${this.config.apiBaseUrl}/${endpoint}`, { headers });
+  get<T>(
+    endpoint: string,
+    options?: {
+      headers?: HttpHeaders;
+      params?: HttpParams | Record<string, string | number | boolean | readonly (string | number | boolean)[]>;
+    },
+  ): Observable<ApiResponse<T>> {
+    const { headers, params } = options || {};
+
+    return this.http.get<ApiResponse<T>>(`${this.config.apiBaseUrl}/${endpoint}`, {
+      headers,
+      params: params ?? {},
+      responseType: 'json',
+    });
   }
 
   post<T>(endpoint: string, body: unknown, headers?: HttpHeaders): Observable<ApiResponse<T>> {

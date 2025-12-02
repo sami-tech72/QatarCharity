@@ -2,10 +2,12 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import { ApiResponse } from '../../shared/models/api-response.model';
+import { PagedResult } from '../../shared/models/pagination.model';
 import {
   CreateUserRequest,
   ManagedUser,
   UpdateUserRequest,
+  UserQueryRequest,
 } from '../../shared/models/user-management.model';
 import { ApiService } from './api.service';
 
@@ -13,8 +15,16 @@ import { ApiService } from './api.service';
 export class UserManagementService {
   constructor(private readonly api: ApiService) {}
 
-  loadUsers(): Observable<ManagedUser[]> {
-    return this.api.get<ManagedUser[]>('users').pipe(map((response) => this.unwrap(response)));
+  loadUsers(query: UserQueryRequest): Observable<PagedResult<ManagedUser>> {
+    return this.api
+      .get<PagedResult<ManagedUser>>('users', {
+        params: {
+          pageNumber: query.pageNumber,
+          pageSize: query.pageSize,
+          search: query.search ?? '',
+        },
+      })
+      .pipe(map((response) => this.unwrap(response)));
   }
 
   createUser(request: CreateUserRequest): Observable<ManagedUser> {

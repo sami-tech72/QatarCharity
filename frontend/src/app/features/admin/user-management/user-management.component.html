@@ -12,18 +12,26 @@
           <!--begin::Card title-->
           <div class="card-title">
             <!--begin::Search-->
-            <div class="d-flex align-items-center position-relative my-1">
+            <form class="d-flex align-items-center position-relative my-1" (submit)="$event.preventDefault()">
               <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
                 <span class="path1"></span>
                 <span class="path2"></span>
               </i>
               <input
                 type="text"
-                data-kt-user-table-filter="search"
                 class="form-control form-control-solid w-250px ps-13"
                 placeholder="Search user"
+                [formControl]="searchControl"
               />
-            </div>
+              <button
+                type="button"
+                class="btn btn-light ms-3"
+                (click)="clearSearch()"
+                [disabled]="!searchControl.value"
+              >
+                Clear
+              </button>
+            </form>
             <!--end::Search-->
           </div>
           <!--begin::Card title-->
@@ -324,6 +332,66 @@
             </tbody>
           </table>
           <!--end::Table-->
+          <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between pt-5 gap-4">
+            <div class="d-flex align-items-center gap-3">
+              <label class="form-label fw-semibold mb-0">Rows per page</label>
+              <select
+                class="form-select form-select-sm w-auto"
+                [value]="paginationState.pageSize"
+                (change)="changePageSize($any($event.target).value)"
+              >
+                <option *ngFor="let size of pageSizes" [value]="size">{{ size }}</option>
+              </select>
+            </div>
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 w-100 justify-content-sm-end">
+              <div class="text-muted">
+                <ng-container *ngIf="usersPage; else noResults">
+                  Showing
+                  <strong>{{ (usersPage.pageNumber - 1) * usersPage.pageSize + (users.length ? 1 : 0) }}</strong>
+                  -
+                  <strong>{{ (usersPage.pageNumber - 1) * usersPage.pageSize + users.length }}</strong>
+                  of
+                  <strong>{{ usersPage.totalCount }}</strong>
+                  users
+                </ng-container>
+                <ng-template #noResults>Showing 0 of 0 users</ng-template>
+              </div>
+              <nav aria-label="Pagination navigation">
+                <ul class="pagination pagination-circle pagination-outline mb-0">
+                  <li
+                    class="page-item previous me-1"
+                    [class.disabled]="!usersPage || currentPage <= 1 || isLoading"
+                  >
+                    <a class="page-link" href="#" (click)="$event.preventDefault(); changePage(currentPage - 1)">
+                      <i class="previous"></i>
+                    </a>
+                  </li>
+                  <li
+                    class="page-item m-1"
+                    *ngFor="let page of pageNumbers"
+                    [class.active]="page === currentPage"
+                  >
+                    <a
+                      class="page-link"
+                      href="#"
+                      (click)="$event.preventDefault(); changePage(page)"
+                      [attr.aria-current]="page === currentPage ? 'page' : null"
+                    >
+                      {{ page }}
+                    </a>
+                  </li>
+                  <li
+                    class="page-item next ms-1"
+                    [class.disabled]="!usersPage || currentPage >= (totalPages || 1) || isLoading"
+                  >
+                    <a class="page-link" href="#" (click)="$event.preventDefault(); changePage(currentPage + 1)">
+                      <i class="next"></i>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
         </div>
         <!--end::Card body-->
       </div>
