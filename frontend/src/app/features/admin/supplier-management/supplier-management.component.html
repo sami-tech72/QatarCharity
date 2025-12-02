@@ -58,6 +58,14 @@
             </div>
           </div>
 
+          <div *ngIf="alertMessage" class="alert mb-6" [ngClass]="{
+            'alert-danger': alertType === 'danger',
+            'alert-success': alertType === 'success',
+            'alert-info': alertType === 'info'
+          }">
+            {{ alertMessage }}
+          </div>
+
           <div class="table-responsive supplier-table-wrapper">
             <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_suppliers">
               <thead>
@@ -72,11 +80,14 @@
                 </tr>
               </thead>
               <tbody class="text-gray-600 fw-semibold">
-                <tr *ngIf="!filteredSuppliers.length">
+                <tr *ngIf="isLoading">
+                  <td colspan="7" class="text-center py-10">Loading suppliers...</td>
+                </tr>
+                <tr *ngIf="!isLoading && !filteredSuppliers.length">
                   <td colspan="7" class="text-center py-10 text-muted">No suppliers found.</td>
                 </tr>
                 <tr *ngFor="let supplier of filteredSuppliers; trackBy: trackById">
-                  <td data-label="Supplier ID" class="fw-semibold text-gray-800">{{ supplier.id }}</td>
+                  <td data-label="Supplier ID" class="fw-semibold text-gray-800">{{ supplier.supplierCode }}</td>
                   <td data-label="Supplier Name" class="fw-semibold text-gray-800">{{ supplier.companyName }}</td>
                   <td data-label="Category" class="text-break">{{ supplier.businessCategories.join(', ') }}</td>
                   <td data-label="Contact Person">

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -9,28 +9,10 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 
-interface Supplier {
-  id: string;
-  companyName: string;
-  registrationNumber: string;
-  primaryContactName: string;
-  primaryContactEmail: string;
-  primaryContactPhone: string;
-  businessCategories: string[];
-  companyAddress: string;
-  website: string;
-  yearEstablished: number;
-  numberOfEmployees: number;
-  uploadedDocuments: string[];
-  category: string;
-  contactPerson: string;
-  submissionDate: string;
-  status: 'Approved' | 'Pending' | 'On Hold';
-  hasPortalAccess: boolean;
-  portalUserEmail: string;
-  userRole: 'Supplier';
-}
+import { SupplierManagementService } from '../../../core/services/supplier-management.service';
+import { SupplierQueryRequest, SupplierRequest, SupplierStatus, Supplier } from '../../../shared/models/supplier.model';
 
 @Component({
   selector: 'app-supplier-management-page',
@@ -39,19 +21,45 @@ interface Supplier {
   templateUrl: './supplier-management.component.html',
   styleUrl: './supplier-management.component.scss',
 })
-export class SupplierManagementComponent {
+export class SupplierManagementComponent implements OnInit, OnDestroy {
   readonly searchControl = new FormControl('', { nonNullable: true });
-  readonly fb = new FormBuilder();
+  readonly fb = inject(FormBuilder);
+  private readonly supplierService = inject(SupplierManagementService);
+  private readonly destroy$ = new Subject<void>();
+
+  suppliers: Supplier[] = [];
+  paginationState: SupplierQueryRequest = { pageNumber: 1, pageSize: 10, search: '' };
+  isLoading = false;
   isSubmitting = false;
+  alertMessage = '';
+  alertType: 'danger' | 'info' | 'success' = 'info';
   editingSupplier: Supplier | null = null;
   selectedDocuments: string[] = [];
   activeTab: TabId = 'company';
 
   constructor() {
     this.setPortalAccessValidation(this.supplierForm.controls.hasPortalAccess.value);
-    this.supplierForm.controls.hasPortalAccess.valueChanges.subscribe((hasAccess) => {
-      this.setPortalAccessValidation(hasAccess);
-    });
+    this.supplierForm.controls.hasPortalAccess.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((hasAccess) => {
+        this.setPortalAccessValidation(hasAccess);
+      });
+  }
+
+  ngOnInit(): void {
+    this.searchControl.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((search) => {
+        this.paginationState = { ...this.paginationState, search: search.trim(), pageNumber: 1 };
+        this.loadSuppliers();
+      });
+
+    this.loadSuppliers();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   readonly companyStepControls: TabControlKey[] = [
@@ -101,123 +109,42 @@ export class SupplierManagementComponent {
     yearEstablished: [new Date().getFullYear(), [Validators.required, Validators.min(1800)]],
     numberOfEmployees: [1, [Validators.required, Validators.min(1)]],
     uploadedDocuments: this.fb.nonNullable.control<string[]>([]),
-    status: this.fb.nonNullable.control<Supplier['status']>('Pending'),
+    status: this.fb.nonNullable.control<SupplierStatus>('Pending'),
     hasPortalAccess: this.fb.nonNullable.control(true),
     portalUserEmail: ['', [Validators.email, Validators.maxLength(150)]],
   });
 
-  suppliers: Supplier[] = [
-    {
-      id: '#SUB-8702',
-      companyName: 'Ibn Sina Medical Supplies',
-      registrationNumber: 'CR-102938',
-      primaryContactName: 'Dr. Amina Rahman',
-      primaryContactEmail: 'amina.rahman@ibnsina.qa',
-      primaryContactPhone: '+974 4412 0001',
-      businessCategories: ['Medical', 'Pharmaceutical'],
-      companyAddress: 'Building 12, Street 210, Industrial Area, Doha',
-      website: 'https://ibnsinamed.qa',
-      yearEstablished: 2008,
-      numberOfEmployees: 85,
-      uploadedDocuments: ['Trade License.pdf', 'Tax Certificate.pdf'],
-      category: 'Medical',
-      contactPerson: 'Dr. Amina Rahman',
-      submissionDate: '12/01/2024',
-      status: 'Approved',
-      hasPortalAccess: true,
-      portalUserEmail: 'amina.rahman@ibnsina.qa',
-      userRole: 'Supplier',
-    },
-    {
-      id: '#SUB-5120',
-      companyName: 'Doha Logistics Partners',
-      registrationNumber: 'CR-548210',
-      primaryContactName: 'Yousef Al-Khaled',
-      primaryContactEmail: 'yousef.khaled@dohalogistics.com',
-      primaryContactPhone: '+974 4488 3321',
-      businessCategories: ['Logistics', 'Warehousing'],
-      companyAddress: 'Office 7, Ras Abu Aboud Street, Doha',
-      website: 'https://dohalogistics.com',
-      yearEstablished: 2014,
-      numberOfEmployees: 140,
-      uploadedDocuments: ['Safety Compliance.pdf'],
-      category: 'Logistics',
-      contactPerson: 'Yousef Al-Khaled',
-      submissionDate: '11/22/2024',
-      status: 'Pending',
-      hasPortalAccess: true,
-      portalUserEmail: 'yousef.khaled@dohalogistics.com',
-      userRole: 'Supplier',
-    },
-    {
-      id: '#SUB-4416',
-      companyName: 'Gulf Printworks',
-      registrationNumber: 'CR-776541',
-      primaryContactName: 'Mariam Al-Thani',
-      primaryContactEmail: 'mariam.t@gulfprintworks.qa',
-      primaryContactPhone: '+974 4433 1188',
-      businessCategories: ['Print', 'Media'],
-      companyAddress: 'Warehouse 3, Salwa Road, Doha',
-      website: 'https://gulfprintworks.qa',
-      yearEstablished: 2010,
-      numberOfEmployees: 65,
-      uploadedDocuments: ['Portfolio.pdf', 'Insurance.pdf'],
-      category: 'Print & Media',
-      contactPerson: 'Mariam Al-Thani',
-      submissionDate: '11/10/2024',
-      status: 'Approved',
-      hasPortalAccess: true,
-      portalUserEmail: 'portal@gulfprintworks.qa',
-      userRole: 'Supplier',
-    },
-    {
-      id: '#SUB-2334',
-      companyName: 'Azure Cloud Services',
-      registrationNumber: 'CR-993022',
-      primaryContactName: 'Omar Haddad',
-      primaryContactEmail: 'omar.haddad@azurecloud.qa',
-      primaryContactPhone: '+974 4422 9911',
-      businessCategories: ['Technology', 'Cloud Services'],
-      companyAddress: 'Level 10, Marina Twin Towers, Lusail',
-      website: 'https://azurecloud.qa',
-      yearEstablished: 2017,
-      numberOfEmployees: 45,
-      uploadedDocuments: ['ISO27001.pdf'],
-      category: 'Technology',
-      contactPerson: 'Omar Haddad',
-      submissionDate: '10/28/2024',
-      status: 'On Hold',
-      hasPortalAccess: false,
-      portalUserEmail: '',
-      userRole: 'Supplier',
-    },
-  ];
-
   get filteredSuppliers(): Supplier[] {
-    const term = this.searchControl.value.trim().toLowerCase();
-
-    if (!term) {
-      return this.suppliers;
-    }
-
-    return this.suppliers.filter((supplier) =>
-      [
-        supplier.id,
-        supplier.companyName,
-        supplier.registrationNumber,
-        supplier.primaryContactName,
-        supplier.primaryContactEmail,
-        supplier.primaryContactPhone,
-        supplier.portalUserEmail,
-        supplier.businessCategories.join(', '),
-        supplier.companyAddress,
-        supplier.website,
-      ].some((field) => field.toLowerCase().includes(term))
-    );
+    return this.suppliers;
   }
 
   trackById(_: number, supplier: Supplier): string {
     return supplier.id;
+  }
+
+  loadSuppliers(): void {
+    this.isLoading = true;
+    this.supplierService
+      .loadSuppliers(this.paginationState)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (page) => {
+          this.suppliers = page.items;
+          this.paginationState = {
+            pageNumber: page.pageNumber,
+            pageSize: page.pageSize,
+          search: this.paginationState.search,
+        };
+        this.isLoading = false;
+        if (this.alertType !== 'success') {
+          this.clearAlert();
+        }
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.setAlert(this.getErrorMessage(error, 'Unable to load suppliers.'), 'danger');
+        },
+      });
   }
 
   getStatusClass(status: Supplier['status']): string {
@@ -257,7 +184,7 @@ export class SupplierManagementComponent {
 
   startEdit(supplier: Supplier): void {
     this.editingSupplier = supplier;
-    this.selectedDocuments = supplier.uploadedDocuments;
+    this.selectedDocuments = supplier.uploadedDocuments ?? [];
     this.activeTab = 'company';
     this.supplierForm.reset({
       companyName: supplier.companyName,
@@ -267,13 +194,13 @@ export class SupplierManagementComponent {
       primaryContactPhone: supplier.primaryContactPhone,
       businessCategories: supplier.businessCategories,
       companyAddress: supplier.companyAddress,
-      website: supplier.website,
+      website: supplier.website ?? '',
       yearEstablished: supplier.yearEstablished,
       numberOfEmployees: supplier.numberOfEmployees,
-      uploadedDocuments: supplier.uploadedDocuments,
+      uploadedDocuments: supplier.uploadedDocuments ?? [],
       status: supplier.status,
       hasPortalAccess: supplier.hasPortalAccess,
-      portalUserEmail: supplier.portalUserEmail,
+      portalUserEmail: supplier.portalUserEmail ?? '',
     });
 
     this.setPortalAccessValidation(supplier.hasPortalAccess);
@@ -291,41 +218,47 @@ export class SupplierManagementComponent {
 
     this.isSubmitting = true;
     const formValue = this.supplierForm.getRawValue();
-    const parsedCategories = formValue.businessCategories;
-    const parsedDocuments = formValue.uploadedDocuments;
-
-    const payload: Supplier = {
-      id: this.editingSupplier?.id ?? this.generateId(),
+    const payload: SupplierRequest = {
       companyName: formValue.companyName.trim(),
       registrationNumber: formValue.registrationNumber.trim(),
       primaryContactName: formValue.primaryContactName.trim(),
       primaryContactEmail: formValue.primaryContactEmail.trim(),
       primaryContactPhone: formValue.primaryContactPhone.trim(),
-      businessCategories: parsedCategories,
+      businessCategories: formValue.businessCategories,
       companyAddress: formValue.companyAddress.trim(),
-      website: formValue.website.trim(),
+      website: formValue.website?.trim(),
       yearEstablished: formValue.yearEstablished,
       numberOfEmployees: formValue.numberOfEmployees,
-      uploadedDocuments: parsedDocuments,
-      category: parsedCategories[0] || 'General',
-      contactPerson: formValue.primaryContactName.trim(),
-      submissionDate: this.editingSupplier?.submissionDate ?? this.formatDate(new Date()),
+      uploadedDocuments: formValue.uploadedDocuments,
       status: formValue.status,
       hasPortalAccess: formValue.hasPortalAccess,
-      portalUserEmail: formValue.hasPortalAccess ? formValue.portalUserEmail.trim() : '',
-      userRole: 'Supplier',
+      portalUserEmail: formValue.hasPortalAccess ? formValue.portalUserEmail.trim() : undefined,
     };
 
-    if (this.editingSupplier) {
-      this.suppliers = this.suppliers.map((supplier) =>
-        supplier.id === this.editingSupplier?.id ? payload : supplier
-      );
-    } else {
-      this.suppliers = [payload, ...this.suppliers];
-    }
+    const request$ = this.editingSupplier
+      ? this.supplierService.updateSupplier(this.editingSupplier.id, payload)
+      : this.supplierService.createSupplier(payload);
 
-    this.isSubmitting = false;
-    this.startCreate();
+    request$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (supplier) => {
+        if (this.editingSupplier) {
+          this.suppliers = this.suppliers.map((existing) =>
+            existing.id === supplier.id ? supplier : existing
+          );
+        } else {
+          this.suppliers = [supplier, ...this.suppliers];
+        }
+
+        this.isSubmitting = false;
+        this.setAlert(`Supplier ${supplier.companyName} saved successfully.`, 'success');
+        this.startCreate();
+        this.loadSuppliers();
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        this.setAlert(this.getErrorMessage(error, 'Unable to save supplier.'), 'danger');
+      },
+    });
   }
 
   clearSearch(): void {
@@ -359,6 +292,27 @@ export class SupplierManagementComponent {
     if (primaryEmail) {
       this.supplierForm.patchValue({ portalUserEmail: primaryEmail });
     }
+  }
+
+  private setAlert(message: string, type: 'danger' | 'info' | 'success'): void {
+    this.alertMessage = message;
+    this.alertType = type;
+  }
+
+  private clearAlert(): void {
+    this.alertMessage = '';
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (typeof error === 'string') {
+      return error;
+    }
+
+    if (error instanceof Error) {
+      return error.message || fallback;
+    }
+
+    return fallback;
   }
 
   private requireAtLeastOne(control: AbstractControl<string[] | null>): ValidationErrors | null {
@@ -395,19 +349,6 @@ export class SupplierManagementComponent {
 
   goToPrevious(tab: TabId): void {
     this.activeTab = tab;
-  }
-
-  private generateId(): string {
-    const random = Math.floor(Math.random() * 9000) + 1000;
-    return `#SUB-${random}`;
-  }
-
-  private formatDate(date: Date): string {
-    return new Intl.DateTimeFormat('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric',
-    }).format(date);
   }
 
   private ensureStepValid(controlNames: TabControlKey[]): boolean {
