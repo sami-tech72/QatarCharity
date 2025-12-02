@@ -1,30 +1,198 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
-interface UserRow {
-  name: string;
-  role: string;
-  status: 'Active' | 'Invited' | 'Suspended';
-  lastActive: string;
-}
+import { UserManagementService } from '../../../core/services/user-management.service';
+import { CreateUserRequest, ManagedUser } from '../../../shared/models/user-management.model';
+import { UserRole } from '../../../shared/models/user.model';
 
 @Component({
   selector: 'app-user-management-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss',
 })
-export class UserManagementComponent {
-  users: UserRow[] = [
-    { name: 'Jane Cooper', role: 'Administrator', status: 'Active', lastActive: '1 minute ago' },
-    { name: 'Devon Lane', role: 'Approver', status: 'Active', lastActive: '12 minutes ago' },
-    { name: 'Darlene Robertson', role: 'Finance', status: 'Invited', lastActive: 'Pending' },
-    { name: 'Robert Fox', role: 'Reviewer', status: 'Suspended', lastActive: '3 weeks ago' },
-    { name: 'Courtney Henry', role: 'Requester', status: 'Active', lastActive: '2 hours ago' },
+export class UserManagementComponent implements OnInit {
+  users: ManagedUser[] = [];
+  roleOptions: Array<{ value: UserRole; title: string; description: string }> = [
+    {
+      value: 'Admin',
+      title: 'Administrator',
+      description: 'Best for business owners and company administrators.',
+    },
+    {
+      value: 'Procurement',
+      title: 'Procurement',
+      description: 'Manage procurement workflows and approvals.',
+    },
+    {
+      value: 'Supplier',
+      title: 'Supplier',
+      description: 'Access supplier-specific tools and updates.',
+    },
   ];
+  isLoading = false;
+  isSubmitting = false;
+  alertMessage = '';
+  alertType: 'success' | 'danger' | 'info' = 'info';
+  deletingIds = new Set<string>();
+  editingUser: ManagedUser | null = null;
 
-  trackByName(_: number, row: UserRow): string {
-    return row.name;
+  private readonly fb = inject(FormBuilder);
+  private readonly userService = inject(UserManagementService);
+
+  readonly userForm = this.fb.nonNullable.group({
+    displayName: ['', [Validators.required, Validators.maxLength(100)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    role: this.fb.nonNullable.control<UserRole>('Supplier'),
+  });
+
+  ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  loadUsers(): void {
+    this.isLoading = true;
+    this.userService.loadUsers().subscribe({
+      next: (users) => {
+        this.users = users;
+        this.isLoading = false;
+
+        if (!users.length) {
+          this.setAlert('No users found yet. Add your first collaborator to get started.', 'info');
+        } else {
+          this.alertMessage = '';
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.setAlert(this.getErrorMessage(error, 'Failed to load users.'), 'danger');
+      },
+    });
+  }
+
+  onSubmit(): void {
+    if (this.userForm.invalid || this.isSubmitting) {
+      this.userForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting = true;
+    if (this.editingUser) {
+      const { displayName, email, role } = this.userForm.getRawValue();
+
+      this.userService.updateUser(this.editingUser.id, { displayName, email, role }).subscribe({
+        next: (user) => {
+          this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
+          this.finishSubmit('User updated successfully.', 'success');
+        },
+        error: (error) => {
+          this.finishSubmit(this.getErrorMessage(error, 'Unable to update user.'), 'danger');
+        },
+      });
+    } else {
+      const payload = this.userForm.getRawValue() as CreateUserRequest;
+
+      this.userService.createUser(payload).subscribe({
+        next: (user) => {
+          this.users = [user, ...this.users.filter((existing) => existing.id !== user.id)];
+          this.finishSubmit('User created successfully.', 'success');
+        },
+        error: (error) => {
+          this.finishSubmit(this.getErrorMessage(error, 'Unable to create user.'), 'danger');
+        },
+      });
+    }
+  }
+
+  trackById(_: number, user: ManagedUser): string {
+    return user.id;
+  }
+
+  deleteUser(user: ManagedUser): void {
+    if (this.deletingIds.has(user.id)) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Are you sure you want to delete ${user.displayName}?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.deletingIds.add(user.id);
+
+    this.userService.deleteUser(user.id).subscribe({
+      next: () => {
+        this.users = this.users.filter((existing) => existing.id !== user.id);
+        this.deletingIds.delete(user.id);
+        this.setAlert('User deleted successfully.', 'success');
+      },
+      error: (error) => {
+        this.deletingIds.delete(user.id);
+        this.setAlert(this.getErrorMessage(error, 'Unable to delete user.'), 'danger');
+      },
+    });
+  }
+
+  startCreate(): void {
+    this.editingUser = null;
+    this.enablePasswordValidators();
+    this.resetForm();
+  }
+
+  startEdit(user: ManagedUser): void {
+    this.editingUser = user;
+    this.disablePasswordValidators();
+    this.userForm.patchValue({
+      displayName: user.displayName,
+      email: user.email,
+      password: '',
+      role: user.role,
+    });
+  }
+
+  onCancel(): void {
+    this.startCreate();
+  }
+
+  private resetForm(): void {
+    this.userForm.reset({
+      displayName: '',
+      email: '',
+      password: '',
+      role: 'Supplier',
+    });
+  }
+
+  private finishSubmit(message: string, type: 'success' | 'danger' | 'info'): void {
+    this.isSubmitting = false;
+    this.setAlert(message, type);
+    this.startCreate();
+  }
+
+  private setAlert(message: string, type: 'success' | 'danger' | 'info'): void {
+    this.alertMessage = message;
+    this.alertType = type;
+  }
+
+  private disablePasswordValidators(): void {
+    const control = this.userForm.controls.password;
+    control.clearValidators();
+    control.updateValueAndValidity();
+  }
+
+  private enablePasswordValidators(): void {
+    const control = this.userForm.controls.password;
+    control.setValidators([Validators.required, Validators.minLength(6)]);
+    control.updateValueAndValidity();
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    const apiError = (error as { error?: { message?: string }; message?: string }) || {};
+
+    return apiError.error?.message || apiError.message || fallback;
   }
 }
