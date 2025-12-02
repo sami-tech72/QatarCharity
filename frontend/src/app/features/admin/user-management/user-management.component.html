@@ -85,15 +85,17 @@
                     <h2 class="fw-bold">Add User</h2>
                     <!--end::Modal title-->
                     <!--begin::Close-->
-                    <div
+                    <button
+                      type="button"
                       class="btn btn-icon btn-sm btn-active-icon-primary"
-                      data-kt-users-modal-action="close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
                     >
                       <i class="ki-duotone ki-cross fs-1">
                         <span class="path1"></span>
                         <span class="path2"></span>
                       </i>
-                    </div>
+                    </button>
                     <!--end::Close-->
                   </div>
                   <!--end::Modal header-->
@@ -217,7 +219,7 @@
                           <button
                             type="reset"
                             class="btn btn-light me-3"
-                            data-kt-users-modal-action="cancel"
+                            data-bs-dismiss="modal"
                             [disabled]="isSubmitting"
                           >
                             Discard
