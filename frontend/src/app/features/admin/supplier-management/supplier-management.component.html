@@ -1,71 +1,99 @@
-<section class="page-heading">
-  <div>
-    <p class="eyebrow text-uppercase">Partners</p>
-    <h1 class="page-title">Supplier management</h1>
-    <p class="lead text-muted">Track strategic suppliers, monitor spend, and surface relationship health.</p>
-  </div>
-  <button class="btn btn-primary">Add supplier</button>
-</section>
-
-<section class="grid two-up">
-  <article class="panel">
-    <div class="panel-header">
-      <h2 class="panel-title">Supplier portfolio</h2>
-      <button class="btn btn-outline-secondary btn-sm">Export list</button>
-    </div>
-    <div class="table-responsive">
-      <table class="table align-middle mb-0">
-        <thead>
-          <tr>
-            <th scope="col">Supplier</th>
-            <th scope="col">Category</th>
-            <th scope="col">Health</th>
-            <th scope="col" class="text-end">Quarter spend</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let supplier of suppliers; trackBy: trackByName">
-            <td class="fw-semibold">{{ supplier.name }}</td>
-            <td>{{ supplier.category }}</td>
-            <td>
-              <span
-                class="badge"
-                [ngClass]="{
-                  'bg-success-subtle text-success-emphasis': supplier.health === 'Good',
-                  'bg-warning-subtle text-warning-emphasis': supplier.health === 'Attention',
-                  'bg-info-subtle text-info-emphasis': supplier.health === 'Review'
-                }"
-                >{{ supplier.health }}</span
+<!--begin::Content wrapper-->
+<div class="d-flex flex-column flex-column-fluid">
+  <!--begin::Content-->
+  <div id="kt_app_content" class="app-content flex-column-fluid">
+    <!--begin::Content container-->
+    <div id="kt_app_content_container" class="app-container container-xxl">
+      <!--begin::Card-->
+      <div class="card">
+        <!--begin::Card header-->
+        <div class="card-header border-0 pt-6">
+          <div class="card-title">
+            <form class="d-flex align-items-center position-relative my-1" (submit)="$event.preventDefault()">
+              <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
+                <span class="path1"></span>
+                <span class="path2"></span>
+              </i>
+              <input
+                type="text"
+                class="form-control form-control-solid w-250px ps-13"
+                placeholder="Search supplier"
+                [formControl]="searchControl"
+              />
+              <button
+                type="button"
+                class="btn btn-light ms-3"
+                (click)="searchControl.setValue('', { emitEvent: true })"
+                [disabled]="!searchControl.value"
               >
-            </td>
-            <td class="text-end fw-semibold">{{ supplier.spend }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </article>
+                Clear
+              </button>
+            </form>
+          </div>
+          <div class="card-toolbar">
+            <div class="d-flex justify-content-end">
+              <button type="button" class="btn btn-primary">
+                <i class="ki-duotone ki-plus fs-2"></i>Add Supplier
+              </button>
+            </div>
+          </div>
+        </div>
+        <!--end::Card header-->
+        <!--begin::Card body-->
+        <div class="card-body py-4">
+          <div class="alert alert-info d-flex align-items-center gap-2 mb-6">
+            <i class="ki-duotone ki-information-5 fs-2 text-info">
+              <span class="path1"></span>
+              <span class="path2"></span>
+              <span class="path3"></span>
+            </i>
+            <div>
+              Keep track of active suppliers, onboarding dates, and relationship owners in one place.
+            </div>
+          </div>
 
-  <article class="panel accent">
-    <div class="panel-header">
-      <div>
-        <p class="eyebrow text-uppercase">Observations</p>
-        <h2 class="panel-title">Relationship notes</h2>
+          <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_suppliers">
+            <thead>
+              <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                <th class="min-w-125px">Supplier ID</th>
+                <th class="min-w-125px">Supplier Name</th>
+                <th class="min-w-125px">Category</th>
+                <th class="min-w-150px">Contact Person</th>
+                <th class="min-w-150px">Submission Date</th>
+                <th class="min-w-100px">Status</th>
+                <th class="text-end min-w-100px">Action</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-600 fw-semibold">
+              <tr *ngIf="!filteredSuppliers.length">
+                <td colspan="7" class="text-center py-10 text-muted">No suppliers found.</td>
+              </tr>
+              <tr *ngFor="let supplier of filteredSuppliers; trackBy: trackById">
+                <td class="fw-semibold text-gray-800">{{ supplier.id }}</td>
+                <td class="fw-semibold text-gray-800">{{ supplier.name }}</td>
+                <td>{{ supplier.category }}</td>
+                <td>{{ supplier.contactPerson }}</td>
+                <td>{{ supplier.submissionDate }}</td>
+                <td>
+                  <div class="badge fw-bold" [ngClass]="getStatusClass(supplier.status)">
+                    {{ supplier.status }}
+                  </div>
+                </td>
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-light btn-active-light-primary">
+                    View
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!--end::Card body-->
       </div>
-      <span class="badge bg-primary-subtle text-primary-emphasis">Quarterly</span>
+      <!--end::Card-->
     </div>
-    <ul class="notes">
-      <li>
-        <div class="note-title">Rebid logistics contract</div>
-        <p class="text-muted mb-0">Request for proposal drafts due next week; shortlist three providers.</p>
-      </li>
-      <li>
-        <div class="note-title">Supplier scorecards</div>
-        <p class="text-muted mb-0">Performance scorecards will be refreshed after the March SLA review.</p>
-      </li>
-      <li>
-        <div class="note-title">Diversity reporting</div>
-        <p class="text-muted mb-0">Collect updated ESG attestations before onboarding new vendors.</p>
-      </li>
-    </ul>
-  </article>
-</section>
+    <!--end::Content container-->
+  </div>
+  <!--end::Content-->
+</div>
+<!--end::Content wrapper-->
