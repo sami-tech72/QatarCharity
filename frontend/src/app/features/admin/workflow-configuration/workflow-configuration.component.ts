@@ -15,7 +15,6 @@ interface Workflow {
 
 interface WorkflowDraft {
   name: string;
-  appliesTo: string;
   description: string;
   steps: StepDraft[];
 }
@@ -67,7 +66,6 @@ export class WorkflowConfigurationComponent {
     Archived: 'badge-light-secondary',
   };
 
-  readonly appliesToOptions = ['Procurement', 'Finance', 'Programs', 'HR'];
   readonly stepTypes: Exclude<StepType, ''>[] = ['Approval', 'Task', 'Notification'];
   readonly assigneeOptions = ['Procurement Manager', 'Finance Officer', 'Project Lead', 'HR Team'];
 
@@ -94,7 +92,6 @@ export class WorkflowConfigurationComponent {
     this.workflowModalTitle = `Edit ${workflow.name}`;
     this.workflowDraft = {
       name: workflow.name,
-      appliesTo: 'Procurement',
       description: 'Update stages and assignments as needed.',
       steps: [
         {
@@ -152,7 +149,6 @@ export class WorkflowConfigurationComponent {
   private createDefaultWorkflowDraft(): WorkflowDraft {
     return {
       name: '',
-      appliesTo: '',
       description: '',
       steps: [
         {

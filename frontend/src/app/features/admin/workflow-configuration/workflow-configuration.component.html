@@ -120,13 +120,6 @@
                 name="workflowName"
               />
             </div>
-            <div class="col-12 col-lg-6">
-              <label class="form-label required">Applies To</label>
-              <select class="form-select" [(ngModel)]="workflowDraft.appliesTo" name="workflowAppliesTo">
-                <option value="">Select Area...</option>
-                <option *ngFor="let area of appliesToOptions" [value]="area">{{ area }}</option>
-              </select>
-            </div>
             <div class="col-12">
               <label class="form-label">Description (Optional)</label>
               <textarea
