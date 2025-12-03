@@ -206,7 +206,13 @@
                 <div class="row g-3">
                   <div class="col-12" *ngFor="let attachment of attachments.controls; index as i">
                     <div class="d-flex align-items-center gap-3">
-                      <input type="text" class="form-control" [formControl]="attachment" placeholder="Upload document name" />
+                      <input
+                        type="file"
+                        class="form-control"
+                        (change)="onAttachmentChange($event, i)"
+                        [attr.aria-label]="'Attachment ' + (i + 1)"
+                      />
+                      <span class="text-muted small" *ngIf="attachment.value">{{ attachment.value?.name }}</span>
                       <button type="button" class="btn btn-icon btn-light-danger" (click)="removeAttachment(i)">
                         <i class="ki-duotone ki-trash fs-3"></i>
                       </button>
@@ -415,7 +421,7 @@
                   <div>
                     <strong>Attachments:</strong>
                     <ul class="mb-0">
-                      <li *ngFor="let attachment of attachments.controls">{{ attachment.value || '—' }}</li>
+                      <li *ngFor="let attachment of attachments.controls">{{ attachment.value?.name || '—' }}</li>
                     </ul>
                   </div>
                 </div>

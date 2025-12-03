@@ -88,9 +88,8 @@ export class CreateRfxComponent {
         methodology: [false],
         other: [false],
       }),
-      attachments: this.fb.array<FormControl<string>>([
-        this.fb.nonNullable.control('Specifications.pdf'),
-        this.fb.nonNullable.control('Drawings.zip'),
+      attachments: this.fb.array<FormControl<File | null>>([
+        this.fb.control<File | null>(null),
       ]),
     });
 
@@ -124,8 +123,8 @@ export class CreateRfxComponent {
     return (this.currentStepIndex / (this.steps.length - 1)) * 100;
   }
 
-  get attachments(): FormArray<FormControl<string>> {
-    return this.requirementsForm.get('attachments') as FormArray<FormControl<string>>;
+  get attachments(): FormArray<FormControl<File | null>> {
+    return this.requirementsForm.get('attachments') as FormArray<FormControl<File | null>>;
   }
 
   get criteriaArray(): FormArray<FormGroup<CriterionForm>> {
@@ -181,11 +180,18 @@ export class CreateRfxComponent {
   }
 
   addAttachment(): void {
-    this.attachments.push(this.fb.nonNullable.control(''));
+    this.attachments.push(this.fb.control<File | null>(null));
   }
 
   removeAttachment(index: number): void {
     this.attachments.removeAt(index);
+  }
+
+  onAttachmentChange(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    this.attachments.at(index).setValue(file);
   }
 
   addCriterion(type: 'technical' | 'commercial'): void {
