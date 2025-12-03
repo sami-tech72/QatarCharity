@@ -99,18 +99,22 @@ export class LayoutComponent implements AfterViewInit {
 
     if (!session) {
       this.roles = [];
+      this.activePageTitle = 'Dashboard';
       return;
     }
 
     this.roles = [session.role];
     this.currentRole = session.role;
-    this.updateActivePageTitle(this.router.url);
 
     const defaultPath = this.authService.defaultPathForRole(session.role);
+    const isLoginRoute = this.router.url === '/' || this.router.url.startsWith('/login');
 
-    if (!this.router.url.startsWith(defaultPath)) {
+    if (isLoginRoute) {
       this.router.navigateByUrl(defaultPath);
+      return;
     }
+
+    this.updateActivePageTitle(this.router.url);
 
     this.scheduleLayoutInitialization();
   }
