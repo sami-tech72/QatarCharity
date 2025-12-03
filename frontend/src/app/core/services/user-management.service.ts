@@ -47,6 +47,12 @@ export class UserManagementService {
     );
   }
 
+  getUserLookup(search?: string): Observable<ManagedUser[]> {
+    return this.api
+      .get<ManagedUser[]>(`users/lookup`, { params: { search: search ?? '' } })
+      .pipe(map((response) => this.unwrap(response)));
+  }
+
   private unwrap<T>(response: ApiResponse<T>): T {
     if (!response.success || response.data === undefined || response.data === null) {
       throw new Error(response.message || 'Request failed.');

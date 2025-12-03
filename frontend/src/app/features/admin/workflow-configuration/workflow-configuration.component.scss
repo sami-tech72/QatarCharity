@@ -2,12 +2,74 @@
   display: block;
 }
 
-.page-placeholder {
-  padding: 2rem;
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 1040;
+}
+
+.modal-custom {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1041;
+  overflow: auto;
+}
+
+.modal-dialog-custom {
+  width: min(960px, 100%);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 70px rgba(15, 23, 42, 0.25);
+}
+
+.modal-dialog-sm {
+  width: min(520px, 100%);
+}
+
+.modal-content {
+  border: none;
+  border-radius: 12px;
+}
+
+.section-divider {
+  height: 1px;
+  background: #eff2f5;
+}
+
+.step-card {
+  border: 1px solid #eff2f5;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  background: #fcfcfd;
+}
+
+.step-pill {
+  background: #eef6ff;
+  color: #1d6fdb;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+
+.empty-state {
+  border: 1px dashed #d8dadd;
+  padding: 1rem;
+  border-radius: 10px;
+  background: #f8fafc;
   text-align: center;
 }
 
-.page-placeholder__title {
-  font-size: 2rem;
-  font-weight: 600;
+.empty-state-table {
+  border: 1px dashed #e4e6ef;
+  padding: 1.25rem;
+  border-radius: 10px;
+  background: #fcfcfd;
+  text-align: center;
 }
