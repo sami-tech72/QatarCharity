@@ -1,6 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 interface Step {
@@ -9,12 +16,12 @@ interface Step {
   description: string;
 }
 
-interface CriterionFormValue {
-  title: string;
-  weight: number;
-  description: string;
-  type: 'technical' | 'commercial';
-}
+type CriterionForm = {
+  title: FormControl<string>;
+  weight: FormControl<number>;
+  description: FormControl<string>;
+  type: FormControl<'technical' | 'commercial'>;
+};
 
 @Component({
   selector: 'app-create-rfx',
@@ -81,14 +88,14 @@ export class CreateRfxComponent {
         methodology: [false],
         other: [false],
       }),
-      attachments: this.fb.array([
-        this.fb.control('Specifications.pdf'),
-        this.fb.control('Drawings.zip'),
+      attachments: this.fb.array<FormControl<string>>([
+        this.fb.nonNullable.control('Specifications.pdf'),
+        this.fb.nonNullable.control('Drawings.zip'),
       ]),
     });
 
     this.evaluationForm = this.fb.group({
-      criteria: this.fb.array<FormGroup<CriterionFormValue>>([
+      criteria: this.fb.array<FormGroup<CriterionForm>>([
         this.createCriterion('Technical Compliance', 25, 'Alignment with required specs', 'technical'),
         this.createCriterion('Experience & Qualifications', 25, 'Relevant past performance', 'technical'),
         this.createCriterion('Methodology & Approach', 25, 'Quality of delivery approach', 'technical'),
@@ -96,11 +103,11 @@ export class CreateRfxComponent {
       ]),
       minimumScore: [70, [Validators.required, Validators.min(0), Validators.max(100)]],
       evaluationNotes: [''],
-      committee: this.fb.array([
-        this.fb.control('John Smith'),
-        this.fb.control('Sarah Ahmed'),
-        this.fb.control('Procurement Manager'),
-        this.fb.control('Technical Expert'),
+      committee: this.fb.array<FormControl<string>>([
+        this.fb.nonNullable.control('John Smith'),
+        this.fb.nonNullable.control('Sarah Ahmed'),
+        this.fb.nonNullable.control('Procurement Manager'),
+        this.fb.nonNullable.control('Technical Expert'),
       ]),
     });
   }
@@ -117,16 +124,16 @@ export class CreateRfxComponent {
     return (this.currentStepIndex / (this.steps.length - 1)) * 100;
   }
 
-  get attachments(): FormArray {
-    return this.requirementsForm.get('attachments') as FormArray;
+  get attachments(): FormArray<FormControl<string>> {
+    return this.requirementsForm.get('attachments') as FormArray<FormControl<string>>;
   }
 
-  get criteriaArray(): FormArray<FormGroup<CriterionFormValue>> {
-    return this.evaluationForm.get('criteria') as FormArray<FormGroup<CriterionFormValue>>;
+  get criteriaArray(): FormArray<FormGroup<CriterionForm>> {
+    return this.evaluationForm.get('criteria') as FormArray<FormGroup<CriterionForm>>;
   }
 
-  get committeeMembers(): FormArray {
-    return this.evaluationForm.get('committee') as FormArray;
+  get committeeMembers(): FormArray<FormControl<string>> {
+    return this.evaluationForm.get('committee') as FormArray<FormControl<string>>;
   }
 
   get requiredDocumentsSelected(): string[] {
@@ -174,7 +181,7 @@ export class CreateRfxComponent {
   }
 
   addAttachment(): void {
-    this.attachments.push(this.fb.control(''));
+    this.attachments.push(this.fb.nonNullable.control(''));
   }
 
   removeAttachment(index: number): void {
@@ -190,7 +197,7 @@ export class CreateRfxComponent {
   }
 
   addCommitteeMember(): void {
-    this.committeeMembers.push(this.fb.control(''));
+    this.committeeMembers.push(this.fb.nonNullable.control(''));
   }
 
   removeCommitteeMember(index: number): void {
@@ -207,12 +214,12 @@ export class CreateRfxComponent {
     weight: number,
     description: string,
     type: 'technical' | 'commercial'
-  ): FormGroup<CriterionFormValue> {
-    return this.fb.group<CriterionFormValue>({
-      title: this.fb.control(title),
-      weight: this.fb.control(weight),
-      description: this.fb.control(description),
-      type: this.fb.control(type),
+  ): FormGroup<CriterionForm> {
+    return this.fb.nonNullable.group<CriterionForm>({
+      title: this.fb.nonNullable.control(title),
+      weight: this.fb.nonNullable.control(weight),
+      description: this.fb.nonNullable.control(description),
+      type: this.fb.nonNullable.control(type),
     });
   }
 
