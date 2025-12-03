@@ -2,6 +2,10 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.18.
 
+## Prerequisites
+
+The application uses `ngx-toastr` for success and error notifications, which relies on the Angular animations package. Ensure `@angular/animations` is installed by running `npm install` from the `frontend` directory after pulling new changes.
+
 ## Development server
 
 To start a local development server, run:
