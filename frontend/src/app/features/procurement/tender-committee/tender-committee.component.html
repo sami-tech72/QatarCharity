@@ -109,7 +109,7 @@
                               <select
                                 class="form-select form-select-sm"
                                 [value]="connectionSelections[member.id] || ''"
-                                (change)="onConnectSelectionChange(member.id, ($event.target as HTMLSelectElement).value)"
+                                (change)="onConnectSelectionChange(member.id, $any($event.target).value)"
                               >
                                 <option value="">Select user to connect</option>
                                 <option *ngFor="let user of availableUsers" [value]="user.id">{{ user.name }} • {{ user.department }}</option>
@@ -124,7 +124,7 @@
                         <select
                           class="form-select form-select-sm"
                           [value]="member.status"
-                          (change)="updateMemberStatus(member.id, ($event.target as HTMLSelectElement).value as MemberStatus)"
+                          (change)="updateMemberStatus(member.id, $any($event.target).value as MemberStatus)"
                         >
                           <option value="Active">Active</option>
                           <option value="Pending">Pending</option>
@@ -151,7 +151,7 @@
               <form class="row g-5" [formGroup]="memberForm" (ngSubmit)="onSubmit()">
                 <div class="col-12">
                   <label class="form-label required">Link to user (optional)</label>
-                  <select class="form-select" (change)="onUserSelection(($event.target as HTMLSelectElement).value)">
+                  <select class="form-select" (change)="onUserSelection($any($event.target).value)">
                     <option value="">Select an existing user</option>
                     <option *ngFor="let user of availableUsers" [value]="user.id">{{ user.name }} — {{ user.role }}</option>
                   </select>
