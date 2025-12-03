@@ -6,6 +6,8 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 The application uses `ngx-toastr` for success and error notifications, which relies on the Angular animations package. Ensure `@angular/animations` is installed by running `npm install` from the `frontend` directory after pulling new changes.
 
+Bootstrap JavaScript is also required for the modal helpers used in the admin forms. The `bootstrap` dependency is declared in `package.json`, so running `npm install` will provide the necessary module for `Modal` imports.
+
 ## Development server
 
 To start a local development server, run:
