@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 
 import { WorkflowService } from '../../../core/services/workflow.service';
@@ -251,17 +252,55 @@ export class WorkflowConfigurationComponent implements OnInit {
   }
 
   private loadAssignees(): void {
-    this.userService
-      .loadUsers({ pageNumber: 1, pageSize: 100, search: '' })
-      .subscribe({
-        next: (page) => {
-          this.assigneeOptions = page.items;
-          this.assigneeLookup = new Map(page.items.map((user) => [user.id, user.displayName]));
-        },
-        error: (error) => {
-          this.notifier.error(this.getErrorMessage(error, 'Unable to load users.'));
-        },
-      });
+    const pageSize = 100;
+
+    this.userService.loadUsers({ pageNumber: 1, pageSize, search: '' }).subscribe({
+      next: (firstPage) => {
+        const users = [...firstPage.items];
+
+        if (firstPage.totalPages <= 1) {
+          this.setAssigneeOptions(users);
+          return;
+        }
+
+        const remainingPages = Array.from({ length: firstPage.totalPages - 1 }, (_, index) => index + 2);
+
+        forkJoin(
+          remainingPages.map((pageNumber) =>
+            this.userService.loadUsers({ pageNumber, pageSize, search: '' }),
+          ),
+        ).subscribe({
+          next: (pages) => {
+            pages.forEach((page) => users.push(...page.items));
+            this.setAssigneeOptions(users);
+          },
+          error: (error) => {
+            this.notifier.error(this.getErrorMessage(error, 'Unable to load users.'));
+          },
+        });
+      },
+      error: (error) => {
+        this.notifier.error(this.getErrorMessage(error, 'Unable to load users.'));
+      },
+    });
+  }
+
+  private setAssigneeOptions(users: ManagedUser[]): void {
+    const uniqueUsers = new Map<string, ManagedUser>();
+
+    users.forEach((user) => {
+      if (!uniqueUsers.has(user.id)) {
+        uniqueUsers.set(user.id, user);
+      }
+    });
+
+    this.assigneeOptions = Array.from(uniqueUsers.values()).sort((a, b) =>
+      a.displayName.localeCompare(b.displayName),
+    );
+
+    this.assigneeLookup = new Map(
+      this.assigneeOptions.map((user) => [user.id, `${user.displayName} (${user.role})`]),
+    );
   }
 
   private upsertLocalWorkflows(workflow: WorkflowDetail): void {
