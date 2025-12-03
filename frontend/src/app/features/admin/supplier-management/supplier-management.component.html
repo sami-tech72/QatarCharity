@@ -1,71 +1,435 @@
-<section class="page-heading">
-  <div>
-    <p class="eyebrow text-uppercase">Partners</p>
-    <h1 class="page-title">Supplier management</h1>
-    <p class="lead text-muted">Track strategic suppliers, monitor spend, and surface relationship health.</p>
-  </div>
-  <button class="btn btn-primary">Add supplier</button>
-</section>
-
-<section class="grid two-up">
-  <article class="panel">
-    <div class="panel-header">
-      <h2 class="panel-title">Supplier portfolio</h2>
-      <button class="btn btn-outline-secondary btn-sm">Export list</button>
-    </div>
-    <div class="table-responsive">
-      <table class="table align-middle mb-0">
-        <thead>
-          <tr>
-            <th scope="col">Supplier</th>
-            <th scope="col">Category</th>
-            <th scope="col">Health</th>
-            <th scope="col" class="text-end">Quarter spend</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let supplier of suppliers; trackBy: trackByName">
-            <td class="fw-semibold">{{ supplier.name }}</td>
-            <td>{{ supplier.category }}</td>
-            <td>
-              <span
-                class="badge"
-                [ngClass]="{
-                  'bg-success-subtle text-success-emphasis': supplier.health === 'Good',
-                  'bg-warning-subtle text-warning-emphasis': supplier.health === 'Attention',
-                  'bg-info-subtle text-info-emphasis': supplier.health === 'Review'
-                }"
-                >{{ supplier.health }}</span
+<!--begin::Content wrapper-->
+<div class="d-flex flex-column flex-column-fluid">
+  <!--begin::Content-->
+  <div id="kt_app_content" class="app-content flex-column-fluid">
+    <!--begin::Content container-->
+    <div id="kt_app_content_container" class="app-container container-xxl">
+      <!--begin::Card-->
+      <div class="card">
+        <!--begin::Card header-->
+        <div class="card-header border-0 pt-6">
+          <div class="card-title">
+            <form class="d-flex align-items-center position-relative my-1" (submit)="$event.preventDefault()">
+              <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
+                <span class="path1"></span>
+                <span class="path2"></span>
+              </i>
+              <input
+                type="text"
+                class="form-control form-control-solid w-250px ps-13"
+                placeholder="Search supplier"
+                [formControl]="searchControl"
+              />
+              <button
+                type="button"
+                class="btn btn-light ms-3"
+                (click)="searchControl.setValue('', { emitEvent: true })"
+                [disabled]="!searchControl.value"
               >
-            </td>
-            <td class="text-end fw-semibold">{{ supplier.spend }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </article>
+                Clear
+              </button>
+            </form>
+          </div>
+          <div class="card-toolbar">
+            <div class="d-flex justify-content-end">
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#kt_modal_add_supplier"
+                (click)="startCreate()"
+              >
+                <i class="ki-duotone ki-plus fs-2"></i>Add Supplier
+              </button>
+            </div>
+          </div>
+        </div>
+        <!--end::Card header-->
+        <!--begin::Card body-->
+        <div class="card-body py-4">
+          <div class="alert alert-info d-flex align-items-center gap-2 mb-6">
+            <i class="ki-duotone ki-information-5 fs-2 text-info">
+              <span class="path1"></span>
+              <span class="path2"></span>
+              <span class="path3"></span>
+            </i>
+            <div>
+              Keep track of active suppliers, onboarding dates, and relationship owners in one place.
+            </div>
+          </div>
 
-  <article class="panel accent">
-    <div class="panel-header">
-      <div>
-        <p class="eyebrow text-uppercase">Observations</p>
-        <h2 class="panel-title">Relationship notes</h2>
+          <div *ngIf="alertMessage" class="alert mb-6" [ngClass]="{
+            'alert-danger': alertType === 'danger',
+            'alert-success': alertType === 'success',
+            'alert-info': alertType === 'info'
+          }">
+            {{ alertMessage }}
+          </div>
+
+          <div class="table-responsive supplier-table-wrapper">
+            <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_suppliers">
+              <thead>
+                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                  <th class="min-w-125px">Supplier ID</th>
+                  <th class="min-w-175px">Supplier Name</th>
+                  <th class="min-w-175px">Category</th>
+                  <th class="min-w-175px">Contact Person</th>
+                  <th class="min-w-150px">Submission Date</th>
+                  <th class="min-w-100px">Status</th>
+                  <th class="text-end min-w-125px">Action</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-600 fw-semibold">
+                <tr *ngIf="isLoading">
+                  <td colspan="7" class="text-center py-10">Loading suppliers...</td>
+                </tr>
+                <tr *ngIf="!isLoading && !filteredSuppliers.length">
+                  <td colspan="7" class="text-center py-10 text-muted">No suppliers found.</td>
+                </tr>
+                <tr *ngFor="let supplier of filteredSuppliers; trackBy: trackById">
+                  <td data-label="Supplier ID" class="fw-semibold text-gray-800">{{ supplier.supplierCode }}</td>
+                  <td data-label="Supplier Name" class="fw-semibold text-gray-800">{{ supplier.companyName }}</td>
+                  <td data-label="Category" class="text-break">{{ supplier.businessCategories.join(', ') }}</td>
+                  <td data-label="Contact Person">
+                    <div class="d-flex flex-column gap-1">
+                      <span class="fw-semibold text-gray-800">{{ supplier.primaryContactName }}</span>
+                      <span class="text-gray-600 fs-8" *ngIf="supplier.hasPortalAccess">
+                        Supplier user · {{ supplier.portalUserEmail || supplier.primaryContactEmail }}
+                      </span>
+                      <span class="text-gray-500 fs-8" *ngIf="!supplier.hasPortalAccess">No portal account</span>
+                    </div>
+                  </td>
+                  <td data-label="Submission Date">{{ supplier.submissionDate }}</td>
+                  <td data-label="Status">
+                    <div class="badge fw-bold" [ngClass]="getStatusClass(supplier.status)">
+                      {{ supplier.status }}
+                    </div>
+                  </td>
+                  <td data-label="Action" class="text-end">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-light btn-active-light-primary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#kt_modal_add_supplier"
+                      (click)="startEdit(supplier)"
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!--end::Card body-->
       </div>
-      <span class="badge bg-primary-subtle text-primary-emphasis">Quarterly</span>
+      <!--end::Card-->
     </div>
-    <ul class="notes">
-      <li>
-        <div class="note-title">Rebid logistics contract</div>
-        <p class="text-muted mb-0">Request for proposal drafts due next week; shortlist three providers.</p>
-      </li>
-      <li>
-        <div class="note-title">Supplier scorecards</div>
-        <p class="text-muted mb-0">Performance scorecards will be refreshed after the March SLA review.</p>
-      </li>
-      <li>
-        <div class="note-title">Diversity reporting</div>
-        <p class="text-muted mb-0">Collect updated ESG attestations before onboarding new vendors.</p>
-      </li>
-    </ul>
-  </article>
-</section>
+    <!--end::Content container-->
+  </div>
+  <!--end::Content-->
+</div>
+<!--end::Content wrapper-->
+
+<div
+  class="modal fade"
+  id="kt_modal_add_supplier"
+  tabindex="-1"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="fw-bold">{{ editingSupplier ? 'Edit Supplier' : 'Add Supplier' }}</h2>
+        <button
+          type="button"
+          class="btn btn-icon btn-sm btn-active-icon-primary"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+          (click)="onCancel()"
+        >
+          <i class="ki-duotone ki-cross fs-1">
+            <span class="path1"></span>
+            <span class="path2"></span>
+          </i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="form" [formGroup]="supplierForm" (ngSubmit)="onSubmit()">
+          <ul class="nav nav-line-tabs nav-line-tabs-2x fs-5 mb-6">
+            <li class="nav-item">
+              <a
+                href="javascript:void(0)"
+                class="nav-link"
+                [class.active]="activeTab === 'company'"
+                (click)="goToTab('company')"
+              >
+                Company Info
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                href="javascript:void(0)"
+                class="nav-link"
+                [class.active]="activeTab === 'business'"
+                (click)="goToTab('business')"
+              >
+                Business Details
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                href="javascript:void(0)"
+                class="nav-link"
+                [class.active]="activeTab === 'documents'"
+                (click)="goToTab('documents')"
+              >
+                Documents
+              </a>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane fade" [class.show]="activeTab === 'company'" [class.active]="activeTab === 'company'">
+              <div class="row g-6">
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Company Name</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="Enter company name"
+                    formControlName="companyName"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Commercial Registration No.</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="e.g. CR-123456"
+                    formControlName="registrationNumber"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Primary Contact Name</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="Enter contact name"
+                    formControlName="primaryContactName"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="fw-semibold fs-6">Portal Access</label>
+                    <span class="badge badge-light-primary fw-semibold">User Role: Supplier</span>
+                  </div>
+                  <div class="form-switch form-check-solid d-flex align-items-center gap-3">
+                    <input
+                      class="form-check-input h-20px w-35px"
+                      type="checkbox"
+                      role="switch"
+                      formControlName="hasPortalAccess"
+                      (change)="onTogglePortalAccess()"
+                    />
+                    <div class="text-muted">Allow this supplier to sign in to the portal.</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Primary Contact Email</label>
+                  <input
+                    type="email"
+                    class="form-control form-control-solid"
+                    placeholder="name@company.com"
+                    formControlName="primaryContactEmail"
+                  />
+                </div>
+                <div class="col-md-6" *ngIf="supplierForm.controls.hasPortalAccess.value">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="required fw-semibold fs-6">Supplier User Email</label>
+                    <button type="button" class="btn btn-link p-0" (click)="syncPortalEmailWithPrimary()">
+                      Use primary contact email
+                    </button>
+                  </div>
+                  <input
+                    type="email"
+                    class="form-control form-control-solid"
+                    placeholder="login@company.com"
+                    formControlName="portalUserEmail"
+                  />
+                  <div class="form-text">This account will be created with the Supplier role.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Primary Contact Phone</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="e.g. +974 5555 5555"
+                    formControlName="primaryContactPhone"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" [class.show]="activeTab === 'business'" [class.active]="activeTab === 'business'">
+              <div class="row g-6">
+                <div class="col-md-6">
+                  <label class="fw-semibold fs-6 mb-2">Website</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="https://example.com"
+                    formControlName="website"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Business Categories</label>
+                  <select
+                    class="form-select form-select-solid"
+                    formControlName="businessCategories"
+                    multiple
+                    size="6"
+                  >
+                    <option *ngFor="let category of categoriesOptions" [ngValue]="category">
+                      {{ category }}
+                    </option>
+                  </select>
+                  <div class="form-text">Select all categories that apply.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Company Address</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid"
+                    placeholder="Street, Building, City"
+                    formControlName="companyAddress"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Year Established</label>
+                  <input
+                    type="number"
+                    min="1800"
+                    class="form-control form-control-solid"
+                    placeholder="YYYY"
+                    formControlName="yearEstablished"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="required fw-semibold fs-6 mb-2">Number of Employees</label>
+                  <input
+                    type="number"
+                    min="1"
+                    class="form-control form-control-solid"
+                    placeholder="e.g. 25"
+                    formControlName="numberOfEmployees"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="fw-semibold fs-6 mb-2">Status</label>
+                  <select class="form-select form-select-solid" formControlName="status">
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="On Hold">On Hold</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="tab-pane fade"
+              [class.show]="activeTab === 'documents'"
+              [class.active]="activeTab === 'documents'"
+            >
+              <div class="row g-6">
+                <div class="col-md-6">
+                  <label class="fw-semibold fs-6 mb-2">Uploaded Documents</label>
+                  <input
+                    type="file"
+                    class="form-control"
+                    multiple
+                    accept=".pdf,image/*"
+                    (change)="onDocumentsSelected($event)"
+                  />
+                  <div class="form-text">Upload supporting PDFs or images.</div>
+                  <div class="mt-3" *ngIf="selectedDocuments.length">
+                    <div class="fw-semibold text-gray-800 mb-2">Selected files:</div>
+                    <ul class="list-unstyled mb-0 small text-gray-700">
+                      <li *ngFor="let doc of selectedDocuments">{{ doc }}</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="h-100 d-flex flex-column justify-content-center bg-light-primary rounded p-6">
+                    <div class="fw-bold fs-6 text-gray-800 mb-2">Submission Tips</div>
+                    <ul class="mb-0 text-gray-600">
+                      <li>Include trade license, compliance, and certifications.</li>
+                      <li>Accepted formats: PDF or image files.</li>
+                      <li>Ensure details match the company information.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-10">
+            <button
+              type="reset"
+              class="btn btn-light"
+              data-bs-dismiss="modal"
+              (click)="onCancel()"
+              [disabled]="isSubmitting"
+            >
+              Discard
+            </button>
+
+            <div class="d-flex align-items-center gap-3 ms-auto">
+              <button
+                type="button"
+                class="btn btn-light-primary"
+                *ngIf="activeTab !== 'company'"
+                (click)="goToPrevious(activeTab === 'documents' ? 'business' : 'company')"
+              >
+                Previous
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-primary"
+                *ngIf="activeTab === 'company'"
+                (click)="goToNextFromCompany()"
+              >
+                Next: Business Details
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-primary"
+                *ngIf="activeTab === 'business'"
+                (click)="goToNextFromBusiness()"
+              >
+                Next: Documents
+              </button>
+
+              <button
+                type="submit"
+                class="btn btn-primary"
+                *ngIf="activeTab === 'documents'"
+                [disabled]="supplierForm.invalid || isSubmitting"
+              >
+                <span class="indicator-label" *ngIf="!isSubmitting">
+                  {{ editingSupplier ? 'Save Changes' : 'Add Supplier' }}
+                </span>
+                <span class="indicator-progress" *ngIf="isSubmitting">
+                  Please wait...
+                  <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
