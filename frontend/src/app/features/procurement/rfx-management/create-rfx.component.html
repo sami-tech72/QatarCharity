@@ -1,0 +1,171 @@
+<!--begin::Content wrapper-->
+<div class="d-flex flex-column flex-column-fluid">
+  <!--begin::Content-->
+  <div id="kt_app_content" class="app-content flex-column-fluid">
+    <!--begin::Content container-->
+    <div id="kt_app_content_container" class="app-container container-xxl">
+      <div class="d-flex justify-content-between align-items-center mb-6">
+        <div>
+          <h2 class="fw-bold mb-1">Create RFx</h2>
+          <div class="text-muted">Follow the steps to configure and publish your RFx.</div>
+        </div>
+        <a class="btn btn-light" routerLink="/procurement/rfx-management">
+          <i class="ki-duotone ki-arrow-left fs-2 me-2"></i>
+          Back to list
+        </a>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="stepper">
+            <div class="stepper-progress">
+              <div class="stepper-progress-bar" [style.width.%]="progressPercent"></div>
+            </div>
+            <div class="stepper-nav">
+              <div
+                *ngFor="let step of steps; index as idx"
+                class="stepper-item"
+                [class.completed]="idx < currentStepIndex"
+                [class.current]="idx === currentStepIndex"
+                (click)="goToStep(idx)"
+              >
+                <div class="stepper-icon">{{ step.id }}</div>
+                <div class="stepper-details">
+                  <div class="stepper-title">{{ step.label }}</div>
+                  <div class="stepper-desc">{{ step.description }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="separator my-6"></div>
+
+          <div *ngIf="currentStepIndex === 0" class="row g-5" [formGroup]="basicInfoForm">
+            <div class="col-md-6">
+              <label class="form-label required">Tender ID</label>
+              <input type="text" class="form-control" formControlName="tenderId" placeholder="e.g. RFP-2024-021" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label required">Title</label>
+              <input type="text" class="form-control" formControlName="title" placeholder="Enter RFx title" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label required">Category</label>
+              <input type="text" class="form-control" formControlName="category" placeholder="e.g. Technology" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label required">Procurement Method</label>
+              <select class="form-select" formControlName="procurementMethod">
+                <option value="Open Tender">Open Tender</option>
+                <option value="Request for Proposal">Request for Proposal</option>
+                <option value="Request for Quotation">Request for Quotation</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label required">Submission Deadline</label>
+              <input type="date" class="form-control" formControlName="submissionDeadline" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label required">Estimated Value</label>
+              <input type="text" class="form-control" formControlName="estimatedValue" placeholder="$0.00" />
+            </div>
+          </div>
+
+          <div *ngIf="currentStepIndex === 1" class="row g-5" [formGroup]="requirementsForm">
+            <div class="col-12">
+              <label class="form-label">Scope Summary</label>
+              <textarea class="form-control" rows="3" formControlName="summary" placeholder="Provide a short overview"></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Deliverables</label>
+              <textarea
+                class="form-control"
+                rows="4"
+                formControlName="deliverables"
+                placeholder="List expected deliverables or milestones"
+              ></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Supporting Documents</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="documents"
+                placeholder="Link to specifications or attachments"
+              />
+            </div>
+          </div>
+
+          <div *ngIf="currentStepIndex === 2" class="row g-5" [formGroup]="evaluationForm">
+            <div class="col-md-6">
+              <label class="form-label">Evaluation Criteria</label>
+              <textarea class="form-control" rows="4" formControlName="criteria"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Scoring Model</label>
+              <input type="text" class="form-control" formControlName="scoringModel" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Reviewers</label>
+              <input type="text" class="form-control" formControlName="reviewers" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Notes</label>
+              <textarea class="form-control" rows="3" placeholder="Add guidance or notes"></textarea>
+            </div>
+          </div>
+
+          <div *ngIf="currentStepIndex === 3" class="row g-5">
+            <div class="col-md-6">
+              <div class="border rounded p-4 h-100">
+                <h5 class="mb-3">Basic Information</h5>
+                <div class="text-gray-700 mb-2"><strong>Tender ID:</strong> {{ basicInfoForm.value.tenderId || '—' }}</div>
+                <div class="text-gray-700 mb-2"><strong>Title:</strong> {{ basicInfoForm.value.title || '—' }}</div>
+                <div class="text-gray-700 mb-2"><strong>Category:</strong> {{ basicInfoForm.value.category || '—' }}</div>
+                <div class="text-gray-700 mb-2">
+                  <strong>Procurement Method:</strong> {{ basicInfoForm.value.procurementMethod || '—' }}
+                </div>
+                <div class="text-gray-700 mb-2">
+                  <strong>Submission Deadline:</strong> {{ basicInfoForm.value.submissionDeadline || '—' }}
+                </div>
+                <div class="text-gray-700 mb-0"><strong>Estimated Value:</strong> {{ basicInfoForm.value.estimatedValue || '—' }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="border rounded p-4 h-100">
+                <h5 class="mb-3">Evaluation Snapshot</h5>
+                <div class="text-gray-700 mb-2"><strong>Criteria:</strong> {{ evaluationForm.value.criteria || '—' }}</div>
+                <div class="text-gray-700 mb-2"><strong>Scoring Model:</strong> {{ evaluationForm.value.scoringModel || '—' }}</div>
+                <div class="text-gray-700 mb-2"><strong>Reviewers:</strong> {{ evaluationForm.value.reviewers || '—' }}</div>
+                <div class="text-gray-700 mb-0">
+                  <strong>Documents:</strong> {{ requirementsForm.value.documents || '—' }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mt-8">
+            <button type="button" class="btn btn-light" [disabled]="currentStepIndex === 0" (click)="previousStep()">
+              Previous
+            </button>
+            <div class="d-flex gap-3">
+              <button
+                *ngIf="currentStepIndex < steps.length - 1"
+                type="button"
+                class="btn btn-primary"
+                (click)="nextStep()"
+              >
+                Continue
+              </button>
+              <button *ngIf="currentStepIndex === steps.length - 1" type="button" class="btn btn-success" (click)="publish()">
+                Publish RFx
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end::Content container-->
+  </div>
+  <!--end::Content-->
+</div>

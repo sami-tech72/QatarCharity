@@ -18,6 +18,12 @@ export const procurementRoutes: Routes = [
           import('./rfx-management/rfx-management.component').then((m) => m.RfxManagementComponent),
       },
       {
+        path: 'rfx-management/create',
+        title: 'Create RFx',
+        loadComponent: () =>
+          import('./rfx-management/create-rfx.component').then((m) => m.CreateRfxComponent),
+      },
+      {
         path: 'bid-evaluation',
         title: 'Bid Evaluation',
         loadComponent: () =>

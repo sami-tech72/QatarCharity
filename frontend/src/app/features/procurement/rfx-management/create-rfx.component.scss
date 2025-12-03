@@ -1,0 +1,84 @@
+:host {
+  display: block;
+}
+
+.stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stepper-progress {
+  height: 4px;
+  background: #f1f1f2;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.stepper-progress-bar {
+  height: 100%;
+  background: #0d6efd;
+  transition: width 0.3s ease;
+}
+
+.stepper-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stepper-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #eef0f8;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.stepper-item.current {
+  border-color: #0d6efd;
+  background-color: #eef6ff;
+}
+
+.stepper-item.completed {
+  border-color: #50cd89;
+  background-color: #ecfdf3;
+}
+
+.stepper-item:hover {
+  border-color: #0d6efd;
+}
+
+.stepper-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f5f8fa;
+  color: #181c32;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.stepper-item.current .stepper-icon {
+  background: #0d6efd;
+  color: #fff;
+}
+
+.stepper-item.completed .stepper-icon {
+  background: #50cd89;
+  color: #fff;
+}
+
+.stepper-title {
+  font-weight: 700;
+  color: #181c32;
+}
+
+.stepper-desc {
+  color: #7e8299;
+  font-size: 0.9rem;
+}

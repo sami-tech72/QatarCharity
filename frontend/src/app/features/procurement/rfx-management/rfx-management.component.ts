@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 interface RfxRecord {
   tenderId: string;
@@ -15,7 +16,7 @@ interface RfxRecord {
 @Component({
   selector: 'app-rfx-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './rfx-management.component.html',
   styleUrl: './rfx-management.component.scss',
 })
