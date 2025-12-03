@@ -12,6 +12,7 @@ import {
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 
 import { SupplierManagementService } from '../../../core/services/supplier-management.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { SupplierQueryRequest, SupplierRequest, SupplierStatus, Supplier } from '../../../shared/models/supplier.model';
 
 @Component({
@@ -25,14 +26,13 @@ export class SupplierManagementComponent implements OnInit, OnDestroy {
   readonly searchControl = new FormControl('', { nonNullable: true });
   readonly fb = inject(FormBuilder);
   private readonly supplierService = inject(SupplierManagementService);
+  private readonly notifier = inject(NotificationService);
   private readonly destroy$ = new Subject<void>();
 
   suppliers: Supplier[] = [];
   paginationState: SupplierQueryRequest = { pageNumber: 1, pageSize: 10, search: '' };
   isLoading = false;
   isSubmitting = false;
-  alertMessage = '';
-  alertType: 'danger' | 'info' | 'success' = 'info';
   editingSupplier: Supplier | null = null;
   selectedDocuments: string[] = [];
   activeTab: TabId = 'company';
@@ -133,16 +133,13 @@ export class SupplierManagementComponent implements OnInit, OnDestroy {
           this.paginationState = {
             pageNumber: page.pageNumber,
             pageSize: page.pageSize,
-          search: this.paginationState.search,
-        };
-        this.isLoading = false;
-        if (this.alertType !== 'success') {
-          this.clearAlert();
-        }
+            search: this.paginationState.search,
+          };
+          this.isLoading = false;
         },
         error: (error) => {
           this.isLoading = false;
-          this.setAlert(this.getErrorMessage(error, 'Unable to load suppliers.'), 'danger');
+          this.notifier.error(this.getErrorMessage(error, 'Unable to load suppliers.'));
         },
       });
   }
@@ -250,13 +247,13 @@ export class SupplierManagementComponent implements OnInit, OnDestroy {
         }
 
         this.isSubmitting = false;
-        this.setAlert(`Supplier ${supplier.companyName} saved successfully.`, 'success');
+        this.notifier.success(`Supplier ${supplier.companyName} saved successfully.`);
         this.startCreate();
         this.loadSuppliers();
       },
       error: (error) => {
         this.isSubmitting = false;
-        this.setAlert(this.getErrorMessage(error, 'Unable to save supplier.'), 'danger');
+        this.notifier.error(this.getErrorMessage(error, 'Unable to save supplier.'));
       },
     });
   }
@@ -292,15 +289,6 @@ export class SupplierManagementComponent implements OnInit, OnDestroy {
     if (primaryEmail) {
       this.supplierForm.patchValue({ portalUserEmail: primaryEmail });
     }
-  }
-
-  private setAlert(message: string, type: 'danger' | 'info' | 'success'): void {
-    this.alertMessage = message;
-    this.alertType = type;
-  }
-
-  private clearAlert(): void {
-    this.alertMessage = '';
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

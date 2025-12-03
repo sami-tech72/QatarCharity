@@ -20,4 +20,8 @@ export class NotificationService {
   error(message: string, title = 'Error') {
     setTimeout(() => this.toastr.error(message, title, this.config), this.toastDelay);
   }
+
+  info(message: string, title = 'Notice') {
+    setTimeout(() => this.toastr.info(message, title, this.config), this.toastDelay);
+  }
 }

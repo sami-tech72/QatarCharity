@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angu
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 
 import { UserManagementService } from '../../../core/services/user-management.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { PagedResult } from '../../../shared/models/pagination.model';
 import {
   CreateUserRequest,
@@ -41,8 +42,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   ];
   isLoading = false;
   isSubmitting = false;
-  alertMessage = '';
-  alertType: 'success' | 'danger' | 'info' = 'info';
   deletingIds = new Set<string>();
   editingUser: ManagedUser | null = null;
   readonly pageSizes = [5, 10, 20, 50];
@@ -57,6 +56,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserManagementService);
+  private readonly notifier = inject(NotificationService);
 
   readonly userForm = this.fb.nonNullable.group({
     displayName: ['', [Validators.required, Validators.maxLength(100)]],
@@ -93,16 +93,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
           search: this.paginationState.search,
         };
         this.isLoading = false;
-
-        if (!page.totalCount) {
-          this.setAlert('No users found yet. Add your first collaborator to get started.', 'info');
-        } else {
-          this.alertMessage = '';
-        }
       },
       error: (error) => {
         this.isLoading = false;
-        this.setAlert(this.getErrorMessage(error, 'Failed to load users.'), 'danger');
+        this.notifier.error(this.getErrorMessage(error, 'Failed to load users.'));
       },
     });
   }
@@ -164,11 +158,11 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       next: () => {
         this.users = this.users.filter((existing) => existing.id !== user.id);
         this.deletingIds.delete(user.id);
-        this.setAlert('User deleted successfully.', 'success');
+        this.notifier.success('User deleted successfully.');
       },
       error: (error) => {
         this.deletingIds.delete(user.id);
-        this.setAlert(this.getErrorMessage(error, 'Unable to delete user.'), 'danger');
+        this.notifier.error(this.getErrorMessage(error, 'Unable to delete user.'));
       },
     });
   }
@@ -262,13 +256,12 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   private finishSubmit(message: string, type: 'success' | 'danger' | 'info'): void {
     this.isSubmitting = false;
-    this.setAlert(message, type);
+    if (type === 'success') {
+      this.notifier.success(message);
+    } else {
+      this.notifier.error(message);
+    }
     this.startCreate();
-  }
-
-  private setAlert(message: string, type: 'success' | 'danger' | 'info'): void {
-    this.alertMessage = message;
-    this.alertType = type;
   }
 
   private disablePasswordValidators(): void {
