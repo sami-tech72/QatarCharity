@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { UserRole, UserSession } from '../../../shared/models/user.model';
+import { UserRole } from '../../../shared/models/user.model';
 
 export interface SidebarMenuItem {
   title: string;
@@ -19,7 +19,6 @@ export class SidebarComponent {
   @Input({ required: true }) currentRole!: UserRole;
   @Input({ required: true }) menuItems: SidebarMenuItem[] = [];
   @Input({ required: true }) roles: UserRole[] = [];
-  @Input() session: UserSession | null = null;
 
   @Output() roleChange = new EventEmitter<UserRole>();
 
