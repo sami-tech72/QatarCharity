@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Api.Models;
 using Api.Models.Suppliers;
 using Domain.Entities;
@@ -19,6 +20,8 @@ namespace Api.Controllers;
 [Authorize(Roles = Roles.Admin)]
 public class SuppliersController : ControllerBase
 {
+    private const string DefaultSupplierPassword = "P@ssw0rd!";
+
     private readonly AppDbContext _dbContext;
     private readonly UserManager<ApplicationUser> _userManager;
 
@@ -76,7 +79,11 @@ public class SuppliersController : ControllerBase
             return statusValidation;
         }
 
-        var (portalUser, errorResult) = await ValidatePortalUserAsync(request.HasPortalAccess, request.PortalUserEmail);
+        var (portalUser, errorResult) = await EnsurePortalUserAsync(
+            request.HasPortalAccess,
+            request.PortalUserEmail,
+            request.PrimaryContactName,
+            null);
 
         if (errorResult is not null)
         {
@@ -137,7 +144,11 @@ public class SuppliersController : ControllerBase
             return statusValidation;
         }
 
-        var (portalUser, errorResult) = await ValidatePortalUserAsync(request.HasPortalAccess, request.PortalUserEmail);
+        var (portalUser, errorResult) = await EnsurePortalUserAsync(
+            request.HasPortalAccess,
+            request.PortalUserEmail,
+            request.PrimaryContactName,
+            id);
 
         if (errorResult is not null)
         {
@@ -231,9 +242,11 @@ public class SuppliersController : ControllerBase
             "suppliers_invalid_status"));
     }
 
-    private async Task<(ApplicationUser? portalUser, ActionResult<ApiResponse<SupplierResponse>>? errorResult)> ValidatePortalUserAsync(
+    private async Task<(ApplicationUser? portalUser, ActionResult<ApiResponse<SupplierResponse>>? errorResult)> EnsurePortalUserAsync(
         bool hasPortalAccess,
-        string? portalEmail)
+        string? portalEmail,
+        string contactName,
+        Guid? currentSupplierId)
     {
         if (!hasPortalAccess)
         {
@@ -247,24 +260,114 @@ public class SuppliersController : ControllerBase
                 "suppliers_missing_portal_email")));
         }
 
-        var user = await _userManager.FindByEmailAsync(portalEmail.Trim());
+        var trimmedEmail = portalEmail.Trim();
+        var normalizedPortalEmail = trimmedEmail.ToLowerInvariant();
+
+        var portalEmailInUse = await _dbContext.Suppliers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(supplier =>
+                supplier.HasPortalAccess &&
+                supplier.PortalUserEmail != null &&
+                supplier.PortalUserEmail.ToLower() == normalizedPortalEmail &&
+                (!currentSupplierId.HasValue || supplier.Id != currentSupplierId.Value));
+
+        if (portalEmailInUse is not null)
+        {
+            return (null, Conflict(ApiResponse<SupplierResponse>.Fail(
+                "This portal email is already linked to another supplier.",
+                "suppliers_portal_email_in_use")));
+        }
+
+        var user = await _userManager.FindByEmailAsync(trimmedEmail);
 
         if (user is null)
         {
-            return (null, BadRequest(ApiResponse<SupplierResponse>.Fail(
-                "Portal user not found. Create a supplier user first, then link it here.",
-                "suppliers_portal_user_not_found")));
+            var displayName = string.IsNullOrWhiteSpace(contactName)
+                ? trimmedEmail
+                : contactName.Trim();
+
+            var newUser = new ApplicationUser
+            {
+                Email = trimmedEmail,
+                UserName = trimmedEmail,
+                EmailConfirmed = true,
+                DisplayName = displayName,
+            };
+
+            var createResult = await _userManager.CreateAsync(newUser, DefaultSupplierPassword);
+
+            if (!createResult.Succeeded)
+            {
+                return (null, BadRequest(ApiResponse<SupplierResponse>.Fail(
+                    "Unable to create a portal account for this supplier.",
+                    "suppliers_portal_user_create_failed",
+                    BuildErrorDetails(createResult))));
+            }
+
+            var roleResult = await _userManager.AddToRoleAsync(newUser, Roles.Supplier);
+
+            if (!roleResult.Succeeded)
+            {
+                await _userManager.DeleteAsync(newUser);
+
+                return (null, BadRequest(ApiResponse<SupplierResponse>.Fail(
+                    "Unable to assign the Supplier role to the portal user.",
+                    "suppliers_portal_user_role_failed",
+                    BuildErrorDetails(roleResult))));
+            }
+
+            user = newUser;
         }
 
         var roles = await _userManager.GetRolesAsync(user);
 
         if (!roles.Contains(Roles.Supplier))
         {
-            return (null, BadRequest(ApiResponse<SupplierResponse>.Fail(
-                "Portal user must have the Supplier role.",
-                "suppliers_portal_user_invalid_role")));
+            var addRoleResult = await _userManager.AddToRoleAsync(user, Roles.Supplier);
+
+            if (!addRoleResult.Succeeded)
+            {
+                return (null, BadRequest(ApiResponse<SupplierResponse>.Fail(
+                    "Portal user must have the Supplier role.",
+                    "suppliers_portal_user_invalid_role",
+                    BuildErrorDetails(addRoleResult))));
+            }
+        }
+
+        var userInUse = await _dbContext.Suppliers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(supplier =>
+                supplier.HasPortalAccess &&
+                supplier.PortalUserId == user.Id &&
+                (!currentSupplierId.HasValue || supplier.Id != currentSupplierId.Value));
+
+        if (userInUse is not null)
+        {
+            return (null, Conflict(ApiResponse<SupplierResponse>.Fail(
+                "This portal account is already linked to another supplier.",
+                "suppliers_portal_user_in_use")));
         }
 
         return (user, null);
+    }
+
+    private static Dictionary<string, object?>? BuildErrorDetails(IdentityResult identityResult)
+    {
+        if (identityResult.Errors is null)
+        {
+            return null;
+        }
+
+        var builder = new StringBuilder();
+
+        foreach (var error in identityResult.Errors)
+        {
+            builder.Append(error.Description).Append(' ');
+        }
+
+        return new Dictionary<string, object?>
+        {
+            ["errors"] = builder.ToString().Trim(),
+        };
     }
 }

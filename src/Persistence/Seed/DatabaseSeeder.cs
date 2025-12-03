@@ -116,9 +116,9 @@ public static class DatabaseSeeder
                 ContactPerson = "Yousef Al-Khaled",
                 SubmissionDate = DateTime.UtcNow.AddDays(-20),
                 Status = SupplierStatus.Pending,
-                HasPortalAccess = supplierUser is not null,
-                PortalUserEmail = supplierUser?.Email,
-                PortalUserId = supplierUser?.Id,
+                HasPortalAccess = false,
+                PortalUserEmail = null,
+                PortalUserId = null,
             },
             new()
             {

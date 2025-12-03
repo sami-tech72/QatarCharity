@@ -61,6 +61,9 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
         builder.Property(supplier => supplier.PortalUserEmail)
             .HasMaxLength(150);
 
+        builder.HasIndex(supplier => supplier.PortalUserEmail)
+            .IsUnique();
+
         builder.Property(supplier => supplier.BusinessCategories)
             .IsRequired()
             .HasMaxLength(600);
@@ -73,5 +76,8 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
             .WithMany()
             .HasForeignKey(supplier => supplier.PortalUserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(supplier => supplier.PortalUserId)
+            .IsUnique();
     }
 }
