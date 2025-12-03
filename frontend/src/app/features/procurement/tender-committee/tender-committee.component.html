@@ -1,3 +1,238 @@
-<div class="page-placeholder">
-  <h1 class="page-placeholder__title">Tender Committee</h1>
+<!--begin::Content wrapper-->
+<div class="d-flex flex-column flex-column-fluid">
+  <!--begin::Content-->
+  <div id="kt_app_content" class="app-content flex-column-fluid">
+    <!--begin::Content container-->
+    <div id="kt_app_content_container" class="app-container container-xxl">
+      <div class="d-flex flex-wrap flex-stack mb-8 gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <h1 class="page-title">Tender Committee</h1>
+            <span class="badge badge-light-primary py-3 px-4 fw-semibold">{{ readinessLabel }}</span>
+          </div>
+          <div class="text-muted">Coordinate committee members, connect them to users, and track readiness for supplier evaluations.</div>
+        </div>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div class="d-flex align-items-center gap-2">
+            <span class="bullet bg-success w-8px h-8px"></span>
+            <span class="fw-semibold text-gray-700">{{ statusCounts.Active }} Active</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="bullet bg-warning w-8px h-8px"></span>
+            <span class="fw-semibold text-gray-700">{{ statusCounts.Pending }} Pending</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="bullet bg-secondary w-8px h-8px"></span>
+            <span class="fw-semibold text-gray-700">{{ statusCounts.Inactive }} Inactive</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-6 mb-6">
+        <div class="col-xl-8">
+          <div class="card h-100">
+            <div class="card-header border-0 pt-6 align-items-start flex-wrap gap-4">
+              <div class="card-title flex-column">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <h3 class="fw-bold mb-0">Committee members</h3>
+                  <span class="badge badge-light-info">{{ filteredMembers.length }} shown</span>
+                </div>
+                <div class="text-muted">Search, filter, and connect members to platform users.</div>
+              </div>
+              <div class="card-toolbar d-flex flex-wrap gap-3 align-items-center">
+                <div class="position-relative">
+                  <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5 top-50 translate-middle-y">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                  </i>
+                  <input
+                    type="text"
+                    class="form-control form-control-solid w-225px ps-13"
+                    placeholder="Search members"
+                    [formControl]="searchControl"
+                  />
+                </div>
+                <select class="form-select form-select-solid w-175px" [formControl]="statusFilter">
+                  <option value="all">All statuses</option>
+                  <option value="Active">Active</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="card-body py-5">
+              <div class="table-responsive">
+                <table class="table align-middle table-row-dashed fs-6 gy-4">
+                  <thead>
+                    <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                      <th class="min-w-200px">Member</th>
+                      <th class="min-w-150px">Role & Department</th>
+                      <th class="min-w-200px">Focus</th>
+                      <th class="min-w-180px">User Connection</th>
+                      <th class="min-w-100px">Status</th>
+                      <th class="min-w-150px">Recent activity</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-gray-700 fw-semibold">
+                    <tr *ngIf="!filteredMembers.length">
+                      <td colspan="6" class="text-center py-10 text-muted">No committee members match your filters yet.</td>
+                    </tr>
+                    <tr *ngFor="let member of filteredMembers; trackBy: trackByMemberId">
+                      <td>
+                        <div class="d-flex flex-column gap-1">
+                          <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold text-gray-900">{{ member.name }}</span>
+                            <span class="badge" [ngClass]="getStatusBadgeClass(member.status)">{{ member.status }}</span>
+                          </div>
+                          <span class="text-muted">{{ member.email }}</span>
+                          <span class="text-muted">{{ member.phone }}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="fw-semibold text-gray-900">{{ member.role }}</div>
+                        <div class="text-muted">{{ member.department }}</div>
+                      </td>
+                      <td>
+                        <div class="text-gray-800">{{ member.focusArea }}</div>
+                      </td>
+                      <td>
+                        <div *ngIf="member.connectedUser; else connectUser" class="d-flex flex-column gap-2">
+                          <div class="badge badge-light-success">Connected</div>
+                          <div class="text-gray-800 fw-semibold">{{ getUserEmail(member.connectedUser) }}</div>
+                          <div class="text-muted">Linked to platform user for evaluations</div>
+                        </div>
+                        <ng-template #connectUser>
+                          <div class="d-flex flex-column gap-2">
+                            <div class="badge badge-light-warning">Not connected</div>
+                            <div class="d-flex gap-2 align-items-center">
+                              <select
+                                class="form-select form-select-sm"
+                                [value]="connectionSelections[member.id] || ''"
+                                (change)="onConnectSelectionChange(member.id, ($event.target as HTMLSelectElement).value)"
+                              >
+                                <option value="">Select user to connect</option>
+                                <option *ngFor="let user of availableUsers" [value]="user.id">{{ user.name }} • {{ user.department }}</option>
+                              </select>
+                              <button type="button" class="btn btn-sm btn-primary" (click)="connectUser(member.id)">Connect</button>
+                            </div>
+                            <div class="text-muted">Connecting links access permissions to this committee slot.</div>
+                          </div>
+                        </ng-template>
+                      </td>
+                      <td>
+                        <select
+                          class="form-select form-select-sm"
+                          [value]="member.status"
+                          (change)="updateMemberStatus(member.id, ($event.target as HTMLSelectElement).value as MemberStatus)"
+                        >
+                          <option value="Active">Active</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Inactive">Inactive</option>
+                        </select>
+                      </td>
+                      <td>
+                        <div class="text-gray-900">{{ member.lastEngagement }}</div>
+                        <div class="text-muted">{{ member.focusArea }}</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-4">
+          <div class="card mb-6">
+            <div class="card-body p-6">
+              <h3 class="fw-bold mb-4">Add or connect a member</h3>
+              <div class="text-muted mb-6">Link members directly to user accounts so they can access RFx documents and submit scores.</div>
+              <form class="row g-5" [formGroup]="memberForm" (ngSubmit)="onSubmit()">
+                <div class="col-12">
+                  <label class="form-label required">Link to user (optional)</label>
+                  <select class="form-select" (change)="onUserSelection(($event.target as HTMLSelectElement).value)">
+                    <option value="">Select an existing user</option>
+                    <option *ngFor="let user of availableUsers" [value]="user.id">{{ user.name }} — {{ user.role }}</option>
+                  </select>
+                  <div class="form-text">Selecting a user pre-fills contact details.</div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label required">Full name</label>
+                  <input type="text" class="form-control" formControlName="name" placeholder="Enter member name" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label required">Role</label>
+                  <input type="text" class="form-control" formControlName="role" placeholder="e.g., Technical Evaluator" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label required">Department</label>
+                  <input type="text" class="form-control" formControlName="department" placeholder="e.g., Procurement" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label required">Email</label>
+                  <input type="email" class="form-control" formControlName="email" placeholder="user@qcharity.qa" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label required">Phone</label>
+                  <input type="text" class="form-control" formControlName="phone" placeholder="+974 5555 0000" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label required">Focus area</label>
+                  <input type="text" class="form-control" formControlName="focusArea" placeholder="e.g., Technical scoring" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label required">Status</label>
+                  <select class="form-select" formControlName="status">
+                    <option value="Active">Active</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+                <div class="col-12 d-grid">
+                  <button type="submit" class="btn btn-primary">Add member</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body p-6">
+              <div class="d-flex align-items-center justify-content-between mb-4">
+                <h3 class="fw-bold mb-0">Committee flow</h3>
+                <span class="badge badge-light-primary">Guided steps</span>
+              </div>
+              <div class="timeline timeline-border-dashed">
+                <div class="timeline-item" *ngFor="let step of workflowSteps; let i = index">
+                  <div class="timeline-line"></div>
+                  <div class="timeline-icon">
+                    <i class="{{ step.icon }} text-primary fs-2"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                      <span class="badge badge-light">Step {{ i + 1 }}</span>
+                      <span class="fw-bold text-gray-900">{{ step.title }}</span>
+                    </div>
+                    <div class="text-muted">{{ step.description }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="alert alert-warning mt-5 mb-0">
+                <div class="d-flex align-items-start gap-3">
+                  <i class="ki-duotone ki-information fs-1 text-warning"></i>
+                  <div>
+                    <div class="fw-bold text-gray-900">Next action</div>
+                    <div class="text-muted">Confirm pending members and connect them to users so they can access evaluation forms.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end::Content container-->
+  </div>
+  <!--end::Content-->
 </div>
+<!--end::Content wrapper-->
