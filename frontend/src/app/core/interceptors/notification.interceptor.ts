@@ -12,10 +12,15 @@ import { NotificationService } from '../services/notification.service';
 
 export const notificationInterceptor: HttpInterceptorFn = (req, next) => {
   const notifier = inject(NotificationService);
+  const isMutationRequest = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method.toUpperCase());
 
   return next(req).pipe(
     tap((event: HttpEvent<unknown>) => {
       if (!(event instanceof HttpResponse)) {
+        return;
+      }
+
+      if (!isMutationRequest) {
         return;
       }
 
@@ -33,7 +38,10 @@ export const notificationInterceptor: HttpInterceptorFn = (req, next) => {
     }),
     catchError((error: HttpErrorResponse) => {
       const message = error.error?.message ?? error.message ?? 'An unexpected error occurred.';
-      notifier.error(message);
+      if (isMutationRequest) {
+        notifier.error(message);
+      }
+
       return throwError(() => error);
     }),
   );

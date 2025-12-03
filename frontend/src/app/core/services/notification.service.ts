@@ -13,10 +13,10 @@ export class NotificationService {
   constructor(private readonly toastr: ToastrService) {}
 
   success(message: string, title = 'Success') {
-    this.toastr.success(message, title, this.config);
+    setTimeout(() => this.toastr.success(message, title, this.config));
   }
 
   error(message: string, title = 'Error') {
-    this.toastr.error(message, title, this.config);
+    setTimeout(() => this.toastr.error(message, title, this.config));
   }
 }
