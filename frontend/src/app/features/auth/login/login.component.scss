@@ -1,13 +1,9 @@
-:host {
-  display: block;
+.auth-wrapper {
+  background: linear-gradient(120deg, #f9fafb, #eef2ff);
 }
 
-.page-placeholder {
-  padding: 2rem;
-  text-align: center;
-}
-
-.page-placeholder__title {
-  font-size: 2rem;
-  font-weight: 600;
+.auth-card {
+  min-width: 420px;
+  border: none;
+  border-radius: 18px;
 }
