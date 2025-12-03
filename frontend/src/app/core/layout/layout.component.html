@@ -185,7 +185,7 @@
                       >
                     </div>
                     <a
-                      [attr.href]="session?.email ? 'mailto:' + session.email : null"
+                      [attr.href]="session?.email ? 'mailto:' + session?.email : null"
                       class="fw-semibold text-muted text-hover-primary fs-7"
                       >{{ session?.email || 'user@qcharity.test' }}</a
                     >
