@@ -77,7 +77,7 @@
             [routerLink]="item.path"
             routerLinkActive="active"
             #rla="routerLinkActive"
-            [routerLinkActiveOptions]="{ exact: true }"
+            [routerLinkActiveOptions]="{ exact: false }"
             [attr.aria-current]="rla.isActive ? 'page' : null"
           >
             <span class="menu-icon">
