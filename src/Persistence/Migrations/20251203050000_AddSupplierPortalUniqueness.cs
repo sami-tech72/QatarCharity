@@ -10,6 +10,34 @@ namespace Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Remove duplicate portal email links before creating unique indexes
+            migrationBuilder.Sql(
+                @"WITH duplicates AS (
+                        SELECT PortalUserEmail, MIN(Id) AS KeepId
+                        FROM Suppliers
+                        WHERE PortalUserEmail IS NOT NULL
+                        GROUP BY PortalUserEmail
+                        HAVING COUNT(*) > 1
+                    )
+                    DELETE s
+                    FROM Suppliers s
+                    INNER JOIN duplicates d ON s.PortalUserEmail = d.PortalUserEmail
+                    WHERE s.Id <> d.KeepId;");
+
+            // Remove duplicate portal user links before creating unique indexes
+            migrationBuilder.Sql(
+                @"WITH duplicates AS (
+                        SELECT PortalUserId, MIN(Id) AS KeepId
+                        FROM Suppliers
+                        WHERE PortalUserId IS NOT NULL
+                        GROUP BY PortalUserId
+                        HAVING COUNT(*) > 1
+                    )
+                    DELETE s
+                    FROM Suppliers s
+                    INNER JOIN duplicates d ON s.PortalUserId = d.PortalUserId
+                    WHERE s.Id <> d.KeepId;");
+
             migrationBuilder.DropIndex(
                 name: "IX_Suppliers_PortalUserId",
                 table: "Suppliers");
