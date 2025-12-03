@@ -104,7 +104,7 @@ export class LayoutComponent implements AfterViewInit {
 
     this.roles = [session.role];
     this.currentRole = session.role;
-    this.activePageTitle = this.sidebarMenu[0]?.title ?? 'Dashboard';
+    this.updateActivePageTitle(this.router.url);
 
     const defaultPath = this.authService.defaultPathForRole(session.role);
 
