@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { LoginRequest } from '../../../shared/models/user.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 type LoginForm = FormGroup<{
   email: FormControl<string>;
@@ -21,12 +22,12 @@ export class LoginComponent {
   readonly form: LoginForm;
 
   isSubmitting = false;
-  errorMessage = '';
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     private readonly router: Router,
+    private readonly notifier: NotificationService,
   ) {
     this.form = this.fb.nonNullable.group({
       email: ['', [Validators.required, Validators.email]],
@@ -41,7 +42,6 @@ export class LoginComponent {
     }
 
     this.isSubmitting = true;
-    this.errorMessage = '';
 
     const payload = this.form.value as LoginRequest;
 
@@ -52,7 +52,7 @@ export class LoginComponent {
       },
       error: (error) => {
         const serverMessage = error?.error?.message ?? error?.message;
-        this.errorMessage = serverMessage || 'Invalid email or password.';
+        this.notifier.error(serverMessage || 'Invalid email or password.');
         this.isSubmitting = false;
       },
       complete: () => {

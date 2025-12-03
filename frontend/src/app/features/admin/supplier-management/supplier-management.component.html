@@ -47,7 +47,7 @@
         <!--end::Card header-->
         <!--begin::Card body-->
         <div class="card-body py-4">
-          <div class="alert alert-info d-flex align-items-center gap-2 mb-6">
+          <div class="d-flex align-items-center gap-2 mb-6 p-4 bg-light border rounded-3">
             <i class="ki-duotone ki-information-5 fs-2 text-info">
               <span class="path1"></span>
               <span class="path2"></span>
@@ -56,14 +56,6 @@
             <div>
               Keep track of active suppliers, onboarding dates, and relationship owners in one place.
             </div>
-          </div>
-
-          <div *ngIf="alertMessage" class="alert mb-6" [ngClass]="{
-            'alert-danger': alertType === 'danger',
-            'alert-success': alertType === 'success',
-            'alert-info': alertType === 'info'
-          }">
-            {{ alertMessage }}
           </div>
 
           <div class="table-responsive supplier-table-wrapper">

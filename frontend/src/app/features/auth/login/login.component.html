@@ -20,14 +20,12 @@
           </div>
         </div>
 
-        <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
-
         <button class="btn btn-primary w-100" type="submit" [disabled]="isSubmitting">
           <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
           Sign in
         </button>
 
-        <div class="alert alert-secondary small" role="note">
+        <div class="bg-light border rounded-3 small p-3" role="note">
           <div class="fw-semibold mb-2">Demo accounts</div>
           <ul class="mb-0">
             <li><strong>Admin:</strong> admin&#64;qcharity.test / P&#64;ssw0rd!</li>
