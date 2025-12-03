@@ -10,6 +10,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
+import { Modal } from 'bootstrap';
 
 import { SupplierManagementService } from '../../../core/services/supplier-management.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -247,6 +248,7 @@ export class SupplierManagementComponent implements OnInit, OnDestroy {
         }
 
         this.isSubmitting = false;
+        this.hideModal('kt_modal_add_supplier');
         this.notifier.success(`Supplier ${supplier.companyName} saved successfully.`);
         this.startCreate();
         this.loadSuppliers();
@@ -289,6 +291,16 @@ export class SupplierManagementComponent implements OnInit, OnDestroy {
     if (primaryEmail) {
       this.supplierForm.patchValue({ portalUserEmail: primaryEmail });
     }
+  }
+
+  private hideModal(modalId: string): void {
+    const element = document.getElementById(modalId);
+    if (!element) {
+      return;
+    }
+
+    const modal = Modal.getInstance(element) ?? new Modal(element);
+    modal.hide();
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

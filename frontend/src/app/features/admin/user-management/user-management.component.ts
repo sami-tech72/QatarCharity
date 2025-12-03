@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
+import { Modal } from 'bootstrap';
 
 import { UserManagementService } from '../../../core/services/user-management.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -257,11 +258,22 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   private finishSubmit(message: string, type: 'success' | 'danger' | 'info'): void {
     this.isSubmitting = false;
     if (type === 'success') {
+      this.hideModal('kt_modal_add_user');
       this.notifier.success(message);
     } else {
       this.notifier.error(message);
     }
     this.startCreate();
+  }
+
+  private hideModal(modalId: string): void {
+    const element = document.getElementById(modalId);
+    if (!element) {
+      return;
+    }
+
+    const modal = Modal.getInstance(element) ?? new Modal(element);
+    modal.hide();
   }
 
   private disablePasswordValidators(): void {
