@@ -251,15 +251,17 @@ export class WorkflowConfigurationComponent implements OnInit {
   }
 
   private loadAssignees(): void {
-    this.userService.getUserLookup().subscribe({
-      next: (users) => {
-        this.assigneeOptions = users;
-        this.assigneeLookup = new Map(users.map((user) => [user.id, user.displayName]));
-      },
-      error: (error) => {
-        this.notifier.error(this.getErrorMessage(error, 'Unable to load users.'));
-      },
-    });
+    this.userService
+      .loadUsers({ pageNumber: 1, pageSize: 100, search: '' })
+      .subscribe({
+        next: (page) => {
+          this.assigneeOptions = page.items;
+          this.assigneeLookup = new Map(page.items.map((user) => [user.id, user.displayName]));
+        },
+        error: (error) => {
+          this.notifier.error(this.getErrorMessage(error, 'Unable to load users.'));
+        },
+      });
   }
 
   private upsertLocalWorkflows(workflow: WorkflowDetail): void {
