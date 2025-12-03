@@ -23,7 +23,7 @@
               <button
                 type="button"
                 class="btn btn-light ms-3"
-                (click)="searchControl.setValue('', { emitEvent: true })"
+                (click)="clearSearch()"
                 [disabled]="!searchControl.value"
               >
                 Clear
@@ -47,70 +47,129 @@
         <!--end::Card header-->
         <!--begin::Card body-->
         <div class="card-body py-4">
-          <div class="d-flex align-items-center gap-2 mb-6 p-4 bg-light border rounded-3">
-            <i class="ki-duotone ki-information-5 fs-2 text-info">
-              <span class="path1"></span>
-              <span class="path2"></span>
-              <span class="path3"></span>
-            </i>
-            <div>
-              Keep track of active suppliers, onboarding dates, and relationship owners in one place.
-            </div>
-          </div>
-
-          <div class="table-responsive supplier-table-wrapper">
-            <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_suppliers">
-              <thead>
-                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
-                  <th class="min-w-125px">Supplier ID</th>
-                  <th class="min-w-175px">Supplier Name</th>
-                  <th class="min-w-175px">Category</th>
-                  <th class="min-w-175px">Contact Person</th>
-                  <th class="min-w-150px">Submission Date</th>
-                  <th class="min-w-100px">Status</th>
-                  <th class="text-end min-w-125px">Action</th>
-                </tr>
-              </thead>
-              <tbody class="text-gray-600 fw-semibold">
-                <tr *ngIf="isLoading">
-                  <td colspan="7" class="text-center py-10">Loading suppliers...</td>
-                </tr>
-                <tr *ngIf="!isLoading && !filteredSuppliers.length">
-                  <td colspan="7" class="text-center py-10 text-muted">No suppliers found.</td>
-                </tr>
-                <tr *ngFor="let supplier of filteredSuppliers; trackBy: trackById">
-                  <td data-label="Supplier ID" class="fw-semibold text-gray-800">{{ supplier.supplierCode }}</td>
-                  <td data-label="Supplier Name" class="fw-semibold text-gray-800">{{ supplier.companyName }}</td>
-                  <td data-label="Category" class="text-break">{{ supplier.businessCategories.join(', ') }}</td>
-                  <td data-label="Contact Person">
-                    <div class="d-flex flex-column gap-1">
-                      <span class="fw-semibold text-gray-800">{{ supplier.primaryContactName }}</span>
-                      <span class="text-gray-600 fs-8" *ngIf="supplier.hasPortalAccess">
-                        Supplier user · {{ supplier.portalUserEmail || supplier.primaryContactEmail }}
-                      </span>
-                      <span class="text-gray-500 fs-8" *ngIf="!supplier.hasPortalAccess">No portal account</span>
-                    </div>
-                  </td>
-                  <td data-label="Submission Date">{{ supplier.submissionDate }}</td>
-                  <td data-label="Status">
-                    <div class="badge fw-bold" [ngClass]="getStatusClass(supplier.status)">
-                      {{ supplier.status }}
-                    </div>
-                  </td>
-                  <td data-label="Action" class="text-end">
+          <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_suppliers">
+            <thead>
+              <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                <th class="min-w-125px">Supplier ID</th>
+                <th class="min-w-175px">Supplier Name</th>
+                <th class="min-w-175px">Category</th>
+                <th class="min-w-175px">Contact Person</th>
+                <th class="min-w-150px">Submission Date</th>
+                <th class="min-w-100px">Status</th>
+                <th class="text-end min-w-125px">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-600 fw-semibold">
+              <tr *ngIf="isLoading">
+                <td colspan="7" class="text-center py-10">
+                  <span class="spinner-border text-primary" role="status" aria-hidden="true"></span>
+                </td>
+              </tr>
+              <tr *ngIf="!isLoading && !suppliers.length">
+                <td colspan="7" class="text-center py-10 text-muted">No suppliers found.</td>
+              </tr>
+              <tr *ngFor="let supplier of suppliers; trackBy: trackById" class="align-middle">
+                <td class="fw-semibold text-gray-800">{{ supplier.supplierCode }}</td>
+                <td class="fw-semibold text-gray-800">{{ supplier.companyName }}</td>
+                <td class="text-break">{{ supplier.businessCategories.join(', ') }}</td>
+                <td>
+                  <div class="d-flex flex-column gap-1">
+                    <span class="fw-semibold text-gray-800">{{ supplier.primaryContactName }}</span>
+                    <span class="text-gray-600 fs-8" *ngIf="supplier.hasPortalAccess">
+                      Supplier user · {{ supplier.portalUserEmail || supplier.primaryContactEmail }}
+                    </span>
+                    <span class="text-gray-500 fs-8" *ngIf="!supplier.hasPortalAccess">No portal account</span>
+                  </div>
+                </td>
+                <td>{{ supplier.submissionDate }}</td>
+                <td>
+                  <div class="badge fw-bold" [ngClass]="getStatusClass(supplier.status)">
+                    {{ supplier.status }}
+                  </div>
+                </td>
+                <td class="text-end">
+                  <div class="dropdown">
                     <button
+                      class="btn btn-light btn-active-light-primary btn-flex btn-center btn-sm dropdown-toggle"
                       type="button"
-                      class="btn btn-sm btn-light btn-active-light-primary"
-                      data-bs-toggle="modal"
-                      data-bs-target="#kt_modal_add_supplier"
-                      (click)="startEdit(supplier)"
+                      data-bs-toggle="dropdown"
                     >
-                      Edit
+                      Actions
                     </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <button
+                          type="button"
+                          class="dropdown-item"
+                          data-bs-toggle="modal"
+                          data-bs-target="#kt_modal_add_supplier"
+                          (click)="startEdit(supplier)"
+                        >
+                          Edit
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between pt-5 gap-4">
+            <div class="d-flex align-items-center gap-3">
+              <label class="form-label fw-semibold mb-0">Rows per page</label>
+              <select
+                class="form-select form-select-sm w-auto"
+                [value]="paginationState.pageSize"
+                (change)="changePageSize($any($event.target).value)"
+              >
+                <option *ngFor="let size of pageSizes" [value]="size">{{ size }}</option>
+              </select>
+            </div>
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 w-100 justify-content-sm-end">
+              <div class="text-muted">
+                <ng-container *ngIf="suppliersPage; else noResults">
+                  Showing
+                  <strong>{{ (suppliersPage.pageNumber - 1) * suppliersPage.pageSize + (suppliers.length ? 1 : 0) }}</strong>
+                  -
+                  <strong>{{ (suppliersPage.pageNumber - 1) * suppliersPage.pageSize + suppliers.length }}</strong>
+                  of
+                  <strong>{{ suppliersPage.totalCount }}</strong>
+                  suppliers
+                </ng-container>
+                <ng-template #noResults>Showing 0 of 0 suppliers</ng-template>
+              </div>
+              <nav aria-label="Pagination navigation">
+                <ul class="pagination pagination-circle pagination-outline mb-0">
+                  <li
+                    class="page-item previous me-1"
+                    [class.disabled]="!suppliersPage || currentPage <= 1 || isLoading"
+                  >
+                    <a class="page-link" href="#" (click)="$event.preventDefault(); changePage(currentPage - 1)">
+                      <i class="previous"></i>
+                    </a>
+                  </li>
+                  <li class="page-item m-1" *ngFor="let page of pageNumbers" [class.active]="page === currentPage">
+                    <a
+                      class="page-link"
+                      href="#"
+                      (click)="$event.preventDefault(); changePage(page)"
+                      [attr.aria-current]="page === currentPage ? 'page' : null"
+                    >
+                      {{ page }}
+                    </a>
+                  </li>
+                  <li
+                    class="page-item next ms-1"
+                    [class.disabled]="!suppliersPage || currentPage >= (totalPages || 1) || isLoading"
+                  >
+                    <a class="page-link" href="#" (click)="$event.preventDefault(); changePage(currentPage + 1)">
+                      <i class="next"></i>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
           </div>
         </div>
         <!--end::Card body-->
@@ -131,7 +190,7 @@
 >
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header" id="kt_modal_add_supplier_header">
         <h2 class="fw-bold">{{ editingSupplier ? 'Edit Supplier' : 'Add Supplier' }}</h2>
         <button
           type="button"
@@ -146,219 +205,230 @@
           </i>
         </button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
         <form class="form" [formGroup]="supplierForm" (ngSubmit)="onSubmit()">
-          <ul class="nav nav-line-tabs nav-line-tabs-2x fs-5 mb-6">
-            <li class="nav-item">
-              <a
-                href="javascript:void(0)"
-                class="nav-link"
-                [class.active]="activeTab === 'company'"
-                (click)="goToTab('company')"
-              >
-                Company Info
-              </a>
-            </li>
-            <li class="nav-item">
-              <a
-                href="javascript:void(0)"
-                class="nav-link"
-                [class.active]="activeTab === 'business'"
-                (click)="goToTab('business')"
-              >
-                Business Details
-              </a>
-            </li>
-            <li class="nav-item">
-              <a
-                href="javascript:void(0)"
-                class="nav-link"
-                [class.active]="activeTab === 'documents'"
-                (click)="goToTab('documents')"
-              >
-                Documents
-              </a>
-            </li>
-          </ul>
+          <div
+            class="d-flex flex-column scroll-y me-n7 pe-7"
+            id="kt_modal_add_supplier_scroll"
+            data-kt-scroll="true"
+            data-kt-scroll-activate="{default: false, lg: true}"
+            data-kt-scroll-max-height="auto"
+            data-kt-scroll-dependencies="#kt_modal_add_supplier_header"
+            data-kt-scroll-wrappers="#kt_modal_add_supplier_scroll"
+            data-kt-scroll-offset="300px"
+          >
+            <ul class="nav nav-line-tabs nav-line-tabs-2x fs-5 mb-6">
+              <li class="nav-item">
+                <a
+                  href="javascript:void(0)"
+                  class="nav-link"
+                  [class.active]="activeTab === 'company'"
+                  (click)="goToTab('company')"
+                >
+                  Company Info
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  href="javascript:void(0)"
+                  class="nav-link"
+                  [class.active]="activeTab === 'business'"
+                  (click)="goToTab('business')"
+                >
+                  Business Details
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  href="javascript:void(0)"
+                  class="nav-link"
+                  [class.active]="activeTab === 'documents'"
+                  (click)="goToTab('documents')"
+                >
+                  Documents
+                </a>
+              </li>
+            </ul>
 
-          <div class="tab-content">
-            <div class="tab-pane fade" [class.show]="activeTab === 'company'" [class.active]="activeTab === 'company'">
-              <div class="row g-6">
-                <div class="col-md-6">
-                  <label class="required fw-semibold fs-6 mb-2">Company Name</label>
-                  <input
-                    type="text"
-                    class="form-control form-control-solid"
-                    placeholder="Enter company name"
-                    formControlName="companyName"
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="required fw-semibold fs-6 mb-2">Commercial Registration No.</label>
-                  <input
-                    type="text"
-                    class="form-control form-control-solid"
-                    placeholder="e.g. CR-123456"
-                    formControlName="registrationNumber"
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="required fw-semibold fs-6 mb-2">Primary Contact Name</label>
-                  <input
-                    type="text"
-                    class="form-control form-control-solid"
-                    placeholder="Enter contact name"
-                    formControlName="primaryContactName"
-                  />
-                </div>
-                <div class="col-md-6">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="fw-semibold fs-6">Portal Access</label>
-                    <span class="badge badge-light-primary fw-semibold">User Role: Supplier</span>
-                  </div>
-                  <div class="form-switch form-check-solid d-flex align-items-center gap-3">
+            <div class="tab-content">
+              <div class="tab-pane fade" [class.show]="activeTab === 'company'" [class.active]="activeTab === 'company'">
+                <div class="row g-6">
+                  <div class="col-md-6">
+                    <label class="required fw-semibold fs-6 mb-2">Company Name</label>
                     <input
-                      class="form-check-input h-20px w-35px"
-                      type="checkbox"
-                      role="switch"
-                      formControlName="hasPortalAccess"
-                      (change)="onTogglePortalAccess()"
+                      type="text"
+                      class="form-control form-control-solid"
+                      placeholder="Enter company name"
+                      formControlName="companyName"
                     />
-                    <div class="text-muted">Allow this supplier to sign in to the portal.</div>
                   </div>
-                </div>
-                <div class="col-md-6">
-                  <label class="required fw-semibold fs-6 mb-2">Primary Contact Email</label>
-                  <input
-                    type="email"
-                    class="form-control form-control-solid"
-                    placeholder="name@company.com"
-                    formControlName="primaryContactEmail"
-                  />
-                </div>
-                <div class="col-md-6" *ngIf="supplierForm.controls.hasPortalAccess.value">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="required fw-semibold fs-6">Supplier User Email</label>
-                    <button type="button" class="btn btn-link p-0" (click)="syncPortalEmailWithPrimary()">
-                      Use primary contact email
-                    </button>
+                  <div class="col-md-6">
+                    <label class="required fw-semibold fs-6 mb-2">Commercial Registration No.</label>
+                    <input
+                      type="text"
+                      class="form-control form-control-solid"
+                      placeholder="e.g. CR-123456"
+                      formControlName="registrationNumber"
+                    />
                   </div>
-                  <input
-                    type="email"
-                    class="form-control form-control-solid"
-                    placeholder="login@company.com"
-                    formControlName="portalUserEmail"
-                  />
-                  <div class="form-text">This account will be created with the Supplier role.</div>
-                </div>
-                <div class="col-md-6">
-                  <label class="required fw-semibold fs-6 mb-2">Primary Contact Phone</label>
-                  <input
-                    type="text"
-                    class="form-control form-control-solid"
-                    placeholder="e.g. +974 5555 5555"
-                    formControlName="primaryContactPhone"
-                  />
+                  <div class="col-md-6">
+                    <label class="required fw-semibold fs-6 mb-2">Primary Contact Name</label>
+                    <input
+                      type="text"
+                      class="form-control form-control-solid"
+                      placeholder="Enter contact name"
+                      formControlName="primaryContactName"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <label class="fw-semibold fs-6">Portal Access</label>
+                      <span class="badge badge-light-primary fw-semibold">User Role: Supplier</span>
+                    </div>
+                    <div class="form-switch form-check-solid d-flex align-items-center gap-3">
+                      <input
+                        class="form-check-input h-20px w-35px"
+                        type="checkbox"
+                        role="switch"
+                        formControlName="hasPortalAccess"
+                        (change)="onTogglePortalAccess()"
+                      />
+                      <div class="text-muted">Allow this supplier to sign in to the portal.</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="required fw-semibold fs-6 mb-2">Primary Contact Email</label>
+                    <input
+                      type="email"
+                      class="form-control form-control-solid"
+                      placeholder="name@company.com"
+                      formControlName="primaryContactEmail"
+                    />
+                  </div>
+                  <div class="col-md-6" *ngIf="supplierForm.controls.hasPortalAccess.value">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <label class="required fw-semibold fs-6">Supplier User Email</label>
+                      <button type="button" class="btn btn-link p-0" (click)="syncPortalEmailWithPrimary()">
+                        Use primary contact email
+                      </button>
+                    </div>
+                    <input
+                      type="email"
+                      class="form-control form-control-solid"
+                      placeholder="login@company.com"
+                      formControlName="portalUserEmail"
+                    />
+                    <div class="form-text">This account will be created with the Supplier role.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="required fw-semibold fs-6 mb-2">Primary Contact Phone</label>
+                    <input
+                      type="text"
+                      class="form-control form-control-solid"
+                      placeholder="e.g. +974 5555 5555"
+                      formControlName="primaryContactPhone"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="tab-pane fade" [class.show]="activeTab === 'business'" [class.active]="activeTab === 'business'">
-              <div class="row g-6">
-                <div class="col-md-6">
-                  <label class="fw-semibold fs-6 mb-2">Website</label>
-                  <input
-                    type="text"
-                    class="form-control form-control-solid"
-                    placeholder="https://example.com"
-                    formControlName="website"
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="required fw-semibold fs-6 mb-2">Business Categories</label>
-                  <select
-                    class="form-select form-select-solid"
-                    formControlName="businessCategories"
-                    multiple
-                    size="6"
-                  >
-                    <option *ngFor="let category of categoriesOptions" [ngValue]="category">
-                      {{ category }}
-                    </option>
-                  </select>
-                  <div class="form-text">Select all categories that apply.</div>
-                </div>
-                <div class="col-md-6">
-                  <label class="required fw-semibold fs-6 mb-2">Company Address</label>
-                  <input
-                    type="text"
-                    class="form-control form-control-solid"
-                    placeholder="Street, Building, City"
-                    formControlName="companyAddress"
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="required fw-semibold fs-6 mb-2">Year Established</label>
-                  <input
-                    type="number"
-                    min="1800"
-                    class="form-control form-control-solid"
-                    placeholder="YYYY"
-                    formControlName="yearEstablished"
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="required fw-semibold fs-6 mb-2">Number of Employees</label>
-                  <input
-                    type="number"
-                    min="1"
-                    class="form-control form-control-solid"
-                    placeholder="e.g. 25"
-                    formControlName="numberOfEmployees"
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="fw-semibold fs-6 mb-2">Status</label>
-                  <select class="form-select form-select-solid" formControlName="status">
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="On Hold">On Hold</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="tab-pane fade"
-              [class.show]="activeTab === 'documents'"
-              [class.active]="activeTab === 'documents'"
-            >
-              <div class="row g-6">
-                <div class="col-md-6">
-                  <label class="fw-semibold fs-6 mb-2">Uploaded Documents</label>
-                  <input
-                    type="file"
-                    class="form-control"
-                    multiple
-                    accept=".pdf,image/*"
-                    (change)="onDocumentsSelected($event)"
-                  />
-                  <div class="form-text">Upload supporting PDFs or images.</div>
-                  <div class="mt-3" *ngIf="selectedDocuments.length">
-                    <div class="fw-semibold text-gray-800 mb-2">Selected files:</div>
-                    <ul class="list-unstyled mb-0 small text-gray-700">
-                      <li *ngFor="let doc of selectedDocuments">{{ doc }}</li>
-                    </ul>
+              <div class="tab-pane fade" [class.show]="activeTab === 'business'" [class.active]="activeTab === 'business'">
+                <div class="row g-6">
+                  <div class="col-md-6">
+                    <label class="fw-semibold fs-6 mb-2">Website</label>
+                    <input
+                      type="text"
+                      class="form-control form-control-solid"
+                      placeholder="https://example.com"
+                      formControlName="website"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="required fw-semibold fs-6 mb-2">Business Categories</label>
+                    <select
+                      class="form-select form-select-solid"
+                      formControlName="businessCategories"
+                      multiple
+                      size="6"
+                    >
+                      <option *ngFor="let category of categoriesOptions" [ngValue]="category">
+                        {{ category }}
+                      </option>
+                    </select>
+                    <div class="form-text">Select all categories that apply.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="required fw-semibold fs-6 mb-2">Company Address</label>
+                    <input
+                      type="text"
+                      class="form-control form-control-solid"
+                      placeholder="Street, Building, City"
+                      formControlName="companyAddress"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="required fw-semibold fs-6 mb-2">Year Established</label>
+                    <input
+                      type="number"
+                      min="1800"
+                      class="form-control form-control-solid"
+                      placeholder="YYYY"
+                      formControlName="yearEstablished"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="required fw-semibold fs-6 mb-2">Number of Employees</label>
+                    <input
+                      type="number"
+                      min="1"
+                      class="form-control form-control-solid"
+                      placeholder="e.g. 25"
+                      formControlName="numberOfEmployees"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="fw-semibold fs-6 mb-2">Status</label>
+                    <select class="form-select form-select-solid" formControlName="status">
+                      <option value="Pending">Pending</option>
+                      <option value="Approved">Approved</option>
+                      <option value="On Hold">On Hold</option>
+                    </select>
                   </div>
                 </div>
-                <div class="col-md-6">
-                  <div class="h-100 d-flex flex-column justify-content-center bg-light-primary rounded p-6">
-                    <div class="fw-bold fs-6 text-gray-800 mb-2">Submission Tips</div>
-                    <ul class="mb-0 text-gray-600">
-                      <li>Include trade license, compliance, and certifications.</li>
-                      <li>Accepted formats: PDF or image files.</li>
-                      <li>Ensure details match the company information.</li>
-                    </ul>
+              </div>
+
+              <div
+                class="tab-pane fade"
+                [class.show]="activeTab === 'documents'"
+                [class.active]="activeTab === 'documents'"
+              >
+                <div class="row g-6">
+                  <div class="col-md-6">
+                    <label class="fw-semibold fs-6 mb-2">Uploaded Documents</label>
+                    <input
+                      type="file"
+                      class="form-control"
+                      multiple
+                      accept=".pdf,image/*"
+                      (change)="onDocumentsSelected($event)"
+                    />
+                    <div class="form-text">Upload supporting PDFs or images.</div>
+                    <div class="mt-3" *ngIf="selectedDocuments.length">
+                      <div class="fw-semibold text-gray-800 mb-2">Selected files:</div>
+                      <ul class="list-unstyled mb-0 small text-gray-700">
+                        <li *ngFor="let doc of selectedDocuments">{{ doc }}</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="h-100 d-flex flex-column justify-content-center bg-light-primary rounded p-6">
+                      <div class="fw-bold fs-6 text-gray-800 mb-2">Submission Tips</div>
+                      <ul class="mb-0 text-gray-600">
+                        <li>Include trade license, compliance, and certifications.</li>
+                        <li>Accepted formats: PDF or image files.</li>
+                        <li>Ensure details match the company information.</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
