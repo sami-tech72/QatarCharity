@@ -1,12 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 interface Step {
   id: number;
   label: string;
   description: string;
+}
+
+interface CriterionFormValue {
+  title: string;
+  weight: number;
+  description: string;
+  type: 'technical' | 'commercial';
 }
 
 @Component({
@@ -17,6 +24,16 @@ interface Step {
   styleUrl: './create-rfx.component.scss',
 })
 export class CreateRfxComponent {
+  private readonly requiredDocLabels: Record<string, string> = {
+    companyProfile: 'Company Profile',
+    tradeLicense: 'Trade License',
+    financialStatements: 'Financial Statements',
+    references: 'References/Past Projects',
+    certifications: 'Certifications',
+    methodology: 'Methodology',
+    other: 'Others',
+  };
+
   readonly steps: Step[] = [
     { id: 1, label: 'Basic Information', description: 'Define key RFx details' },
     { id: 2, label: 'Requirements', description: 'List scope and deliverables' },
@@ -32,24 +49,59 @@ export class CreateRfxComponent {
 
   constructor(private readonly fb: FormBuilder) {
     this.basicInfoForm = this.fb.group({
-      tenderId: ['', Validators.required],
-      title: ['', Validators.required],
+      rfxType: ['', Validators.required],
       category: ['', Validators.required],
+      title: ['', Validators.required],
+      description: ['', Validators.required],
+      estimatedBudget: ['', Validators.required],
+      department: ['', Validators.required],
+      hideBudget: [false],
+      publicationDate: ['', Validators.required],
+      closingDate: ['', Validators.required],
+      currency: ['QAR', Validators.required],
+      priority: ['High', Validators.required],
+      tenderBondRequired: ['Yes', Validators.required],
+      contactPerson: ['', Validators.required],
+      contactEmail: ['', [Validators.required, Validators.email]],
+      contactPhone: ['', Validators.required],
       submissionDeadline: ['', Validators.required],
-      estimatedValue: ['', Validators.required],
-      procurementMethod: ['Open Tender', Validators.required],
     });
 
     this.requirementsForm = this.fb.group({
-      summary: [''],
-      deliverables: [''],
-      documents: [''],
+      scope: ['', Validators.required],
+      technicalSpec: ['', Validators.required],
+      deliverables: ['', Validators.required],
+      timeline: ['', Validators.required],
+      requiredDocs: this.fb.group({
+        companyProfile: [true],
+        tradeLicense: [true],
+        financialStatements: [false],
+        references: [false],
+        certifications: [false],
+        methodology: [false],
+        other: [false],
+      }),
+      attachments: this.fb.array([
+        this.fb.control('Specifications.pdf'),
+        this.fb.control('Drawings.zip'),
+      ]),
     });
 
     this.evaluationForm = this.fb.group({
-      criteria: ['Technical capability, Experience, Pricing'],
-      scoringModel: ['Weighted scoring'],
-      reviewers: ['Procurement team, Technical lead'],
+      criteria: this.fb.array<FormGroup<CriterionFormValue>>([
+        this.createCriterion('Technical Compliance', 25, 'Alignment with required specs', 'technical'),
+        this.createCriterion('Experience & Qualifications', 25, 'Relevant past performance', 'technical'),
+        this.createCriterion('Methodology & Approach', 25, 'Quality of delivery approach', 'technical'),
+        this.createCriterion('Price', 25, 'Commercial competitiveness', 'commercial'),
+      ]),
+      minimumScore: [70, [Validators.required, Validators.min(0), Validators.max(100)]],
+      evaluationNotes: [''],
+      committee: this.fb.array([
+        this.fb.control('John Smith'),
+        this.fb.control('Sarah Ahmed'),
+        this.fb.control('Procurement Manager'),
+        this.fb.control('Technical Expert'),
+      ]),
     });
   }
 
@@ -63,6 +115,42 @@ export class CreateRfxComponent {
     }
 
     return (this.currentStepIndex / (this.steps.length - 1)) * 100;
+  }
+
+  get attachments(): FormArray {
+    return this.requirementsForm.get('attachments') as FormArray;
+  }
+
+  get criteriaArray(): FormArray<FormGroup<CriterionFormValue>> {
+    return this.evaluationForm.get('criteria') as FormArray<FormGroup<CriterionFormValue>>;
+  }
+
+  get committeeMembers(): FormArray {
+    return this.evaluationForm.get('committee') as FormArray;
+  }
+
+  get requiredDocumentsSelected(): string[] {
+    const values = this.requirementsForm.get('requiredDocs')?.value as Record<string, boolean> | undefined;
+
+    if (!values) {
+      return [];
+    }
+
+    return Object.entries(values)
+      .filter(([, selected]) => !!selected)
+      .map(([key]) => this.requiredDocLabels[key] ?? key);
+  }
+
+  get technicalCriteriaTotal(): number {
+    return this.sumCriteriaByType('technical');
+  }
+
+  get commercialCriteriaTotal(): number {
+    return this.sumCriteriaByType('commercial');
+  }
+
+  get totalWeight(): number {
+    return this.criteriaArray.controls.reduce((sum, control) => sum + (control.value.weight || 0), 0);
   }
 
   goToStep(index: number): void {
@@ -85,8 +173,52 @@ export class CreateRfxComponent {
     }
   }
 
+  addAttachment(): void {
+    this.attachments.push(this.fb.control(''));
+  }
+
+  removeAttachment(index: number): void {
+    this.attachments.removeAt(index);
+  }
+
+  addCriterion(type: 'technical' | 'commercial'): void {
+    this.criteriaArray.push(this.createCriterion('', 0, '', type));
+  }
+
+  removeCriterion(index: number): void {
+    this.criteriaArray.removeAt(index);
+  }
+
+  addCommitteeMember(): void {
+    this.committeeMembers.push(this.fb.control(''));
+  }
+
+  removeCommitteeMember(index: number): void {
+    this.committeeMembers.removeAt(index);
+  }
+
   publish(): void {
     // Placeholder for submission logic
     alert('RFx submitted for publishing');
+  }
+
+  private createCriterion(
+    title: string,
+    weight: number,
+    description: string,
+    type: 'technical' | 'commercial'
+  ): FormGroup<CriterionFormValue> {
+    return this.fb.group<CriterionFormValue>({
+      title: this.fb.control(title),
+      weight: this.fb.control(weight),
+      description: this.fb.control(description),
+      type: this.fb.control(type),
+    });
+  }
+
+  private sumCriteriaByType(type: 'technical' | 'commercial'): number {
+    return this.criteriaArray.controls
+      .filter((ctrl) => ctrl.value.type === type)
+      .reduce((sum, control) => sum + (control.value.weight || 0), 0);
   }
 }

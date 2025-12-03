@@ -82,3 +82,19 @@
   color: #7e8299;
   font-size: 0.9rem;
 }
+
+.criterion-card {
+  border: 1px solid #eef0f8;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: #fafbfc;
+}
+
+.criterion-actions {
+  width: 180px;
+  min-width: 180px;
+}
+
+.review-grid dl {
+  row-gap: 0.5rem;
+}

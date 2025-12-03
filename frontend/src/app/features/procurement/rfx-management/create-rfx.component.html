@@ -40,109 +40,445 @@
 
           <div class="separator my-6"></div>
 
-          <div *ngIf="currentStepIndex === 0" class="row g-5" [formGroup]="basicInfoForm">
-            <div class="col-md-6">
-              <label class="form-label required">Tender ID</label>
-              <input type="text" class="form-control" formControlName="tenderId" placeholder="e.g. RFP-2024-021" />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label required">Title</label>
-              <input type="text" class="form-control" formControlName="title" placeholder="Enter RFx title" />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label required">Category</label>
-              <input type="text" class="form-control" formControlName="category" placeholder="e.g. Technology" />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label required">Procurement Method</label>
-              <select class="form-select" formControlName="procurementMethod">
-                <option value="Open Tender">Open Tender</option>
-                <option value="Request for Proposal">Request for Proposal</option>
-                <option value="Request for Quotation">Request for Quotation</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label required">Submission Deadline</label>
-              <input type="date" class="form-control" formControlName="submissionDeadline" />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label required">Estimated Value</label>
-              <input type="text" class="form-control" formControlName="estimatedValue" placeholder="$0.00" />
-            </div>
-          </div>
-
-          <div *ngIf="currentStepIndex === 1" class="row g-5" [formGroup]="requirementsForm">
-            <div class="col-12">
-              <label class="form-label">Scope Summary</label>
-              <textarea class="form-control" rows="3" formControlName="summary" placeholder="Provide a short overview"></textarea>
-            </div>
-            <div class="col-12">
-              <label class="form-label">Deliverables</label>
-              <textarea
-                class="form-control"
-                rows="4"
-                formControlName="deliverables"
-                placeholder="List expected deliverables or milestones"
-              ></textarea>
-            </div>
-            <div class="col-12">
-              <label class="form-label">Supporting Documents</label>
-              <input
-                type="text"
-                class="form-control"
-                formControlName="documents"
-                placeholder="Link to specifications or attachments"
-              />
-            </div>
-          </div>
-
-          <div *ngIf="currentStepIndex === 2" class="row g-5" [formGroup]="evaluationForm">
-            <div class="col-md-6">
-              <label class="form-label">Evaluation Criteria</label>
-              <textarea class="form-control" rows="4" formControlName="criteria"></textarea>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Scoring Model</label>
-              <input type="text" class="form-control" formControlName="scoringModel" />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Reviewers</label>
-              <input type="text" class="form-control" formControlName="reviewers" />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Notes</label>
-              <textarea class="form-control" rows="3" placeholder="Add guidance or notes"></textarea>
-            </div>
-          </div>
-
-          <div *ngIf="currentStepIndex === 3" class="row g-5">
-            <div class="col-md-6">
-              <div class="border rounded p-4 h-100">
-                <h5 class="mb-3">Basic Information</h5>
-                <div class="text-gray-700 mb-2"><strong>Tender ID:</strong> {{ basicInfoForm.value.tenderId || '—' }}</div>
-                <div class="text-gray-700 mb-2"><strong>Title:</strong> {{ basicInfoForm.value.title || '—' }}</div>
-                <div class="text-gray-700 mb-2"><strong>Category:</strong> {{ basicInfoForm.value.category || '—' }}</div>
-                <div class="text-gray-700 mb-2">
-                  <strong>Procurement Method:</strong> {{ basicInfoForm.value.procurementMethod || '—' }}
-                </div>
-                <div class="text-gray-700 mb-2">
-                  <strong>Submission Deadline:</strong> {{ basicInfoForm.value.submissionDeadline || '—' }}
-                </div>
-                <div class="text-gray-700 mb-0"><strong>Estimated Value:</strong> {{ basicInfoForm.value.estimatedValue || '—' }}</div>
+          <form class="d-flex flex-column gap-5">
+            <div *ngIf="currentStepIndex === 0" class="row g-5" [formGroup]="basicInfoForm">
+              <div class="col-md-6">
+                <label class="form-label required">Rfx Type</label>
+                <select class="form-select" formControlName="rfxType">
+                  <option value="">Select RFx type</option>
+                  <option>Request for Proposal (RFP)</option>
+                  <option>Request for Quotation (RFQ)</option>
+                  <option>Invitation to Tender (ITT)</option>
+                  <option>Expression of Interest (EOI)</option>
+                </select>
               </div>
-            </div>
-            <div class="col-md-6">
-              <div class="border rounded p-4 h-100">
-                <h5 class="mb-3">Evaluation Snapshot</h5>
-                <div class="text-gray-700 mb-2"><strong>Criteria:</strong> {{ evaluationForm.value.criteria || '—' }}</div>
-                <div class="text-gray-700 mb-2"><strong>Scoring Model:</strong> {{ evaluationForm.value.scoringModel || '—' }}</div>
-                <div class="text-gray-700 mb-2"><strong>Reviewers:</strong> {{ evaluationForm.value.reviewers || '—' }}</div>
-                <div class="text-gray-700 mb-0">
-                  <strong>Documents:</strong> {{ requirementsForm.value.documents || '—' }}
+              <div class="col-md-6">
+                <label class="form-label required">Category</label>
+                <input type="text" class="form-control" formControlName="category" placeholder="Select category" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label required">Title</label>
+                <input type="text" class="form-control" formControlName="title" placeholder="Enter RFx title" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label required">Department</label>
+                <input type="text" class="form-control" formControlName="department" placeholder="Select department" />
+              </div>
+              <div class="col-12">
+                <label class="form-label required">Description</label>
+                <textarea
+                  rows="3"
+                  class="form-control"
+                  formControlName="description"
+                  placeholder="Provide a detailed description of the requirements"
+                ></textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label required">Estimated Budget (QAR)</label>
+                <input type="text" class="form-control" formControlName="estimatedBudget" placeholder="Enter estimated budget" />
+                <div class="form-check mt-2">
+                  <input id="hideBudget" type="checkbox" class="form-check-input" formControlName="hideBudget" />
+                  <label for="hideBudget" class="form-check-label">Hide budget from suppliers</label>
                 </div>
               </div>
+              <div class="col-md-6">
+                <label class="form-label required">Publication Date</label>
+                <input type="date" class="form-control" formControlName="publicationDate" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label required">Closing Date</label>
+                <input type="date" class="form-control" formControlName="closingDate" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label required">Currency</label>
+                <select class="form-select" formControlName="currency">
+                  <option>QAR</option>
+                  <option>USD</option>
+                  <option>EUR</option>
+                  <option>GBP</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label required">Priority</label>
+                <select class="form-select" formControlName="priority">
+                  <option>High</option>
+                  <option>Medium</option>
+                  <option>Low</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label required">Tender Bond Required?</label>
+                <div class="d-flex gap-4 mt-2">
+                  <label class="form-check form-check-custom form-check-solid">
+                    <input class="form-check-input" type="radio" value="Yes" formControlName="tenderBondRequired" />
+                    <span class="form-check-label">Yes</span>
+                  </label>
+                  <label class="form-check form-check-custom form-check-solid">
+                    <input class="form-check-input" type="radio" value="No" formControlName="tenderBondRequired" />
+                    <span class="form-check-label">No</span>
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-6"></div>
+
+              <div class="col-md-6">
+                <label class="form-label">Contact Person</label>
+                <input type="text" class="form-control" formControlName="contactPerson" placeholder="John Smith" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Contact Email</label>
+                <input type="email" class="form-control" formControlName="contactEmail" placeholder="johnsmith@qc.qa" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Contact Phone</label>
+                <input type="text" class="form-control" formControlName="contactPhone" placeholder="+974 4526 7777" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Submission Deadline</label>
+                <input type="date" class="form-control" formControlName="submissionDeadline" />
+              </div>
             </div>
-          </div>
+
+            <div *ngIf="currentStepIndex === 1" class="row g-5" [formGroup]="requirementsForm">
+              <div class="col-12">
+                <label class="form-label">Scope of Work</label>
+                <textarea
+                  class="form-control"
+                  rows="3"
+                  formControlName="scope"
+                  placeholder="Detailed description of the scope of work"
+                ></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Technical Specification</label>
+                <textarea
+                  class="form-control"
+                  rows="3"
+                  formControlName="technicalSpec"
+                  placeholder="Enter technical specifications"
+                ></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Deliverables</label>
+                <textarea class="form-control" rows="3" formControlName="deliverables" placeholder="List of expected deliverables"></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Timeline</label>
+                <textarea class="form-control" rows="3" formControlName="timeline" placeholder="Project timeline and milestones"></textarea>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Required Documents from Suppliers</label>
+                <div class="row row-cols-2 row-cols-md-3 g-3" formGroupName="requiredDocs">
+                  <label class="col form-check form-check-custom form-check-solid">
+                    <input type="checkbox" class="form-check-input" formControlName="companyProfile" />
+                    <span class="form-check-label">Company Profile</span>
+                  </label>
+                  <label class="col form-check form-check-custom form-check-solid">
+                    <input type="checkbox" class="form-check-input" formControlName="tradeLicense" />
+                    <span class="form-check-label">Trade License</span>
+                  </label>
+                  <label class="col form-check form-check-custom form-check-solid">
+                    <input type="checkbox" class="form-check-input" formControlName="financialStatements" />
+                    <span class="form-check-label">Financial Statements</span>
+                  </label>
+                  <label class="col form-check form-check-custom form-check-solid">
+                    <input type="checkbox" class="form-check-input" formControlName="references" />
+                    <span class="form-check-label">References/Past Projects</span>
+                  </label>
+                  <label class="col form-check form-check-custom form-check-solid">
+                    <input type="checkbox" class="form-check-input" formControlName="certifications" />
+                    <span class="form-check-label">Certifications</span>
+                  </label>
+                  <label class="col form-check form-check-custom form-check-solid">
+                    <input type="checkbox" class="form-check-input" formControlName="methodology" />
+                    <span class="form-check-label">Methodology</span>
+                  </label>
+                  <label class="col form-check form-check-custom form-check-solid">
+                    <input type="checkbox" class="form-check-input" formControlName="other" />
+                    <span class="form-check-label">Others</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Attachments</label>
+                <div class="row g-3">
+                  <div class="col-12" *ngFor="let attachment of attachments.controls; index as i">
+                    <div class="d-flex align-items-center gap-3">
+                      <input type="text" class="form-control" [formControl]="attachment" placeholder="Upload document name" />
+                      <button type="button" class="btn btn-icon btn-light-danger" (click)="removeAttachment(i)">
+                        <i class="ki-duotone ki-trash fs-3"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <button type="button" class="btn btn-light-primary" (click)="addAttachment()">
+                      <i class="ki-duotone ki-plus fs-3"></i>
+                      Add Attachment
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="currentStepIndex === 2" class="row g-5" [formGroup]="evaluationForm">
+              <div class="col-12">
+                <div class="alert alert-info d-flex align-items-center">
+                  <i class="ki-duotone ki-information fs-2 me-3"></i>
+                  <div>Define the criteria that will be used to evaluate supplier proposals. Assign weights to each criterion.</div>
+                </div>
+              </div>
+
+              <div class="col-lg-6">
+                <div class="border rounded p-4 h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                      <h5 class="mb-1">Technical Criteria</h5>
+                      <span class="text-muted">Weight: {{ technicalCriteriaTotal }}%</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light-primary" (click)="addCriterion('technical')">Add Criterion</button>
+                  </div>
+                  <div class="d-flex flex-column gap-4">
+                    <ng-container *ngFor="let criterion of criteriaArray.controls; index as i">
+                      <div
+                        *ngIf="criterion.value.type === 'technical'"
+                        [formGroup]="criterion"
+                        class="criterion-card"
+                      >
+                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                          <div class="flex-grow-1">
+                            <input
+                              type="text"
+                              class="form-control mb-2"
+                              formControlName="title"
+                              placeholder="Technical criterion"
+                            />
+                            <textarea
+                              class="form-control"
+                              rows="2"
+                              formControlName="description"
+                              placeholder="Add description"
+                            ></textarea>
+                          </div>
+                          <div class="criterion-actions">
+                            <label class="form-label">Weight (%)</label>
+                            <input type="number" class="form-control" formControlName="weight" min="0" max="100" />
+                            <button type="button" class="btn btn-icon btn-light-danger mt-2" (click)="removeCriterion(i)">
+                              <i class="ki-duotone ki-trash fs-3"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-6">
+                <div class="border rounded p-4 h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                      <h5 class="mb-1">Commercial Criteria</h5>
+                      <span class="text-muted">Weight: {{ commercialCriteriaTotal }}%</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light-primary" (click)="addCriterion('commercial')">Add Criterion</button>
+                  </div>
+                  <div class="d-flex flex-column gap-4">
+                    <ng-container *ngFor="let criterion of criteriaArray.controls; index as i">
+                      <div
+                        *ngIf="criterion.value.type === 'commercial'"
+                        [formGroup]="criterion"
+                        class="criterion-card"
+                      >
+                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                          <div class="flex-grow-1">
+                            <input
+                              type="text"
+                              class="form-control mb-2"
+                              formControlName="title"
+                              placeholder="Commercial criterion"
+                            />
+                            <textarea
+                              class="form-control"
+                              rows="2"
+                              formControlName="description"
+                              placeholder="Add description"
+                            ></textarea>
+                          </div>
+                          <div class="criterion-actions">
+                            <label class="form-label">Weight (%)</label>
+                            <input type="number" class="form-control" formControlName="weight" min="0" max="100" />
+                            <button type="button" class="btn btn-icon btn-light-danger mt-2" (click)="removeCriterion(i)">
+                              <i class="ki-duotone ki-trash fs-3"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="progress h-8px bg-light-primary">
+                  <div class="progress-bar" [style.width.%]="totalWeight" role="progressbar" [attr.aria-valuenow]="totalWeight"></div>
+                </div>
+                <div class="d-flex justify-content-between text-muted mt-2">
+                  <span>Total Weight</span>
+                  <span>{{ totalWeight }}%</span>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Minimum Qualifying Score (%)</label>
+                <input type="number" min="0" max="100" class="form-control" formControlName="minimumScore" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Evaluation Notes</label>
+                <textarea class="form-control" rows="2" formControlName="evaluationNotes" placeholder="Add notes about evaluation"></textarea>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Evaluation Committee Members</label>
+                <div class="d-flex flex-column gap-3">
+                  <div class="d-flex gap-3 align-items-center" *ngFor="let member of committeeMembers.controls; index as i">
+                    <input type="text" class="form-control" [formControl]="member" placeholder="Committee member" />
+                    <button type="button" class="btn btn-icon btn-light-danger" (click)="removeCommitteeMember(i)">
+                      <i class="ki-duotone ki-trash fs-3"></i>
+                    </button>
+                  </div>
+                  <button type="button" class="btn btn-light-primary align-self-start" (click)="addCommitteeMember()">
+                    <i class="ki-duotone ki-plus fs-3"></i>
+                    Add Member
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="currentStepIndex === 3" class="row g-5 review-grid">
+              <div class="col-lg-6">
+                <div class="border rounded p-4 h-100 bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Basic Information</h5>
+                    <button type="button" class="btn btn-sm btn-light-primary" (click)="goToStep(0)">Edit</button>
+                  </div>
+                  <dl class="row mb-0">
+                    <dt class="col-5">Rfx Type</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.rfxType || '—' }}</dd>
+                    <dt class="col-5">Category</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.category || '—' }}</dd>
+                    <dt class="col-5">Title</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.title || '—' }}</dd>
+                    <dt class="col-5">Department</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.department || '—' }}</dd>
+                    <dt class="col-5">Estimated Budget</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.estimatedBudget || '—' }}</dd>
+                    <dt class="col-5">Publication Date</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.publicationDate || '—' }}</dd>
+                    <dt class="col-5">Closing Date</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.closingDate || '—' }}</dd>
+                    <dt class="col-5">Currency</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.currency || '—' }}</dd>
+                    <dt class="col-5">Priority</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.priority || '—' }}</dd>
+                    <dt class="col-5">Tender Bond</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.tenderBondRequired || '—' }}</dd>
+                    <dt class="col-5">Contact Person</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.contactPerson || '—' }}</dd>
+                    <dt class="col-5">Contact Email</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.contactEmail || '—' }}</dd>
+                    <dt class="col-5">Contact Phone</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.contactPhone || '—' }}</dd>
+                    <dt class="col-5">Submission Deadline</dt>
+                    <dd class="col-7">{{ basicInfoForm.value.submissionDeadline || '—' }}</dd>
+                  </dl>
+                </div>
+              </div>
+
+              <div class="col-lg-6">
+                <div class="border rounded p-4 h-100 bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Requirements</h5>
+                    <button type="button" class="btn btn-sm btn-light-primary" (click)="goToStep(1)">Edit</button>
+                  </div>
+                  <div class="mb-2"><strong>Scope of Work:</strong> {{ requirementsForm.value.scope || '—' }}</div>
+                  <div class="mb-2"><strong>Technical Specifications:</strong> {{ requirementsForm.value.technicalSpec || '—' }}</div>
+                  <div class="mb-2"><strong>Deliverables:</strong> {{ requirementsForm.value.deliverables || '—' }}</div>
+                  <div class="mb-3"><strong>Timeline:</strong> {{ requirementsForm.value.timeline || '—' }}</div>
+                  <div class="mb-3">
+                    <strong>Required Documents:</strong>
+                    <ul class="mb-0">
+                      <li *ngFor="let doc of requiredDocumentsSelected">{{ doc }}</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <strong>Attachments:</strong>
+                    <ul class="mb-0">
+                      <li *ngFor="let attachment of attachments.controls">{{ attachment.value || '—' }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-6">
+                <div class="border rounded p-4 h-100 bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Evaluation Criteria</h5>
+                    <button type="button" class="btn btn-sm btn-light-primary" (click)="goToStep(2)">Edit</button>
+                  </div>
+                  <div class="mb-3">
+                    <div class="fw-semibold">Technical Criteria</div>
+                    <ul class="mb-2">
+                      <li *ngFor="let criterion of criteriaArray.controls" [hidden]="criterion.value.type !== 'technical'">
+                        {{ criterion.value.title }} ({{ criterion.value.weight }}%)
+                      </li>
+                    </ul>
+                    <div class="fw-semibold">Commercial Criteria</div>
+                    <ul class="mb-2">
+                      <li *ngFor="let criterion of criteriaArray.controls" [hidden]="criterion.value.type !== 'commercial'">
+                        {{ criterion.value.title }} ({{ criterion.value.weight }}%)
+                      </li>
+                    </ul>
+                    <div><strong>Total Weight:</strong> {{ totalWeight }}%</div>
+                    <div><strong>Minimum Score:</strong> {{ evaluationForm.value.minimumScore }}%</div>
+                  </div>
+                  <div class="mb-3">
+                    <strong>Evaluation Notes:</strong>
+                    <div class="text-muted">{{ evaluationForm.value.evaluationNotes || '—' }}</div>
+                  </div>
+                  <div>
+                    <strong>Committee:</strong>
+                    <ul class="mb-0">
+                      <li *ngFor="let member of committeeMembers.controls">{{ member.value }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-6">
+                <div class="border rounded p-4 h-100 bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Publish Options</h5>
+                  </div>
+                  <div class="d-flex flex-column gap-3">
+                    <label class="form-check form-check-custom form-check-solid">
+                      <input type="checkbox" class="form-check-input" checked />
+                      <span class="form-check-label">Publish and allow suppliers to respond</span>
+                    </label>
+                    <label class="form-check form-check-custom form-check-solid">
+                      <input type="checkbox" class="form-check-input" checked />
+                      <span class="form-check-label">Display only to suppliers in selected category</span>
+                    </label>
+                    <label class="form-check form-check-custom form-check-solid">
+                      <input type="checkbox" class="form-check-input" checked />
+                      <span class="form-check-label">I confirm the information is accurate and complete</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
 
           <div class="d-flex justify-content-between mt-8">
             <button type="button" class="btn btn-light" [disabled]="currentStepIndex === 0" (click)="previousStep()">
