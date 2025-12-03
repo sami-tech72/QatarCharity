@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
@@ -22,7 +22,7 @@ import { UserRole, UserSession } from '../../shared/models/user.model';
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss'
 })
-export class LayoutComponent {
+export class LayoutComponent implements AfterViewInit {
   title = 'qcharity-ui';
 
   activePageTitle = 'Dashboard';
@@ -45,6 +45,8 @@ export class LayoutComponent {
     return this.sidebarMenus[this.currentRole];
   }
 
+  private layoutInitTimeout?: number;
+
   constructor(
     private readonly router: Router,
     destroyRef: DestroyRef,
@@ -55,11 +57,18 @@ export class LayoutComponent {
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         takeUntilDestroyed(destroyRef),
       )
-      .subscribe(({ urlAfterRedirects }) => this.updateActivePageTitle(urlAfterRedirects));
+      .subscribe(({ urlAfterRedirects }) => {
+        this.updateActivePageTitle(urlAfterRedirects);
+        this.scheduleLayoutInitialization();
+      });
 
     this.authService.session$
       .pipe(takeUntilDestroyed(destroyRef))
       .subscribe((session) => this.handleSessionChange(session));
+  }
+
+  ngAfterViewInit() {
+    this.scheduleLayoutInitialization();
   }
 
   logout() {
@@ -102,5 +111,33 @@ export class LayoutComponent {
     if (!this.router.url.startsWith(defaultPath)) {
       this.router.navigateByUrl(defaultPath);
     }
+
+    this.scheduleLayoutInitialization();
+  }
+
+  private scheduleLayoutInitialization() {
+    if (!this.isAuthenticated) {
+      return;
+    }
+
+    if (this.layoutInitTimeout) {
+      window.clearTimeout(this.layoutInitTimeout);
+    }
+
+    this.layoutInitTimeout = window.setTimeout(() => this.initializeLayoutScripts());
+  }
+
+  private initializeLayoutScripts() {
+    const ktWindow = window as Window & {
+      KTApp?: { init: () => void };
+      KTMenu?: { init: () => void };
+      KTComponents?: { init: () => void };
+      KTAppSidebar?: { init: () => void };
+    };
+
+    ktWindow.KTComponents?.init?.();
+    ktWindow.KTApp?.init?.();
+    ktWindow.KTMenu?.init?.();
+    ktWindow.KTAppSidebar?.init?.();
   }
 }
