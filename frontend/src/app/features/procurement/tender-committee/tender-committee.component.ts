@@ -240,9 +240,15 @@ export class TenderCommitteeComponent {
     });
   }
 
-  updateMemberStatus(memberId: string, status: MemberStatus): void {
+  updateMemberStatus(memberId: string, status: string): void {
+    if (!['Active', 'Pending', 'Inactive'].includes(status)) {
+      return;
+    }
+
+    const nextStatus = status as MemberStatus;
+
     this.members = this.members.map((member) =>
-      member.id === memberId ? { ...member, status, lastEngagement: member.lastEngagement } : member
+      member.id === memberId ? { ...member, status: nextStatus, lastEngagement: member.lastEngagement } : member
     );
   }
 
