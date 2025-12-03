@@ -92,22 +92,24 @@
     <!--end::Menu wrapper-->
   </div>
   <!--end::sidebar menu-->
+  <div class="px-6 py-4 border-top" *ngIf="session">
+    <div class="d-flex align-items-center gap-3">
+      <div class="symbol symbol-45px">
+        <img src="assets/media/avatars/300-1.jpg" alt="user" class="rounded-circle" />
+      </div>
+      <div class="d-flex flex-column">
+        <div class="fw-semibold">{{ session.displayName }}</div>
+        <div class="text-muted small">{{ session.email }}</div>
+        <span class="badge badge-light-primary mt-2 w-auto">{{ session.role }}</span>
+      </div>
+    </div>
+  </div>
+  <!--end::User summary-->
   <!--begin::Footer-->
   <div class="app-sidebar-footer flex-column-auto pt-2 pb-6 px-6" id="kt_app_sidebar_footer">
-    <a
-      href="https://preview.keenthemes.com/html/metronic/docs"
-      class="btn btn-flex flex-center btn-custom btn-primary overflow-hidden text-nowrap px-0 h-40px w-100"
-      data-bs-toggle="tooltip"
-      data-bs-trigger="hover"
-      data-bs-dismiss-="click"
-      title="200+ in-house components and 3rd-party plugins"
-    >
-      <span class="btn-label">Docs & Components</span>
-      <i class="ki-duotone ki-document btn-icon fs-2 m-0">
-        <span class="path1"></span>
-        <span class="path2"></span>
-      </i>
-    </a>
+    <div class="text-center small text-muted">
+      Signed in as <strong>{{ session?.displayName || 'Guest' }}</strong>
+    </div>
   </div>
   <!--end::Footer-->
 </div>
