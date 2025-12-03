@@ -14,6 +14,7 @@ import { Modal } from 'bootstrap';
 
 import { SupplierManagementService } from '../../../core/services/supplier-management.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { PagedResult } from '../../../shared/models/pagination.model';
 import { SupplierQueryRequest, SupplierRequest, SupplierStatus, Supplier } from '../../../shared/models/supplier.model';
 
 @Component({
@@ -31,12 +32,14 @@ export class SupplierManagementComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   suppliers: Supplier[] = [];
+  suppliersPage: PagedResult<Supplier> | null = null;
   paginationState: SupplierQueryRequest = { pageNumber: 1, pageSize: 10, search: '' };
   isLoading = false;
   isSubmitting = false;
   editingSupplier: Supplier | null = null;
   selectedDocuments: string[] = [];
   activeTab: TabId = 'company';
+  readonly pageSizes = [5, 10, 20, 50];
 
   constructor() {
     this.setPortalAccessValidation(this.supplierForm.controls.hasPortalAccess.value);
@@ -115,10 +118,6 @@ export class SupplierManagementComponent implements OnInit, OnDestroy {
     portalUserEmail: ['', [Validators.email, Validators.maxLength(150)]],
   });
 
-  get filteredSuppliers(): Supplier[] {
-    return this.suppliers;
-  }
-
   trackById(_: number, supplier: Supplier): string {
     return supplier.id;
   }
@@ -130,6 +129,7 @@ export class SupplierManagementComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (page) => {
+          this.suppliersPage = page;
           this.suppliers = page.items;
           this.paginationState = {
             pageNumber: page.pageNumber,
@@ -262,6 +262,55 @@ export class SupplierManagementComponent implements OnInit, OnDestroy {
 
   clearSearch(): void {
     this.searchControl.setValue('', { emitEvent: true });
+  }
+
+  changePage(pageNumber: number): void {
+    if (!this.suppliersPage) {
+      return;
+    }
+
+    const safePage = Math.min(Math.max(pageNumber, 1), this.suppliersPage.totalPages || 1);
+
+    if (safePage === this.paginationState.pageNumber) {
+      return;
+    }
+
+    this.paginationState = { ...this.paginationState, pageNumber: safePage };
+    this.loadSuppliers();
+  }
+
+  changePageSize(pageSize: string): void {
+    const parsedSize = Number(pageSize) || this.paginationState.pageSize;
+    this.paginationState = { ...this.paginationState, pageSize: parsedSize, pageNumber: 1 };
+    this.loadSuppliers();
+  }
+
+  get totalPages(): number {
+    return this.suppliersPage?.totalPages ?? 0;
+  }
+
+  get currentPage(): number {
+    return this.suppliersPage?.pageNumber ?? this.paginationState.pageNumber;
+  }
+
+  get pageNumbers(): number[] {
+    const total = this.totalPages;
+
+    if (!total) {
+      return [1];
+    }
+
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(1, this.currentPage - half);
+    let end = start + maxVisible - 1;
+
+    if (end > total) {
+      end = total;
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, idx) => start + idx);
   }
 
   onDocumentsSelected(event: Event): void {
