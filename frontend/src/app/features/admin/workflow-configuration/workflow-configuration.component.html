@@ -19,7 +19,20 @@
 
         <!--begin::Card body-->
         <div class="card-body py-4">
-          <table class="table align-middle table-row-dashed fs-6 gy-5">
+          <div *ngIf="isLoading" class="text-center py-10">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="text-muted mt-3">Loading workflows...</div>
+          </div>
+
+          <div *ngIf="!isLoading && !workflows.length" class="empty-state-table">
+            <div class="fw-bold mb-1">No workflows found</div>
+            <div class="text-muted">Create your first workflow to connect with user management.</div>
+          </div>
+
+          <table
+            *ngIf="!isLoading && workflows.length"
+            class="table align-middle table-row-dashed fs-6 gy-5"
+          >
             <thead>
               <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
                 <th class="min-w-250px">Workflow Name</th>
@@ -30,21 +43,21 @@
               </tr>
             </thead>
             <tbody class="text-gray-600 fw-semibold">
-              <tr *ngFor="let workflow of workflows; trackBy: trackByWorkflowName" class="align-middle">
+              <tr *ngFor="let workflow of workflows; trackBy: trackByWorkflowId" class="align-middle">
                 <td>
                   <div class="fw-semibold text-gray-800 text-hover-primary mb-1">
                     {{ workflow.name }}
                   </div>
-                  <div class="text-muted">Configuration overview</div>
+                  <div class="text-muted">{{ workflow.description || 'Configuration overview' }}</div>
                 </td>
-                <td>{{ workflow.stages }}</td>
+                <td>{{ workflow.numberOfStages }}</td>
                 <td>
                   <div class="badge fw-bold" [ngClass]="statusBadgeClasses[workflow.status]">
                     {{ workflow.status }}
                   </div>
                 </td>
                 <td>
-                  <span class="text-muted">{{ workflow.lastModified | date: 'MMM d, y' }}</span>
+                  <span class="text-muted">{{ workflow.lastModified | date: 'MMM d, y, h:mm a' }}</span>
                 </td>
                 <td class="text-end">
                   <div class="dropdown">
@@ -62,8 +75,13 @@
                         </button>
                       </li>
                       <li>
-                        <button type="button" class="dropdown-item" (click)="onDelete(workflow)">
-                          Delete
+                        <button
+                          type="button"
+                          class="dropdown-item"
+                          [disabled]="deletingIds.has(workflow.id)"
+                          (click)="onDelete(workflow)"
+                        >
+                          {{ deletingIds.has(workflow.id) ? 'Deleting...' : 'Delete' }}
                         </button>
                       </li>
                     </ul>
@@ -120,6 +138,12 @@
                 name="workflowName"
               />
             </div>
+            <div class="col-12 col-lg-6">
+              <label class="form-label required">Status</label>
+              <select class="form-select" [(ngModel)]="workflowDraft.status" name="workflowStatus">
+                <option *ngFor="let status of workflowStatuses" [value]="status">{{ status }}</option>
+              </select>
+            </div>
             <div class="col-12">
               <label class="form-label">Description (Optional)</label>
               <textarea
@@ -159,7 +183,7 @@
                     <div class="fw-bold">{{ step.name || 'Untitled Step' }}</div>
                   </div>
                   <div class="text-muted small">
-                    {{ step.stepType || 'Not set' }} • {{ step.assignee || 'No assignee' }}
+                    {{ step.stepType || 'Not set' }} • {{ getAssigneeName(step.assigneeId) }}
                   </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -177,10 +201,12 @@
       </div>
 
       <div class="modal-footer px-6 py-4 border-0">
-        <div class="text-muted">Steps will be saved when you create the workflow.</div>
+        <div class="text-muted">Steps will be saved when you {{ editingWorkflowId ? 'update' : 'create' }} the workflow.</div>
         <div class="d-flex gap-3">
           <button type="button" class="btn btn-light" (click)="closeWorkflowModal()">Cancel</button>
-          <button type="button" class="btn btn-primary">Create Workflow</button>
+          <button type="button" class="btn btn-primary" [disabled]="isSubmitting" (click)="saveWorkflow()">
+            {{ isSubmitting ? 'Saving...' : (editingWorkflowId ? 'Update Workflow' : 'Create Workflow') }}
+          </button>
         </div>
       </div>
     </div>
@@ -231,10 +257,12 @@
             </select>
           </div>
           <div>
-            <label class="form-label required">Assignee Role/User</label>
-            <select class="form-select" [(ngModel)]="stepDraft.assignee" name="assignee">
-              <option value="">Select assignee</option>
-              <option *ngFor="let role of assigneeOptions" [value]="role">{{ role }}</option>
+            <label class="form-label">Assignee Role/User</label>
+            <select class="form-select" [(ngModel)]="stepDraft.assigneeId" name="assignee">
+              <option [ngValue]="null">Select assignee</option>
+              <option *ngFor="let user of assigneeOptions" [ngValue]="user.id">
+                {{ user.displayName }} ({{ user.role }})
+              </option>
             </select>
           </div>
         </form>

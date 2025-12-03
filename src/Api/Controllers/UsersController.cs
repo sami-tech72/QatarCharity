@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Api.Models;
 using Api.Models.Users;
@@ -71,6 +72,42 @@ public class UsersController : ControllerBase
             pageSize);
 
         return Ok(ApiResponse<PagedResult<UserResponse>>.Ok(pagedResult, "Users retrieved successfully."));
+    }
+
+    [HttpGet("lookup")]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<UserLookupResponse>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<IEnumerable<UserLookupResponse>>>> GetUserLookup([FromQuery] string? search)
+    {
+        var usersQuery = _userManager.Users.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var loweredSearch = search.Trim().ToLowerInvariant();
+
+            usersQuery = usersQuery.Where(user =>
+                (user.DisplayName ?? string.Empty).ToLower().Contains(loweredSearch) ||
+                (user.Email ?? string.Empty).ToLower().Contains(loweredSearch));
+        }
+
+        var users = await usersQuery
+            .OrderBy(user => user.DisplayName ?? user.Email ?? user.UserName)
+            .Take(100)
+            .ToListAsync();
+
+        var responses = new List<UserLookupResponse>(users.Count);
+
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+
+            responses.Add(new UserLookupResponse(
+                Id: user.Id,
+                DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
+                Email: user.Email ?? string.Empty,
+                Role: roles.FirstOrDefault() ?? Roles.Supplier));
+        }
+
+        return Ok(ApiResponse<IEnumerable<UserLookupResponse>>.Ok(responses, "Users retrieved successfully."));
     }
 
     [HttpPost]
