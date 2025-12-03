@@ -95,6 +95,14 @@
   min-width: 180px;
 }
 
+.attachment-tile {
+  border: 1px dashed #d9d9e3;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: #fcfcfd;
+  height: 100%;
+}
+
 .review-grid dl {
   row-gap: 0.5rem;
 }

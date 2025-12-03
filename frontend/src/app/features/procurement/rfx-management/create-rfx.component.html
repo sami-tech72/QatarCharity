@@ -141,30 +141,44 @@
 
             <div *ngIf="currentStepIndex === 1" class="row g-5" [formGroup]="requirementsForm">
               <div class="col-12">
-                <label class="form-label">Scope of Work</label>
-                <textarea
-                  class="form-control"
-                  rows="3"
-                  formControlName="scope"
-                  placeholder="Detailed description of the scope of work"
-                ></textarea>
-              </div>
-              <div class="col-12">
-                <label class="form-label">Technical Specification</label>
-                <textarea
-                  class="form-control"
-                  rows="3"
-                  formControlName="technicalSpec"
-                  placeholder="Enter technical specifications"
-                ></textarea>
-              </div>
-              <div class="col-12">
-                <label class="form-label">Deliverables</label>
-                <textarea class="form-control" rows="3" formControlName="deliverables" placeholder="List of expected deliverables"></textarea>
-              </div>
-              <div class="col-12">
-                <label class="form-label">Timeline</label>
-                <textarea class="form-control" rows="3" formControlName="timeline" placeholder="Project timeline and milestones"></textarea>
+                <div class="row g-4">
+                  <div class="col-lg-6">
+                    <label class="form-label">Scope of Work</label>
+                    <textarea
+                      class="form-control"
+                      rows="4"
+                      formControlName="scope"
+                      placeholder="Detailed description of the scope of work"
+                    ></textarea>
+                  </div>
+                  <div class="col-lg-6">
+                    <label class="form-label">Technical Specification</label>
+                    <textarea
+                      class="form-control"
+                      rows="4"
+                      formControlName="technicalSpec"
+                      placeholder="Enter technical specifications"
+                    ></textarea>
+                  </div>
+                  <div class="col-lg-6">
+                    <label class="form-label">Deliverables</label>
+                    <textarea
+                      class="form-control"
+                      rows="4"
+                      formControlName="deliverables"
+                      placeholder="List of expected deliverables"
+                    ></textarea>
+                  </div>
+                  <div class="col-lg-6">
+                    <label class="form-label">Timeline</label>
+                    <textarea
+                      class="form-control"
+                      rows="4"
+                      formControlName="timeline"
+                      placeholder="Project timeline and milestones"
+                    ></textarea>
+                  </div>
+                </div>
               </div>
 
               <div class="col-12">
@@ -203,23 +217,27 @@
 
               <div class="col-12">
                 <label class="form-label">Attachments</label>
-                <div class="row g-3">
-                  <div class="col-12" *ngFor="let attachment of attachments.controls; index as i">
-                    <div class="d-flex align-items-center gap-3">
-                      <input
-                        type="file"
-                        class="form-control"
-                        (change)="onAttachmentChange($event, i)"
-                        [attr.aria-label]="'Attachment ' + (i + 1)"
-                      />
-                      <span class="text-muted small" *ngIf="attachment.value">{{ attachment.value?.name }}</span>
-                      <button type="button" class="btn btn-icon btn-light-danger" (click)="removeAttachment(i)">
-                        <i class="ki-duotone ki-trash fs-3"></i>
-                      </button>
+                <div class="row g-3 row-cols-1 row-cols-md-2">
+                  <div class="col" *ngFor="let attachment of attachments.controls; index as i">
+                    <div class="attachment-tile">
+                      <div class="d-flex flex-column gap-2">
+                        <input
+                          type="file"
+                          class="form-control"
+                          (change)="onAttachmentChange($event, i)"
+                          [attr.aria-label]="'Attachment ' + (i + 1)"
+                        />
+                        <div class="d-flex justify-content-between align-items-center">
+                          <span class="text-muted small" *ngIf="attachment.value">{{ attachment.value?.name }}</span>
+                          <button type="button" class="btn btn-icon btn-light-danger" (click)="removeAttachment(i)">
+                            <i class="ki-duotone ki-trash fs-3"></i>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div class="col-12">
-                    <button type="button" class="btn btn-light-primary" (click)="addAttachment()">
+                  <div class="col">
+                    <button type="button" class="btn btn-light-primary w-100 h-100" (click)="addAttachment()">
                       <i class="ki-duotone ki-plus fs-3"></i>
                       Add Attachment
                     </button>
