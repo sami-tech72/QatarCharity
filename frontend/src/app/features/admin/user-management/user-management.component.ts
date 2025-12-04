@@ -136,12 +136,14 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         displayName,
         email,
         role,
-        procurementSubRole,
+        procurementSubRole: procurementSubRoleRaw,
         procurementCanCreate,
         procurementCanDelete,
         procurementCanView,
         procurementCanEdit,
       } = this.userForm.getRawValue();
+
+      const procurementSubRole = procurementSubRoleRaw ?? undefined;
 
       const procurement = this.buildProcurementPayload(role, {
         procurementSubRole,
@@ -170,7 +172,11 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       });
     } else {
       const formValues = this.userForm.getRawValue();
-      const procurement = this.buildProcurementPayload(formValues.role, formValues);
+      const procurementSubRole = formValues.procurementSubRole ?? undefined;
+      const procurement = this.buildProcurementPayload(formValues.role, {
+        ...formValues,
+        procurementSubRole,
+      });
 
       const payload: CreateUserRequest = {
         displayName: formValues.displayName,
@@ -404,7 +410,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   private buildProcurementPayload(
     role: UserRole,
-    values: Partial<CreateUserRequest> & { procurementSubRole?: ProcurementSubRole | null },
+    values: Partial<CreateUserRequest> & { procurementSubRole?: ProcurementSubRole },
   ): {
     procurementSubRole?: ProcurementSubRole;
     procurementCanCreate: boolean;
