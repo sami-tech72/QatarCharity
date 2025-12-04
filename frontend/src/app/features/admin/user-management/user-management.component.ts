@@ -23,6 +23,11 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './user-management.component.scss',
 })
 export class UserManagementComponent implements OnInit, OnDestroy {
+  private readonly auth = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly userService = inject(UserManagementService);
+  private readonly notifier = inject(NotificationService);
+
   users: ManagedUser[] = [];
   usersPage: PagedResult<ManagedUser> | null = null;
   readonly allRoleOptions: Array<{ value: UserRole; title: string; description: string }> = [
@@ -61,11 +66,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     pageSize: 10,
     search: '',
   };
-
-  private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
-  private readonly userService = inject(UserManagementService);
-  private readonly notifier = inject(NotificationService);
 
   readonly userForm = this.fb.nonNullable.group({
     displayName: ['', [Validators.required, Validators.maxLength(100)]],
