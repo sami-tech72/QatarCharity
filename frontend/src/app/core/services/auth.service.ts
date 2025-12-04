@@ -68,8 +68,10 @@ export class AuthService {
       return procurementSidebarMenu[0].path;
     }
 
-    const allowed = new Set(procurementSubRoles);
-    const match = procurementSidebarMenu.find((item) => allowed.has(item.title));
+    const allowed = new Set<ProcurementSubRole>(procurementSubRoles);
+    const match = procurementSidebarMenu.find((item) =>
+      allowed.has(item.title as ProcurementSubRole),
+    );
 
     return match?.path ?? procurementSidebarMenu[0].path;
   }

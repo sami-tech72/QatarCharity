@@ -8,7 +8,11 @@ import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
 import { AuthService } from '../services/auth.service';
-import { UserRole, UserSession } from '../../shared/models/user.model';
+import {
+  ProcurementSubRole,
+  UserRole,
+  UserSession,
+} from '../../shared/models/user.model';
 
 @Component({
   selector: 'app-layout',
@@ -136,8 +140,10 @@ export class LayoutComponent implements AfterViewInit {
       return this.sidebarMenus[role];
     }
 
-    const allowed = new Set(subRoles);
-    const filtered = procurementSidebarMenu.filter((item) => allowed.has(item.title));
+    const allowed = new Set<ProcurementSubRole>(subRoles);
+    const filtered = procurementSidebarMenu.filter((item) =>
+      allowed.has(item.title as ProcurementSubRole),
+    );
 
     return filtered.length ? filtered : this.sidebarMenus[role];
   }
