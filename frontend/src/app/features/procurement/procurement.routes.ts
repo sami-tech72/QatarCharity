@@ -61,12 +61,6 @@ export const procurementRoutes: Routes = [
         loadComponent: () =>
           import('./reports-analytics/reports-analytics.component').then((m) => m.ReportsAnalyticsComponent),
       },
-      {
-        path: 'settings',
-        title: 'Procurement Settings',
-        data: { procurementPermission: 'canUpdate' },
-        loadComponent: () => import('./settings/procurement-settings.component').then((m) => m.ProcurementSettingsComponent),
-      },
     ],
   },
 ];

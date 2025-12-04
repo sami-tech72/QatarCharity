@@ -13,11 +13,12 @@ import {
   UserQueryRequest,
 } from '../../../shared/models/user-management.model';
 import { UserRole } from '../../../shared/models/user.model';
+import { ProcurementSettingsComponent } from '../../procurement/settings/procurement-settings.component';
 
 @Component({
   selector: 'app-user-management-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ProcurementSettingsComponent],
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss',
 })
