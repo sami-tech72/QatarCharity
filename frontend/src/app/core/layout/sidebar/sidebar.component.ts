@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { UserRole } from '../../../shared/models/user.model';
+import { ProcurementSubRole, UserRole } from '../../../shared/models/user.model';
 
 export interface SidebarMenuItem {
   title: string;
   icon: string;
   path: string;
+  allowedSubRoles?: ProcurementSubRole[];
 }
 
 @Component({

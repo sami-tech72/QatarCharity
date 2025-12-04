@@ -42,7 +42,20 @@ export class LayoutComponent implements AfterViewInit {
   session: UserSession | null = null;
 
   get sidebarMenu() {
-    return this.sidebarMenus[this.currentRole];
+    const menu = this.sidebarMenus[this.currentRole];
+
+    if (this.currentRole !== 'Procurement' || !this.session) {
+      return menu;
+    }
+
+    const userSubRoles = this.session.subRoles ?? [];
+    return menu.filter((item) => {
+      if (!item.allowedSubRoles?.length) {
+        return true;
+      }
+
+      return item.allowedSubRoles.some((requiredSubRole) => userSubRoles.includes(requiredSubRole));
+    });
   }
 
   private layoutInitTimeout?: number;
@@ -90,7 +103,7 @@ export class LayoutComponent implements AfterViewInit {
     }
 
     const match = this.sidebarMenu.find((item) => url.startsWith(item.path));
-    this.activePageTitle = match?.title ?? this.sidebarMenu[0].title;
+    this.activePageTitle = match?.title ?? this.sidebarMenu[0]?.title ?? 'Dashboard';
   }
 
   private handleSessionChange(session: UserSession | null) {

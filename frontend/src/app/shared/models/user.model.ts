@@ -1,4 +1,14 @@
 export type UserRole = 'Admin' | 'Procurement' | 'Supplier';
+export type ProcurementSubRole =
+  | 'ProcurementManager'
+  | 'ProcurementOfficer'
+  | 'ProcurementViewer';
+
+export const PROCUREMENT_SUB_ROLES: ProcurementSubRole[] = [
+  'ProcurementManager',
+  'ProcurementOfficer',
+  'ProcurementViewer',
+];
 
 export interface LoginRequest {
   email: string;
@@ -10,7 +20,7 @@ export interface LoginResponse {
   displayName: string;
   role: UserRole;
   roles: string[];
-  subRoles: string[];
+  subRoles: ProcurementSubRole[];
   token: string;
   expiresAt: string;
 }

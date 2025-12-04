@@ -12,7 +12,7 @@ import {
   ManagedUser,
   UserQueryRequest,
 } from '../../../shared/models/user-management.model';
-import { UserRole } from '../../../shared/models/user.model';
+import { ProcurementSubRole, UserRole } from '../../../shared/models/user.model';
 
 @Component({
   selector: 'app-user-management-page',
@@ -41,7 +41,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       description: 'Access supplier-specific tools and updates.',
     },
   ];
-  procurementSubRoleOptions: Array<{ value: string; title: string; description: string }> = [
+  procurementSubRoleOptions: Array<{ value: ProcurementSubRole; title: string; description: string }> = [
     {
       value: 'ProcurementManager',
       title: 'Procurement Manager',
@@ -81,7 +81,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     role: this.fb.nonNullable.control<UserRole>('Supplier'),
-    subRoles: this.fb.nonNullable.control<string[]>([]),
+    subRoles: this.fb.nonNullable.control<ProcurementSubRole[]>([]),
   });
 
   ngOnInit(): void {
@@ -318,7 +318,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     }
   }
 
-  onSubRoleToggle(subRole: string, isChecked: boolean): void {
+  onSubRoleToggle(subRole: ProcurementSubRole, isChecked: boolean): void {
     const current = new Set(this.userForm.controls.subRoles.value ?? []);
 
     if (isChecked) {
@@ -330,7 +330,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.userForm.controls.subRoles.setValue([...current]);
   }
 
-  isSubRoleSelected(subRole: string): boolean {
+  isSubRoleSelected(subRole: ProcurementSubRole): boolean {
     return this.userForm.controls.subRoles.value?.includes(subRole) ?? false;
   }
 
