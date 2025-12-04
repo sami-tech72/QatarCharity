@@ -21,6 +21,7 @@ export interface LoginResponse {
   role: UserRole;
   token: string;
   expiresAt: string;
+  procurementSubRoles: ProcurementSubRole[];
 }
 
 export interface UserSession extends LoginResponse {}

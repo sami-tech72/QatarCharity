@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Api.Models;
 using Application.Interfaces.Authentication;
 using Application.DTOs.Authentication;
@@ -60,8 +62,22 @@ public class AuthController : ControllerBase
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Role: roles.FirstOrDefault() ?? Roles.Supplier,
             Token: tokenResult.Token,
-            ExpiresAt: tokenResult.ExpiresAt);
+            ExpiresAt: tokenResult.ExpiresAt,
+            ProcurementSubRoles: ParseProcurementSubRoles(user.ProcurementSubRoles));
 
         return Ok(ApiResponse<LoginResponse>.Ok(response, "Login successful."));
+    }
+
+    private static IReadOnlyCollection<string> ParseProcurementSubRoles(string? storedValue)
+    {
+        if (string.IsNullOrWhiteSpace(storedValue))
+        {
+            return Array.Empty<string>();
+        }
+
+        return storedValue
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
     }
 }

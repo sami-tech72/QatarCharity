@@ -24,15 +24,22 @@ export class UserManagementService {
           search: query.search ?? '',
         },
       })
-      .pipe(map((response) => this.unwrap(response)));
+      .pipe(
+        map((response) => this.unwrap(response)),
+        map((page) => ({ ...page, items: page.items.map((user) => this.normalize(user)) })),
+      );
   }
 
   createUser(request: CreateUserRequest): Observable<ManagedUser> {
-    return this.api.post<ManagedUser>('users', request).pipe(map((response) => this.unwrap(response)));
+    return this.api
+      .post<ManagedUser>('users', request)
+      .pipe(map((response) => this.normalize(this.unwrap(response))));
   }
 
   updateUser(id: string, request: UpdateUserRequest): Observable<ManagedUser> {
-    return this.api.put<ManagedUser>(`users/${id}`, request).pipe(map((response) => this.unwrap(response)));
+    return this.api
+      .put<ManagedUser>(`users/${id}`, request)
+      .pipe(map((response) => this.normalize(this.unwrap(response))));
   }
 
   deleteUser(id: string): Observable<void> {
@@ -50,7 +57,7 @@ export class UserManagementService {
   getUserLookup(search?: string): Observable<ManagedUser[]> {
     return this.api
       .get<ManagedUser[]>(`users/lookup`, { params: { search: search ?? '' } })
-      .pipe(map((response) => this.unwrap(response)));
+      .pipe(map((response) => this.unwrap(response).map((user) => this.normalize(user))));
   }
 
   private unwrap<T>(response: ApiResponse<T>): T {
@@ -59,5 +66,12 @@ export class UserManagementService {
     }
 
     return response.data;
+  }
+
+  private normalize(user: ManagedUser): ManagedUser {
+    return {
+      ...user,
+      procurementSubRoles: user.procurementSubRoles ?? [],
+    };
   }
 }

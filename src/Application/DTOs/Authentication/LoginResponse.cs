@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Application.DTOs.Authentication;
 
 public record LoginResponse(
@@ -5,4 +7,5 @@ public record LoginResponse(
     string DisplayName,
     string Role,
     string Token,
-    DateTime ExpiresAt);
+    DateTime ExpiresAt,
+    IEnumerable<string> ProcurementSubRoles);

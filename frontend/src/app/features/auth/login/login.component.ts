@@ -47,7 +47,7 @@ export class LoginComponent {
 
     this.authService.login(payload).subscribe({
       next: (session) => {
-        const path = this.authService.defaultPathForRole(session.role);
+        const path = this.authService.defaultPathForRole(session.role, session.procurementSubRoles);
         this.router.navigateByUrl(path);
       },
       error: (error) => {

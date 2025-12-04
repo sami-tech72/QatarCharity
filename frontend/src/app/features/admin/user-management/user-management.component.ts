@@ -143,8 +143,13 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.userService.loadUsers(this.paginationState).subscribe({
       next: (page) => {
-        this.usersPage = page;
-        this.users = page.items;
+        const items = page.items.map((user) => ({
+          ...user,
+          procurementSubRoles: user.procurementSubRoles ?? [],
+        }));
+
+        this.usersPage = { ...page, items };
+        this.users = items;
         this.paginationState = {
           pageNumber: page.pageNumber,
           pageSize: page.pageSize,
@@ -174,7 +179,8 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         .updateUser(this.editingUser.id, { displayName, email, role, procurementSubRoles: normalizedSubRoles })
         .subscribe({
         next: (user) => {
-          this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
+          const normalizedUser = this.normalizeManagedUser(user);
+          this.users = this.users.map((existing) => (existing.id === normalizedUser.id ? normalizedUser : existing));
           this.refreshFromServer();
           this.finishSubmit('User updated successfully.', 'success');
         },
@@ -193,7 +199,8 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
       this.userService.createUser(payload).subscribe({
         next: (user) => {
-          this.users = [user, ...this.users.filter((existing) => existing.id !== user.id)];
+          const normalizedUser = this.normalizeManagedUser(user);
+          this.users = [normalizedUser, ...this.users.filter((existing) => existing.id !== normalizedUser.id)];
           this.refreshFromServer();
           this.finishSubmit('User created successfully.', 'success');
         },
@@ -337,6 +344,13 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     }
 
     this.procurementSubRolesControl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private normalizeManagedUser(user: ManagedUser): ManagedUser {
+    return {
+      ...user,
+      procurementSubRoles: user.procurementSubRoles ?? [],
+    };
   }
 
   private resetForm(): void {

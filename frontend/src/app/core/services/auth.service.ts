@@ -4,7 +4,13 @@ import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'r
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
-import { UserRole, LoginRequest, LoginResponse, UserSession } from '../../shared/models/user.model';
+import {
+  UserRole,
+  LoginRequest,
+  LoginResponse,
+  UserSession,
+  ProcurementSubRole,
+} from '../../shared/models/user.model';
 import { ApiService } from './api.service';
 import { ApiResponse } from '../../shared/models/api-response.model';
 
@@ -32,7 +38,7 @@ export class AuthService {
 
         return response.data;
       }),
-      tap((session) => this.persistSession(session)),
+      tap((session) => this.persistSession(this.normalizeSession(session))),
       catchError((error) => throwError(() => error)),
     );
   }
@@ -47,19 +53,31 @@ export class AuthService {
     return this.sessionSubject.value;
   }
 
-  defaultPathForRole(role: UserRole): string {
+  defaultPathForRole(role: UserRole, procurementSubRoles: ProcurementSubRole[] = []): string {
     const map: Record<UserRole, string> = {
       Admin: adminSidebarMenu[0].path,
-      Procurement: procurementSidebarMenu[0].path,
+      Procurement: this.firstProcurementPath(procurementSubRoles),
       Supplier: supplierSidebarMenu[0].path,
     };
 
     return map[role];
   }
 
+  private firstProcurementPath(procurementSubRoles: ProcurementSubRole[]): string {
+    if (!procurementSubRoles.length) {
+      return procurementSidebarMenu[0].path;
+    }
+
+    const allowed = new Set(procurementSubRoles);
+    const match = procurementSidebarMenu.find((item) => allowed.has(item.title));
+
+    return match?.path ?? procurementSidebarMenu[0].path;
+  }
+
   private persistSession(session: UserSession) {
-    localStorage.setItem(this.storageKey, JSON.stringify(session));
-    this.sessionSubject.next(session);
+    const normalized = this.normalizeSession(session);
+    localStorage.setItem(this.storageKey, JSON.stringify(normalized));
+    this.sessionSubject.next(normalized);
   }
 
   private readSessionFromStorage(): UserSession | null {
@@ -70,10 +88,18 @@ export class AuthService {
     }
 
     try {
-      return JSON.parse(raw) as UserSession;
+      const session = JSON.parse(raw) as UserSession;
+      return this.normalizeSession(session);
     } catch (error) {
       console.error('Unable to parse stored session', error);
       return null;
     }
+  }
+
+  private normalizeSession(session: UserSession): UserSession {
+    return {
+      ...session,
+      procurementSubRoles: session.procurementSubRoles ?? [],
+    };
   }
 }

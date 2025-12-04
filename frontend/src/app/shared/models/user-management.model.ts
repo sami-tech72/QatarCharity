@@ -6,7 +6,7 @@ export interface ManagedUser {
   displayName: string;
   email: string;
   role: UserRole;
-  procurementSubRoles?: ProcurementSubRole[];
+  procurementSubRoles: ProcurementSubRole[];
 }
 
 export interface CreateUserRequest {

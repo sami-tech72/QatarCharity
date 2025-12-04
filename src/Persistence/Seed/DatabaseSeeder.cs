@@ -57,6 +57,7 @@ public static class DatabaseSeeder
             Email = email,
             EmailConfirmed = true,
             DisplayName = displayName,
+            ProcurementSubRoles = role == Roles.Procurement ? string.Join(',', ProcurementSubRoles.All) : null,
         };
 
         await userManager.CreateAsync(user, "P@ssw0rd!");

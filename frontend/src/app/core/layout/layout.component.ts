@@ -42,7 +42,7 @@ export class LayoutComponent implements AfterViewInit {
   session: UserSession | null = null;
 
   get sidebarMenu() {
-    return this.sidebarMenus[this.currentRole];
+    return this.getSidebarMenuForRole(this.currentRole);
   }
 
   private layoutInitTimeout?: number;
@@ -80,7 +80,9 @@ export class LayoutComponent implements AfterViewInit {
       return;
     }
 
-    this.router.navigateByUrl(this.authService.defaultPathForRole(role));
+    this.router.navigateByUrl(
+      this.authService.defaultPathForRole(role, this.session?.procurementSubRoles ?? []),
+    );
   }
 
   private updateActivePageTitle(url: string) {
@@ -106,7 +108,10 @@ export class LayoutComponent implements AfterViewInit {
     this.roles = [session.role];
     this.currentRole = session.role;
 
-    const defaultPath = this.authService.defaultPathForRole(session.role);
+    const defaultPath = this.authService.defaultPathForRole(
+      session.role,
+      session.procurementSubRoles,
+    );
     const currentPath = this.router.url || window.location.pathname;
     const isLoginRoute = currentPath === '/' || currentPath.startsWith('/login');
 
@@ -118,6 +123,23 @@ export class LayoutComponent implements AfterViewInit {
     this.updateActivePageTitle(currentPath);
 
     this.scheduleLayoutInitialization();
+  }
+
+  private getSidebarMenuForRole(role: UserRole): SidebarMenuItem[] {
+    if (role !== 'Procurement') {
+      return this.sidebarMenus[role];
+    }
+
+    const subRoles = this.session?.procurementSubRoles ?? [];
+
+    if (!subRoles.length) {
+      return this.sidebarMenus[role];
+    }
+
+    const allowed = new Set(subRoles);
+    const filtered = procurementSidebarMenu.filter((item) => allowed.has(item.title));
+
+    return filtered.length ? filtered : this.sidebarMenus[role];
   }
 
   private scheduleLayoutInitialization() {

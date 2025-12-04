@@ -313,7 +313,7 @@
                 <td>{{ user.role }}</td>
                 <td>
                   <ng-container *ngIf="user.role === 'Procurement'; else nonProcurement">
-                    <ng-container *ngIf="user.procurementSubRoles?.length; else noSubRoles">
+                    <ng-container *ngIf="user.procurementSubRoles.length; else noSubRoles">
                       <div class="d-flex flex-wrap gap-2">
                         <span class="badge badge-light-primary" *ngFor="let subRole of user.procurementSubRoles">
                           {{ subRole }}

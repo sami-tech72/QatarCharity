@@ -62,7 +62,8 @@ public class UsersController : ControllerBase
                 Id: user.Id,
                 DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier));
+                Role: roles.FirstOrDefault() ?? Roles.Supplier,
+                ProcurementSubRoles: ParseProcurementSubRoles(user.ProcurementSubRoles)));
         }
 
         var pagedResult = new PagedResult<UserResponse>(
@@ -104,7 +105,8 @@ public class UsersController : ControllerBase
                 Id: user.Id,
                 DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier));
+                Role: roles.FirstOrDefault() ?? Roles.Supplier,
+                ProcurementSubRoles: ParseProcurementSubRoles(user.ProcurementSubRoles)));
         }
 
         return Ok(ApiResponse<IEnumerable<UserLookupResponse>>.Ok(responses, "Users retrieved successfully."));
@@ -123,6 +125,15 @@ public class UsersController : ControllerBase
                 errorCode: "users_invalid_role"));
         }
 
+        var (normalizedSubRoles, validationError) = NormalizeProcurementSubRoles(request.Role, request.ProcurementSubRoles);
+
+        if (validationError is not null)
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                validationError,
+                errorCode: "users_invalid_procurement_subroles"));
+        }
+
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
 
         if (existingUser is not null)
@@ -137,6 +148,7 @@ public class UsersController : ControllerBase
             UserName = request.Email,
             Email = request.Email,
             DisplayName = request.DisplayName,
+            ProcurementSubRoles = normalizedSubRoles,
             EmailConfirmed = true,
         };
 
@@ -166,7 +178,8 @@ public class UsersController : ControllerBase
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Email: user.Email ?? string.Empty,
-            Role: request.Role);
+            Role: request.Role,
+            ProcurementSubRoles: ParseProcurementSubRoles(user.ProcurementSubRoles));
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User created successfully."));
     }
@@ -183,6 +196,15 @@ public class UsersController : ControllerBase
             return BadRequest(ApiResponse<UserResponse>.Fail(
                 "Invalid role provided.",
                 errorCode: "users_invalid_role"));
+        }
+
+        var (normalizedSubRoles, validationError) = NormalizeProcurementSubRoles(request.Role, request.ProcurementSubRoles);
+
+        if (validationError is not null)
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                validationError,
+                errorCode: "users_invalid_procurement_subroles"));
         }
 
         var user = await _userManager.FindByIdAsync(id);
@@ -206,6 +228,7 @@ public class UsersController : ControllerBase
         user.DisplayName = request.DisplayName;
         user.Email = request.Email;
         user.UserName = request.Email;
+        user.ProcurementSubRoles = normalizedSubRoles;
 
         var updateResult = await _userManager.UpdateAsync(user);
 
@@ -246,7 +269,8 @@ public class UsersController : ControllerBase
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Email: user.Email ?? string.Empty,
-            Role: request.Role);
+            Role: request.Role,
+            ProcurementSubRoles: ParseProcurementSubRoles(user.ProcurementSubRoles));
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User updated successfully."));
     }
@@ -288,5 +312,45 @@ public class UsersController : ControllerBase
                 error.Description
             }).ToArray()
         };
+    }
+
+    private static IReadOnlyCollection<string> ParseProcurementSubRoles(string? storedValue)
+    {
+        if (string.IsNullOrWhiteSpace(storedValue))
+        {
+            return Array.Empty<string>();
+        }
+
+        return storedValue
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static (string? serializedValue, string? validationError) NormalizeProcurementSubRoles(
+        string role,
+        IEnumerable<string>? requestedSubRoles)
+    {
+        if (role != Roles.Procurement)
+        {
+            return (null, null);
+        }
+
+        var subRoles = requestedSubRoles?.Where(sr => !string.IsNullOrWhiteSpace(sr)).ToArray() ?? Array.Empty<string>();
+
+        if (subRoles.Length == 0)
+        {
+            return (null, "At least one Procurement sub-role must be selected.");
+        }
+
+        var invalidSubRoles = subRoles.Where(sr => !ProcurementSubRoles.All.Contains(sr)).ToArray();
+
+        if (invalidSubRoles.Length > 0)
+        {
+            return (null, $"Invalid Procurement sub-role(s): {string.Join(", ", invalidSubRoles)}.");
+        }
+
+        var distinct = subRoles.Distinct(StringComparer.Ordinal).ToArray();
+        return (string.Join(',', distinct), null);
     }
 }

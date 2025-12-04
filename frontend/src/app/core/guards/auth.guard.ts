@@ -17,7 +17,7 @@ export const authGuard: CanMatchFn = (route) => {
   const requiredRole = route.data?.['role'] as UserRole | undefined;
 
   if (requiredRole && session.role !== requiredRole) {
-    router.navigateByUrl(authService.defaultPathForRole(session.role));
+    router.navigateByUrl(authService.defaultPathForRole(session.role, session.procurementSubRoles));
     return false;
   }
 
