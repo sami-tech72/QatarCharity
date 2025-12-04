@@ -75,7 +75,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     role: this.fb.nonNullable.control<UserRole>('Procurement'),
-    procurementSubRole: this.fb.control<ProcurementSubRole | null>(null),
+    procurementSubRole: this.fb.control<ProcurementSubRole | undefined>(undefined),
     procurementCanCreate: this.fb.nonNullable.control(false),
     procurementCanDelete: this.fb.nonNullable.control(false),
     procurementCanView: this.fb.nonNullable.control(true),
@@ -238,7 +238,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         email: user.email,
         password: '',
         role: user.role,
-        procurementSubRole: user.procurementSubRole ?? null,
+        procurementSubRole: user.procurementSubRole ?? undefined,
         procurementCanCreate: user.procurementCanCreate,
         procurementCanDelete: user.procurementCanDelete,
         procurementCanView: user.procurementCanView,
@@ -316,7 +316,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: '',
       password: '',
       role: 'Procurement',
-      procurementSubRole: null,
+      procurementSubRole: undefined,
       procurementCanCreate: false,
       procurementCanDelete: false,
       procurementCanView: true,
@@ -369,7 +369,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     if (role !== 'Procurement') {
       this.userForm.patchValue(
         {
-          procurementSubRole: null,
+          procurementSubRole: undefined,
           procurementCanCreate: false,
           procurementCanDelete: false,
           procurementCanView: false,
@@ -404,7 +404,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   private buildProcurementPayload(
     role: UserRole,
-    values: Partial<CreateUserRequest & { procurementSubRole: ProcurementSubRole | null }>,
+    values: Partial<CreateUserRequest> & { procurementSubRole?: ProcurementSubRole | null },
   ): {
     procurementSubRole?: ProcurementSubRole;
     procurementCanCreate: boolean;
