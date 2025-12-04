@@ -29,6 +29,15 @@ public class JwtTokenService(IOptions<JwtSettings> settings) : IJwtTokenService
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
+        if (!string.IsNullOrWhiteSpace(user.ProcurementSubRole))
+        {
+            claims.Add(new Claim("procurement_sub_role", user.ProcurementSubRole));
+            claims.Add(new Claim("procurement_can_create", user.ProcurementCanCreate.ToString()));
+            claims.Add(new Claim("procurement_can_delete", user.ProcurementCanDelete.ToString()));
+            claims.Add(new Claim("procurement_can_view", user.ProcurementCanView.ToString()));
+            claims.Add(new Claim("procurement_can_edit", user.ProcurementCanEdit.ToString()));
+        }
+
         var expires = DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes);
         var token = new JwtSecurityToken(
             issuer: _settings.Issuer,

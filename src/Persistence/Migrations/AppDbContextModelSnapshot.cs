@@ -37,6 +37,22 @@ namespace Persistence.Migrations
                     b.Property<string>("DisplayName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("ProcurementCanCreate")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ProcurementCanDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ProcurementCanEdit")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ProcurementCanView")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ProcurementSubRole")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");

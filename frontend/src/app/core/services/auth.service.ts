@@ -4,7 +4,12 @@ import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'r
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
-import { UserRole, LoginRequest, LoginResponse, UserSession } from '../../shared/models/user.model';
+import {
+  UserRole,
+  LoginRequest,
+  LoginResponse,
+  UserSession,
+} from '../../shared/models/user.model';
 import { ApiService } from './api.service';
 import { ApiResponse } from '../../shared/models/api-response.model';
 
@@ -70,7 +75,15 @@ export class AuthService {
     }
 
     try {
-      return JSON.parse(raw) as UserSession;
+      const session = JSON.parse(raw) as Partial<UserSession>;
+
+      return {
+        procurementCanCreate: false,
+        procurementCanDelete: false,
+        procurementCanEdit: false,
+        procurementCanView: false,
+        ...session,
+      } as UserSession;
     } catch (error) {
       console.error('Unable to parse stored session', error);
       return null;

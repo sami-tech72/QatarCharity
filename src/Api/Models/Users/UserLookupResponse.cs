@@ -4,4 +4,9 @@ public record UserLookupResponse(
     string Id,
     string DisplayName,
     string Email,
-    string Role);
+    string Role,
+    string? ProcurementSubRole,
+    bool ProcurementCanCreate,
+    bool ProcurementCanDelete,
+    bool ProcurementCanView,
+    bool ProcurementCanEdit);

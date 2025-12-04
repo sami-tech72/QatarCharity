@@ -12,7 +12,7 @@ import {
   ManagedUser,
   UserQueryRequest,
 } from '../../../shared/models/user-management.model';
-import { UserRole } from '../../../shared/models/user.model';
+import { ProcurementSubRole, UserRole } from '../../../shared/models/user.model';
 
 @Component({
   selector: 'app-user-management-page',
@@ -45,6 +45,17 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   isSubmitting = false;
   deletingIds = new Set<string>();
   editingUser: ManagedUser | null = null;
+  readonly procurementSubRoles: ProcurementSubRole[] = [
+    'Dashboard',
+    'RFx Management',
+    'Bid Evaluation',
+    'Tender Committee',
+    'Contract Management',
+    'Supplier Performance',
+    'Reports & Analytics',
+    'Settings',
+  ];
+
   readonly pageSizes = [5, 10, 20, 50];
   readonly searchControl = new FormControl('', { nonNullable: true });
   private readonly destroy$ = new Subject<void>();
@@ -63,7 +74,12 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     displayName: ['', [Validators.required, Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    role: this.fb.nonNullable.control<UserRole>('Supplier'),
+    role: this.fb.nonNullable.control<UserRole>('Procurement'),
+    procurementSubRole: this.fb.control<ProcurementSubRole | ''>(''),
+    procurementCanCreate: this.fb.nonNullable.control(false),
+    procurementCanDelete: this.fb.nonNullable.control(false),
+    procurementCanView: this.fb.nonNullable.control(true),
+    procurementCanEdit: this.fb.nonNullable.control(false),
   });
 
   ngOnInit(): void {
@@ -74,6 +90,12 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         this.loadUsers();
       });
 
+    this.userForm.controls.role.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((role) => this.handleRoleChange(role));
+
+    this.handleRoleChange(this.userForm.controls.role.value);
+    this.applyProcurementDefaults();
     this.loadUsers();
   }
 
@@ -110,9 +132,31 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
     this.isSubmitting = true;
     if (this.editingUser) {
-      const { displayName, email, role } = this.userForm.getRawValue();
+      const {
+        displayName,
+        email,
+        role,
+        procurementSubRole,
+        procurementCanCreate,
+        procurementCanDelete,
+        procurementCanView,
+        procurementCanEdit,
+      } = this.userForm.getRawValue();
 
-      this.userService.updateUser(this.editingUser.id, { displayName, email, role }).subscribe({
+      this.userService
+        .updateUser(this.editingUser.id, {
+          displayName,
+          email,
+          role,
+          ...this.buildProcurementPayload(role, {
+            procurementSubRole,
+            procurementCanCreate,
+            procurementCanDelete,
+            procurementCanView,
+            procurementCanEdit,
+          }),
+        })
+        .subscribe({
         next: (user) => {
           this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
           this.refreshFromServer();
@@ -123,7 +167,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         },
       });
     } else {
-      const payload = this.userForm.getRawValue() as CreateUserRequest;
+      const payload = {
+        ...this.userForm.getRawValue(),
+        ...this.buildProcurementPayload(this.userForm.controls.role.value, this.userForm.getRawValue()),
+      } as CreateUserRequest;
 
       this.userService.createUser(payload).subscribe({
         next: (user) => {
@@ -182,7 +229,13 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: user.email,
       password: '',
       role: user.role,
-    });
+      procurementSubRole: user.procurementSubRole ?? '',
+      procurementCanCreate: user.procurementCanCreate,
+      procurementCanDelete: user.procurementCanDelete,
+      procurementCanView: user.procurementCanView,
+      procurementCanEdit: user.procurementCanEdit,
+    }, { emitEvent: false });
+    this.handleRoleChange(user.role);
   }
 
   onCancel(): void {
@@ -251,7 +304,12 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       displayName: '',
       email: '',
       password: '',
-      role: 'Supplier',
+      role: 'Procurement',
+      procurementSubRole: '',
+      procurementCanCreate: false,
+      procurementCanDelete: false,
+      procurementCanView: true,
+      procurementCanEdit: false,
     });
   }
 
@@ -292,5 +350,67 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     const apiError = (error as { error?: { message?: string }; message?: string }) || {};
 
     return apiError.error?.message || apiError.message || fallback;
+  }
+
+  private handleRoleChange(role: UserRole): void {
+    const subRoleControl = this.userForm.controls.procurementSubRole;
+
+    if (role !== 'Procurement') {
+      this.userForm.patchValue(
+        {
+          procurementSubRole: '',
+          procurementCanCreate: false,
+          procurementCanDelete: false,
+          procurementCanView: false,
+          procurementCanEdit: false,
+        },
+        { emitEvent: false },
+      );
+      subRoleControl.clearValidators();
+      subRoleControl.updateValueAndValidity({ emitEvent: false });
+    } else if (!this.userForm.controls.procurementSubRole.value) {
+      subRoleControl.setValidators(Validators.required);
+      subRoleControl.updateValueAndValidity({ emitEvent: false });
+      this.applyProcurementDefaults(false);
+    } else {
+      subRoleControl.setValidators(Validators.required);
+      subRoleControl.updateValueAndValidity({ emitEvent: false });
+    }
+  }
+
+  private applyProcurementDefaults(emitEvent = true): void {
+    this.userForm.patchValue(
+      {
+        procurementSubRole: this.procurementSubRoles[0],
+        procurementCanCreate: false,
+        procurementCanDelete: false,
+        procurementCanView: true,
+        procurementCanEdit: false,
+      },
+      { emitEvent },
+    );
+  }
+
+  private buildProcurementPayload(
+    role: UserRole,
+    values: Partial<CreateUserRequest>,
+  ): Partial<CreateUserRequest> {
+    if (role !== 'Procurement') {
+      return {
+        procurementSubRole: undefined,
+        procurementCanCreate: false,
+        procurementCanDelete: false,
+        procurementCanView: false,
+        procurementCanEdit: false,
+      };
+    }
+
+    return {
+      procurementSubRole: values.procurementSubRole,
+      procurementCanCreate: !!values.procurementCanCreate,
+      procurementCanDelete: !!values.procurementCanDelete,
+      procurementCanView: !!values.procurementCanView,
+      procurementCanEdit: !!values.procurementCanEdit,
+    };
   }
 }

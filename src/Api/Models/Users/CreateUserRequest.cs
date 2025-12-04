@@ -6,4 +6,9 @@ public record CreateUserRequest(
     [Required] string DisplayName,
     [Required, EmailAddress] string Email,
     [Required] string Password,
-    [Required] string Role);
+    [Required] string Role,
+    string? ProcurementSubRole,
+    bool ProcurementCanCreate = false,
+    bool ProcurementCanDelete = false,
+    bool ProcurementCanView = false,
+    bool ProcurementCanEdit = false);

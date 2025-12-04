@@ -58,11 +58,7 @@ public class UsersController : ControllerBase
         {
             var roles = await _userManager.GetRolesAsync(user);
 
-            response.Add(new UserResponse(
-                Id: user.Id,
-                DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
-                Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier));
+            response.Add(ToUserResponse(user, roles));
         }
 
         var pagedResult = new PagedResult<UserResponse>(
@@ -100,11 +96,7 @@ public class UsersController : ControllerBase
         {
             var roles = await _userManager.GetRolesAsync(user);
 
-            responses.Add(new UserLookupResponse(
-                Id: user.Id,
-                DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
-                Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier));
+            responses.Add(ToUserLookupResponse(user, roles));
         }
 
         return Ok(ApiResponse<IEnumerable<UserLookupResponse>>.Ok(responses, "Users retrieved successfully."));
@@ -140,6 +132,11 @@ public class UsersController : ControllerBase
             EmailConfirmed = true,
         };
 
+        if (!ValidateAndApplyProcurementAccess(request, user, out var validationError))
+        {
+            return BadRequest(validationError);
+        }
+
         var createResult = await _userManager.CreateAsync(user, request.Password);
 
         if (!createResult.Succeeded)
@@ -162,11 +159,7 @@ public class UsersController : ControllerBase
                 details: BuildErrorDetails(roleResult)));
         }
 
-        var response = new UserResponse(
-            Id: user.Id,
-            DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
-            Email: user.Email ?? string.Empty,
-            Role: request.Role);
+        var response = ToUserResponse(user, [request.Role]);
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User created successfully."));
     }
@@ -207,6 +200,11 @@ public class UsersController : ControllerBase
         user.Email = request.Email;
         user.UserName = request.Email;
 
+        if (!ValidateAndApplyProcurementAccess(request, user, out var validationError))
+        {
+            return BadRequest(validationError);
+        }
+
         var updateResult = await _userManager.UpdateAsync(user);
 
         if (!updateResult.Succeeded)
@@ -242,11 +240,7 @@ public class UsersController : ControllerBase
             }
         }
 
-        var response = new UserResponse(
-            Id: user.Id,
-            DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
-            Email: user.Email ?? string.Empty,
-            Role: request.Role);
+        var response = ToUserResponse(user, [request.Role]);
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User updated successfully."));
     }
@@ -288,5 +282,99 @@ public class UsersController : ControllerBase
                 error.Description
             }).ToArray()
         };
+    }
+
+    private static UserResponse ToUserResponse(ApplicationUser user, IList<string> roles)
+    {
+        return new UserResponse(
+            Id: user.Id,
+            DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
+            Email: user.Email ?? string.Empty,
+            Role: roles.FirstOrDefault() ?? Roles.Supplier,
+            ProcurementSubRole: user.ProcurementSubRole,
+            ProcurementCanCreate: user.ProcurementCanCreate,
+            ProcurementCanDelete: user.ProcurementCanDelete,
+            ProcurementCanView: user.ProcurementCanView,
+            ProcurementCanEdit: user.ProcurementCanEdit);
+    }
+
+    private static UserLookupResponse ToUserLookupResponse(ApplicationUser user, IList<string> roles)
+    {
+        return new UserLookupResponse(
+            Id: user.Id,
+            DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
+            Email: user.Email ?? string.Empty,
+            Role: roles.FirstOrDefault() ?? Roles.Supplier,
+            ProcurementSubRole: user.ProcurementSubRole,
+            ProcurementCanCreate: user.ProcurementCanCreate,
+            ProcurementCanDelete: user.ProcurementCanDelete,
+            ProcurementCanView: user.ProcurementCanView,
+            ProcurementCanEdit: user.ProcurementCanEdit);
+    }
+
+    private static bool ValidateAndApplyProcurementAccess(CreateUserRequest request, ApplicationUser user, out ApiResponse<UserResponse>? validationError)
+    {
+        validationError = null;
+
+        if (request.Role != Roles.Procurement)
+        {
+            user.ProcurementSubRole = null;
+            user.ProcurementCanCreate = false;
+            user.ProcurementCanDelete = false;
+            user.ProcurementCanView = false;
+            user.ProcurementCanEdit = false;
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ProcurementSubRole) ||
+            !ProcurementSubRoles.All.Contains(request.ProcurementSubRole))
+        {
+            validationError = ApiResponse<UserResponse>.Fail(
+                "Invalid procurement sub-role provided.",
+                errorCode: "users_invalid_procurement_subrole");
+
+            return false;
+        }
+
+        user.ProcurementSubRole = request.ProcurementSubRole;
+        user.ProcurementCanCreate = request.ProcurementCanCreate;
+        user.ProcurementCanDelete = request.ProcurementCanDelete;
+        user.ProcurementCanView = request.ProcurementCanView;
+        user.ProcurementCanEdit = request.ProcurementCanEdit;
+
+        return true;
+    }
+
+    private static bool ValidateAndApplyProcurementAccess(UpdateUserRequest request, ApplicationUser user, out ApiResponse<UserResponse>? validationError)
+    {
+        validationError = null;
+
+        if (request.Role != Roles.Procurement)
+        {
+            user.ProcurementSubRole = null;
+            user.ProcurementCanCreate = false;
+            user.ProcurementCanDelete = false;
+            user.ProcurementCanView = false;
+            user.ProcurementCanEdit = false;
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ProcurementSubRole) ||
+            !ProcurementSubRoles.All.Contains(request.ProcurementSubRole))
+        {
+            validationError = ApiResponse<UserResponse>.Fail(
+                "Invalid procurement sub-role provided.",
+                errorCode: "users_invalid_procurement_subrole");
+
+            return false;
+        }
+
+        user.ProcurementSubRole = request.ProcurementSubRole;
+        user.ProcurementCanCreate = request.ProcurementCanCreate;
+        user.ProcurementCanDelete = request.ProcurementCanDelete;
+        user.ProcurementCanView = request.ProcurementCanView;
+        user.ProcurementCanEdit = request.ProcurementCanEdit;
+
+        return true;
     }
 }
