@@ -69,6 +69,10 @@ export class UserManagementService {
   }
 
   private normalize(user: ManagedUser): ManagedUser {
+    if (user.role !== 'Procurement') {
+      return { ...user, procurementSubRoles: [] };
+    }
+
     return {
       ...user,
       procurementSubRoles: user.procurementSubRoles ?? [],

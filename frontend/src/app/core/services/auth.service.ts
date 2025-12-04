@@ -99,6 +99,10 @@ export class AuthService {
   }
 
   private normalizeSession(session: UserSession): UserSession {
+    if (session.role !== 'Procurement') {
+      return { ...session, procurementSubRoles: [] };
+    }
+
     return {
       ...session,
       procurementSubRoles: session.procurementSubRoles ?? [],

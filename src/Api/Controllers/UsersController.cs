@@ -58,12 +58,17 @@ public class UsersController : ControllerBase
         {
             var roles = await _userManager.GetRolesAsync(user);
 
+            var primaryRole = roles.FirstOrDefault() ?? Roles.Supplier;
+            var procurementSubRoles = primaryRole == Roles.Procurement
+                ? ParseProcurementSubRoles(user.ProcurementSubRoles)
+                : Array.Empty<string>();
+
             response.Add(new UserResponse(
                 Id: user.Id,
                 DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier,
-                ProcurementSubRoles: ParseProcurementSubRoles(user.ProcurementSubRoles)));
+                Role: primaryRole,
+                ProcurementSubRoles: procurementSubRoles));
         }
 
         var pagedResult = new PagedResult<UserResponse>(
@@ -101,12 +106,17 @@ public class UsersController : ControllerBase
         {
             var roles = await _userManager.GetRolesAsync(user);
 
+            var primaryRole = roles.FirstOrDefault() ?? Roles.Supplier;
+            var procurementSubRoles = primaryRole == Roles.Procurement
+                ? ParseProcurementSubRoles(user.ProcurementSubRoles)
+                : Array.Empty<string>();
+
             responses.Add(new UserLookupResponse(
                 Id: user.Id,
                 DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier,
-                ProcurementSubRoles: ParseProcurementSubRoles(user.ProcurementSubRoles)));
+                Role: primaryRole,
+                ProcurementSubRoles: procurementSubRoles));
         }
 
         return Ok(ApiResponse<IEnumerable<UserLookupResponse>>.Ok(responses, "Users retrieved successfully."));

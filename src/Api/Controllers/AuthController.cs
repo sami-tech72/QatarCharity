@@ -57,13 +57,18 @@ public class AuthController : ControllerBase
         var roles = await _userManager.GetRolesAsync(user);
         var tokenResult = _tokenService.CreateToken(user, roles);
 
+        var primaryRole = roles.FirstOrDefault() ?? Roles.Supplier;
+        var procurementSubRoles = primaryRole == Roles.Procurement
+            ? ParseProcurementSubRoles(user.ProcurementSubRoles)
+            : Array.Empty<string>();
+
         var response = new LoginResponse(
             Email: user.Email ?? string.Empty,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
-            Role: roles.FirstOrDefault() ?? Roles.Supplier,
+            Role: primaryRole,
             Token: tokenResult.Token,
             ExpiresAt: tokenResult.ExpiresAt,
-            ProcurementSubRoles: ParseProcurementSubRoles(user.ProcurementSubRoles));
+            ProcurementSubRoles: procurementSubRoles);
 
         return Ok(ApiResponse<LoginResponse>.Ok(response, "Login successful."));
     }
