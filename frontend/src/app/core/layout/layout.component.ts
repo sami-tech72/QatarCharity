@@ -134,18 +134,7 @@ export class LayoutComponent implements AfterViewInit {
       return this.sidebarMenus[role];
     }
 
-    const subRoles = this.session?.procurementSubRoles ?? [];
-
-    if (!subRoles.length) {
-      return this.sidebarMenus[role];
-    }
-
-    const allowed = new Set<ProcurementSubRole>(subRoles);
-    const filtered = procurementSidebarMenu.filter((item) =>
-      allowed.has(item.title as ProcurementSubRole),
-    );
-
-    return filtered.length ? filtered : this.sidebarMenus[role];
+    return this.sidebarMenus[role];
   }
 
   private scheduleLayoutInitialization() {

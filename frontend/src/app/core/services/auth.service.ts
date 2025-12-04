@@ -63,17 +63,8 @@ export class AuthService {
     return map[role];
   }
 
-  private firstProcurementPath(procurementSubRoles: ProcurementSubRole[]): string {
-    if (!procurementSubRoles.length) {
-      return procurementSidebarMenu[0].path;
-    }
-
-    const allowed = new Set<ProcurementSubRole>(procurementSubRoles);
-    const match = procurementSidebarMenu.find((item) =>
-      allowed.has(item.title as ProcurementSubRole),
-    );
-
-    return match?.path ?? procurementSidebarMenu[0].path;
+  private firstProcurementPath(_procurementSubRoles: ProcurementSubRole[]): string {
+    return procurementSidebarMenu[0].path;
   }
 
   private persistSession(session: UserSession) {
