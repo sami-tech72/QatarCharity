@@ -2,12 +2,133 @@
   display: block;
 }
 
-.page-placeholder {
-  padding: 2rem;
-  text-align: center;
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.page-placeholder__title {
+.settings__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings__title {
+  margin: 0;
   font-size: 2rem;
+  font-weight: 700;
+}
+
+.settings__subtitle {
+  margin: 0.25rem 0 0;
+  color: #556070;
+}
+
+.card {
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.card__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.card__subtitle {
+  margin: 0.25rem 0 0;
+  color: #556070;
+}
+
+.btn {
+  background: #5c6ac4;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
   font-weight: 600;
+  color: #2c3e50;
+}
+
+.form-field input[type='text'] {
+  border: 1px solid #d5d9e2;
+  border-radius: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  font-weight: 500;
+}
+
+.form-field small {
+  color: #c44536;
+  font-weight: 500;
+}
+
+.permissions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.checkbox {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  font-weight: 600;
+}
+
+.error {
+  color: #c44536;
+  margin: 0;
+}
+
+.result {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.result__section h3 {
+  margin: 0 0 0.5rem;
+}
+
+.result__section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.result__section li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.35rem 0;
 }

@@ -1,3 +1,91 @@
-<div class="page-placeholder">
-  <h1 class="page-placeholder__title">Procurement Settings</h1>
+<div class="settings">
+  <div class="settings__header">
+    <div>
+      <h1 class="settings__title">Procurement Sub-Roles</h1>
+      <p class="settings__subtitle">
+        Manually add or update a procurement user's sub-role and the permissions that role grants.
+      </p>
+    </div>
+  </div>
+
+  <form class="card" [formGroup]="subRoleForm" (ngSubmit)="submit()">
+    <div class="card__header">
+      <div>
+        <h2 class="card__title">Assign sub-role</h2>
+        <p class="card__subtitle">Enter the procurement user's ID, the sub-role name, and toggle permissions.</p>
+      </div>
+      <button class="btn" type="submit" [disabled]="saving">{{ saving ? 'Saving…' : 'Save' }}</button>
+    </div>
+
+    <div class="grid">
+      <label class="form-field">
+        <span>User ID</span>
+        <input type="text" formControlName="userId" placeholder="e.g. 9d7d5e40-..." />
+        <small *ngIf="subRoleForm.controls.userId.invalid && subRoleForm.controls.userId.touched">User ID is required.</small>
+      </label>
+
+      <label class="form-field">
+        <span>Sub-role name</span>
+        <input type="text" formControlName="name" placeholder="e.g. ProcurementReviewer" />
+        <small *ngIf="subRoleForm.controls.name.invalid && subRoleForm.controls.name.touched">Name is required.</small>
+      </label>
+    </div>
+
+    <div class="permissions">
+      <label class="checkbox">
+        <input type="checkbox" formControlName="canView" />
+        <span>View</span>
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" formControlName="canCreate" />
+        <span>Create</span>
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" formControlName="canUpdate" />
+        <span>Update</span>
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" formControlName="canDelete" />
+        <span>Delete</span>
+      </label>
+    </div>
+
+    <p class="error" *ngIf="error">{{ error }}</p>
+  </form>
+
+  <div class="card" *ngIf="lastResult as result">
+    <div class="card__header">
+      <div>
+        <h2 class="card__title">Latest assignment</h2>
+        <p class="card__subtitle">Updated permissions for {{ result.userId }}</p>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="result__section">
+        <h3>Sub-roles</h3>
+        <ul>
+          <li *ngFor="let grant of result.subRoles">
+            <strong>{{ grant.name }}</strong>
+            <span>
+              <ng-container *ngIf="grant.permissions.canView">view</ng-container>
+              <ng-container *ngIf="grant.permissions.canCreate"> · create</ng-container>
+              <ng-container *ngIf="grant.permissions.canUpdate"> · update</ng-container>
+              <ng-container *ngIf="grant.permissions.canDelete"> · delete</ng-container>
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="result__section">
+        <h3>Combined permissions</h3>
+        <p>
+          View: <strong>{{ result.permissions.canView ? 'Yes' : 'No' }}</strong><br />
+          Create: <strong>{{ result.permissions.canCreate ? 'Yes' : 'No' }}</strong><br />
+          Update: <strong>{{ result.permissions.canUpdate ? 'Yes' : 'No' }}</strong><br />
+          Delete: <strong>{{ result.permissions.canDelete ? 'Yes' : 'No' }}</strong>
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
