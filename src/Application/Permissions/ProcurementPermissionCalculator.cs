@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Application.DTOs;
 using Domain.Enums;
 
@@ -6,7 +7,7 @@ namespace Application.Permissions;
 
 public static class ProcurementPermissionCalculator
 {
-    private static readonly IReadOnlyDictionary<string, ProcurementPermissionSet> _map =
+    private static readonly IReadOnlyDictionary<string, ProcurementPermissionSet> _defaults =
         new Dictionary<string, ProcurementPermissionSet>(System.StringComparer.OrdinalIgnoreCase)
         {
             [ProcurementSubRoles.Viewer] = new(CanView: true),
@@ -14,20 +15,54 @@ public static class ProcurementPermissionCalculator
             [ProcurementSubRoles.Manager] = new(CanView: true, CanCreate: true, CanUpdate: true, CanDelete: true),
         };
 
-    public static ProcurementPermissionSet CombineFor(IEnumerable<string> subRoles)
+    public static IReadOnlyCollection<ProcurementSubRoleGrant> ParseClaims(IEnumerable<string> subRoleClaims)
     {
-        var combined = new ProcurementPermissionSet();
+        var grants = new List<ProcurementSubRoleGrant>();
 
-        foreach (var subRole in subRoles)
+        foreach (var claimValue in subRoleClaims)
         {
-            if (!_map.TryGetValue(subRole, out var permissions))
+            if (string.IsNullOrWhiteSpace(claimValue))
             {
                 continue;
             }
 
-            combined = combined.Merge(permissions);
+            var parts = claimValue.Split('|', 2, System.StringSplitOptions.TrimEntries);
+            var name = parts[0];
+            var permissionSet = parts.Length > 1
+                ? ParsePermissions(parts[1])
+                : _defaults.TryGetValue(name, out var defaultPermissions)
+                    ? defaultPermissions
+                    : new ProcurementPermissionSet();
+
+            grants.Add(new ProcurementSubRoleGrant(name, permissionSet));
+        }
+
+        return grants;
+    }
+
+    public static ProcurementPermissionSet CombineFor(IEnumerable<ProcurementSubRoleGrant> grants)
+    {
+        var combined = new ProcurementPermissionSet();
+
+        foreach (var grant in grants)
+        {
+            combined = combined.Merge(grant.Permissions);
         }
 
         return combined;
+    }
+
+    private static ProcurementPermissionSet ParsePermissions(string permissionSegment)
+    {
+        var permissions = permissionSegment
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(permission => permission.ToLowerInvariant())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return new ProcurementPermissionSet(
+            CanView: permissions.Contains("view"),
+            CanCreate: permissions.Contains("create"),
+            CanUpdate: permissions.Contains("update"),
+            CanDelete: permissions.Contains("delete"));
     }
 }

@@ -78,20 +78,26 @@ public static class DatabaseSeeder
         var claims = await userManager.GetClaimsAsync(procurementUser);
         var existingSubRoles = new HashSet<string>(
             claims.Where(claim => claim.Type == Domain.Constants.CustomClaimTypes.ProcurementSubRole)
-                .Select(claim => claim.Value));
+                .Select(claim => claim.Value.Split('|', 2)[0]));
 
-        var defaultSubRoles = new[] { ProcurementSubRoles.Manager, ProcurementSubRoles.Contributor };
+        var defaultSubRoles = new Dictionary<string, string>
+        {
+            [ProcurementSubRoles.Manager] = "view,create,update,delete",
+            [ProcurementSubRoles.Contributor] = "view,create,update",
+        };
 
         foreach (var subRole in defaultSubRoles)
         {
-            if (existingSubRoles.Contains(subRole))
+            if (existingSubRoles.Contains(subRole.Key))
             {
                 continue;
             }
 
             await userManager.AddClaimAsync(
                 procurementUser,
-                new Claim(Domain.Constants.CustomClaimTypes.ProcurementSubRole, subRole));
+                new Claim(
+                    Domain.Constants.CustomClaimTypes.ProcurementSubRole,
+                    $"{subRole.Key}|{subRole.Value}"));
         }
     }
 

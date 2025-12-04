@@ -1,8 +1,9 @@
 using System.Linq;
 using System.Security.Claims;
 using Api.Models;
-using Application.Interfaces.Authentication;
+using Application.DTOs;
 using Application.DTOs.Authentication;
+using Application.Interfaces.Authentication;
 using Application.Permissions;
 using Domain.Entities;
 using Domain.Constants;
@@ -60,9 +61,9 @@ public class AuthController : ControllerBase
         var claims = await _userManager.GetClaimsAsync(user);
         var tokenResult = _tokenService.CreateToken(user, roles, claims);
 
-        var procurementSubRoles = GetProcurementSubRoles(claims, roles);
-        var procurementPermissions = procurementSubRoles.Any()
-            ? ProcurementPermissionCalculator.CombineFor(procurementSubRoles)
+        var procurementSubRoleGrants = GetProcurementSubRoleGrants(claims, roles);
+        var procurementPermissions = procurementSubRoleGrants.Any()
+            ? ProcurementPermissionCalculator.CombineFor(procurementSubRoleGrants)
             : null;
 
         var response = new LoginResponse(
@@ -71,25 +72,26 @@ public class AuthController : ControllerBase
             Role: roles.FirstOrDefault() ?? Roles.Supplier,
             Token: tokenResult.Token,
             ExpiresAt: tokenResult.ExpiresAt,
-            ProcurementSubRoles: procurementSubRoles,
+            ProcurementSubRoles: procurementSubRoleGrants.Select(grant => grant.Name).ToArray(),
             ProcurementPermissions: procurementPermissions);
 
         return Ok(ApiResponse<LoginResponse>.Ok(response, "Login successful."));
     }
 
-    private static IReadOnlyCollection<string> GetProcurementSubRoles(
+    private static IReadOnlyCollection<ProcurementSubRoleGrant> GetProcurementSubRoleGrants(
         IEnumerable<System.Security.Claims.Claim> claims,
         IEnumerable<string> roles)
     {
         if (!roles.Contains(Roles.Procurement))
         {
-            return Array.Empty<string>();
+            return Array.Empty<ProcurementSubRoleGrant>();
         }
 
-        return claims
+        var subRoleClaims = claims
             .Where(claim => claim.Type == CustomClaimTypes.ProcurementSubRole)
             .Select(claim => claim.Value)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+
+        return ProcurementPermissionCalculator.ParseClaims(subRoleClaims);
     }
 }
