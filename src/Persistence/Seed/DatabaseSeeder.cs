@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Domain.Entities;
+using Domain.Authorization;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +34,7 @@ public static class DatabaseSeeder
         }
 
         await EnsureUserExists(userManager, "admin@qcharity.test", "Admin User", Roles.Admin);
-        await EnsureUserExists(userManager, "procurement@qcharity.test", "Procurement User", Roles.Procurement);
+        await EnsureProcurementUserExists(userManager, "procurement@qcharity.test", "Procurement User");
         await EnsureUserExists(userManager, "supplier@qcharity.test", "Supplier User", Roles.Supplier);
 
         await SeedSuppliersAsync(dbContext, userManager);
@@ -61,6 +63,35 @@ public static class DatabaseSeeder
 
         await userManager.CreateAsync(user, "P@ssw0rd!");
         await userManager.AddToRoleAsync(user, role);
+    }
+
+    private static async Task EnsureProcurementUserExists(
+        UserManager<ApplicationUser> userManager,
+        string email,
+        string displayName)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+
+        if (user is not null)
+        {
+            return;
+        }
+
+        user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true,
+            DisplayName = displayName,
+        };
+
+        await userManager.CreateAsync(user, "P@ssw0rd!");
+        await userManager.AddToRoleAsync(user, Roles.Procurement);
+
+        var subRoleClaims = ProcurementSubRoles.All
+            .Select(subRole => new System.Security.Claims.Claim(CustomClaimTypes.ProcurementSubRole, subRole));
+
+        await userManager.AddClaimsAsync(user, subRoleClaims);
     }
 
     private static async Task SeedSuppliersAsync(AppDbContext dbContext, UserManager<ApplicationUser> userManager)

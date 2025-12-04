@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Api.Models;
 using Api.Models.Users;
+using Domain.Authorization;
 using Domain.Entities;
 using Domain.Enums;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -57,12 +59,15 @@ public class UsersController : ControllerBase
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
+            var procurementSubRoles = await GetProcurementSubRolesAsync(user);
 
             response.Add(new UserResponse(
                 Id: user.Id,
                 DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier));
+                Role: roles.FirstOrDefault() ?? Roles.Supplier,
+                ProcurementSubRoles: procurementSubRoles,
+                ProcurementPermissions: ProcurementSubRoles.PermissionsFor(procurementSubRoles)));
         }
 
         var pagedResult = new PagedResult<UserResponse>(
@@ -123,6 +128,15 @@ public class UsersController : ControllerBase
                 errorCode: "users_invalid_role"));
         }
 
+        var normalizedProcurementSubRoles = NormalizeProcurementSubRolesForRole(request.Role, request.ProcurementSubRoles, out var validationError);
+
+        if (!string.IsNullOrWhiteSpace(validationError))
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                validationError!,
+                errorCode: "users_invalid_procurement_subroles"));
+        }
+
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
 
         if (existingUser is not null)
@@ -162,11 +176,15 @@ public class UsersController : ControllerBase
                 details: BuildErrorDetails(roleResult)));
         }
 
+        await SetProcurementSubRolesAsync(user, normalizedProcurementSubRoles);
+
         var response = new UserResponse(
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Email: user.Email ?? string.Empty,
-            Role: request.Role);
+            Role: request.Role,
+            ProcurementSubRoles: normalizedProcurementSubRoles,
+            ProcurementPermissions: ProcurementSubRoles.PermissionsFor(normalizedProcurementSubRoles));
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User created successfully."));
     }
@@ -183,6 +201,15 @@ public class UsersController : ControllerBase
             return BadRequest(ApiResponse<UserResponse>.Fail(
                 "Invalid role provided.",
                 errorCode: "users_invalid_role"));
+        }
+
+        var normalizedProcurementSubRoles = NormalizeProcurementSubRolesForRole(request.Role, request.ProcurementSubRoles, out var validationError);
+
+        if (!string.IsNullOrWhiteSpace(validationError))
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                validationError!,
+                errorCode: "users_invalid_procurement_subroles"));
         }
 
         var user = await _userManager.FindByIdAsync(id);
@@ -242,11 +269,15 @@ public class UsersController : ControllerBase
             }
         }
 
+        await SetProcurementSubRolesAsync(user, normalizedProcurementSubRoles);
+
         var response = new UserResponse(
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Email: user.Email ?? string.Empty,
-            Role: request.Role);
+            Role: request.Role,
+            ProcurementSubRoles: normalizedProcurementSubRoles,
+            ProcurementPermissions: ProcurementSubRoles.PermissionsFor(normalizedProcurementSubRoles));
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User updated successfully."));
     }
@@ -288,5 +319,65 @@ public class UsersController : ControllerBase
                 error.Description
             }).ToArray()
         };
+    }
+
+    private static string[] NormalizeProcurementSubRolesForRole(string role, string[]? requestedSubRoles, out string? validationError)
+    {
+        validationError = null;
+
+        if (role != Roles.Procurement)
+        {
+            return Array.Empty<string>();
+        }
+
+        if (requestedSubRoles is null || requestedSubRoles.Length == 0)
+        {
+            return new[] { ProcurementSubRoles.Viewer };
+        }
+
+        var invalidSubRoles = requestedSubRoles
+            .Where(subRole => !ProcurementSubRoles.All.Contains(subRole))
+            .Distinct()
+            .ToArray();
+
+        if (invalidSubRoles.Length > 0)
+        {
+            validationError = $"Invalid procurement sub-roles: {string.Join(", ", invalidSubRoles)}.";
+            return Array.Empty<string>();
+        }
+
+        return requestedSubRoles.Distinct().ToArray();
+    }
+
+    private async Task SetProcurementSubRolesAsync(ApplicationUser user, IEnumerable<string> subRoles)
+    {
+        var existingClaims = await _userManager.GetClaimsAsync(user);
+        var procurementClaims = existingClaims
+            .Where(claim => claim.Type == CustomClaimTypes.ProcurementSubRole)
+            .ToList();
+
+        if (procurementClaims.Any())
+        {
+            await _userManager.RemoveClaimsAsync(user, procurementClaims);
+        }
+
+        if (!subRoles.Any())
+        {
+            return;
+        }
+
+        var newClaims = subRoles.Select(subRole => new Claim(CustomClaimTypes.ProcurementSubRole, subRole));
+        await _userManager.AddClaimsAsync(user, newClaims);
+    }
+
+    private async Task<string[]> GetProcurementSubRolesAsync(ApplicationUser user)
+    {
+        var claims = await _userManager.GetClaimsAsync(user);
+
+        return claims
+            .Where(claim => claim.Type == CustomClaimTypes.ProcurementSubRole)
+            .Select(claim => claim.Value)
+            .Distinct()
+            .ToArray();
     }
 }

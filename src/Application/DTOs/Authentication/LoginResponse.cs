@@ -5,4 +5,5 @@ public record LoginResponse(
     string DisplayName,
     string Role,
     string Token,
-    DateTime ExpiresAt);
+    DateTime ExpiresAt,
+    ProcurementAccess? ProcurementAccess);

@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanMatchFn, Router } from '@angular/router';
-import { UserRole } from '../../shared/models/user.model';
+import { ProcurementPermission, UserRole } from '../../shared/models/user.model';
 import { AuthService } from '../services/auth.service';
 
 export const authGuard: CanMatchFn = (route) => {
@@ -15,8 +15,20 @@ export const authGuard: CanMatchFn = (route) => {
   }
 
   const requiredRole = route.data?.['role'] as UserRole | undefined;
+  const requiredProcurementPermission = route.data?.['procurementPermission'] as
+    | ProcurementPermission
+    | undefined;
 
   if (requiredRole && session.role !== requiredRole) {
+    router.navigateByUrl(authService.defaultPathForRole(session.role));
+    return false;
+  }
+
+  if (
+    requiredProcurementPermission &&
+    session.role === 'Procurement' &&
+    !authService.hasProcurementPermission(requiredProcurementPermission)
+  ) {
     router.navigateByUrl(authService.defaultPathForRole(session.role));
     return false;
   }

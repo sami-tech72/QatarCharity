@@ -4,4 +4,6 @@ public record UserResponse(
     string Id,
     string DisplayName,
     string Email,
-    string Role);
+    string Role,
+    string[] ProcurementSubRoles,
+    string[] ProcurementPermissions);

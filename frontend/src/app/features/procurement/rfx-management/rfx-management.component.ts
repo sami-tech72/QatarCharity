@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface RfxRecord {
   tenderId: string;
@@ -22,6 +23,11 @@ interface RfxRecord {
 })
 export class RfxManagementComponent {
   readonly searchControl = new FormControl('', { nonNullable: true });
+  constructor(private readonly authService: AuthService) {}
+
+  get canCreateRfx(): boolean {
+    return this.authService.hasProcurementPermission('Procurement.Create');
+  }
 
   readonly rfxRecords: RfxRecord[] = [
     {

@@ -32,7 +32,11 @@
           </div>
           <div class="card-toolbar">
             <div class="d-flex justify-content-end">
-              <a class="btn btn-primary" routerLink="/procurement/rfx-management/create">
+              <a
+                *ngIf="canCreateRfx"
+                class="btn btn-primary"
+                routerLink="/procurement/rfx-management/create"
+              >
                 <i class="ki-duotone ki-plus fs-2"></i>Create RFx
               </a>
             </div>

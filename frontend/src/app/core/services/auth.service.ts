@@ -4,7 +4,13 @@ import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'r
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
-import { UserRole, LoginRequest, LoginResponse, UserSession } from '../../shared/models/user.model';
+import {
+  UserRole,
+  LoginRequest,
+  LoginResponse,
+  UserSession,
+  ProcurementPermission,
+} from '../../shared/models/user.model';
 import { ApiService } from './api.service';
 import { ApiResponse } from '../../shared/models/api-response.model';
 
@@ -55,6 +61,16 @@ export class AuthService {
     };
 
     return map[role];
+  }
+
+  hasProcurementPermission(permission: ProcurementPermission): boolean {
+    const session = this.currentSession();
+
+    if (!session || session.role !== 'Procurement') {
+      return false;
+    }
+
+    return session.procurementAccess?.permissions?.includes(permission) ?? false;
   }
 
   private persistSession(session: UserSession) {

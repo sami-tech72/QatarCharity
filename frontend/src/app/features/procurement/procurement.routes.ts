@@ -8,54 +8,63 @@ export const procurementRoutes: Routes = [
       {
         path: 'dashboard',
         title: 'Procurement Dashboard',
+        data: { procurementPermission: 'Procurement.View' },
         loadComponent: () =>
           import('./dashboard/procurement-dashboard.component').then((m) => m.ProcurementDashboardComponent),
       },
       {
         path: 'rfx-management',
         title: 'RFx Management',
+        data: { procurementPermission: 'Procurement.View' },
         loadComponent: () =>
           import('./rfx-management/rfx-management.component').then((m) => m.RfxManagementComponent),
       },
       {
         path: 'rfx-management/create',
         title: 'Create RFx',
+        data: { procurementPermission: 'Procurement.Create' },
         loadComponent: () =>
           import('./rfx-management/create-rfx.component').then((m) => m.CreateRfxComponent),
       },
       {
         path: 'bid-evaluation',
         title: 'Bid Evaluation',
+        data: { procurementPermission: 'Procurement.View' },
         loadComponent: () =>
           import('./bid-evaluation/bid-evaluation.component').then((m) => m.BidEvaluationComponent),
       },
       {
         path: 'tender-committee',
         title: 'Tender Committee',
+        data: { procurementPermission: 'Procurement.View' },
         loadComponent: () =>
           import('./tender-committee/tender-committee.component').then((m) => m.TenderCommitteeComponent),
       },
       {
         path: 'contract-management',
         title: 'Contract Management',
+        data: { procurementPermission: 'Procurement.View' },
         loadComponent: () =>
           import('./contract-management/contract-management.component').then((m) => m.ContractManagementComponent),
       },
       {
         path: 'supplier-performance',
         title: 'Supplier Performance',
+        data: { procurementPermission: 'Procurement.View' },
         loadComponent: () =>
           import('./supplier-performance/supplier-performance.component').then((m) => m.SupplierPerformanceComponent),
       },
       {
         path: 'reports-analytics',
         title: 'Reports & Analytics',
+        data: { procurementPermission: 'Procurement.View' },
         loadComponent: () =>
           import('./reports-analytics/reports-analytics.component').then((m) => m.ReportsAnalyticsComponent),
       },
       {
         path: 'settings',
         title: 'Procurement Settings',
+        data: { procurementPermission: 'Procurement.Update' },
         loadComponent: () => import('./settings/procurement-settings.component').then((m) => m.ProcurementSettingsComponent),
       },
     ],
