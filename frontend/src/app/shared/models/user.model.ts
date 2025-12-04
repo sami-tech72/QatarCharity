@@ -1,8 +1,7 @@
 export type UserRole = 'Admin' | 'Procurement' | 'Supplier';
-export type ProcurementSubRole =
-  | 'ProcurementViewer'
-  | 'ProcurementContributor'
-  | 'ProcurementManager';
+// The backend accepts any procurement sub-role name via claims, so keep the
+// type open-ended to avoid losing dynamically assigned roles.
+export type ProcurementSubRole = string;
 
 export interface ProcurementPermissionSet {
   canView: boolean;
