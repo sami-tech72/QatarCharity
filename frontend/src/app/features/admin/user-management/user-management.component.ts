@@ -41,23 +41,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       description: 'Access supplier-specific tools and updates.',
     },
   ];
-  procurementSubRoleOptions: Array<{ value: ProcurementSubRole; title: string; description: string }> = [
-    {
-      value: 'ProcurementManager',
-      title: 'Procurement Manager',
-      description: 'Manage procurement operations and approvals.',
-    },
-    {
-      value: 'ProcurementOfficer',
-      title: 'Procurement Officer',
-      description: 'Handle day-to-day procurement execution tasks.',
-    },
-    {
-      value: 'ProcurementViewer',
-      title: 'Procurement Viewer',
-      description: 'Read-only access to procurement activities.',
-    },
-  ];
   isLoading = false;
   isSubmitting = false;
   deletingIds = new Set<string>();
@@ -83,6 +66,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     role: this.fb.nonNullable.control<UserRole>('Supplier'),
     subRoles: this.fb.nonNullable.control<ProcurementSubRole[]>([]),
   });
+  readonly subRoleInput = this.fb.nonNullable.control('');
 
   ngOnInit(): void {
     this.searchControl.valueChanges
@@ -194,6 +178,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.editingUser = null;
     this.enablePasswordValidators();
     this.resetForm();
+    this.subRoleInput.setValue('');
   }
 
   startEdit(user: ManagedUser): void {
@@ -315,23 +300,28 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   private handleRoleChange(role: UserRole): void {
     if (role !== 'Procurement') {
       this.userForm.controls.subRoles.setValue([]);
+      this.subRoleInput.setValue('');
     }
   }
 
-  onSubRoleToggle(subRole: ProcurementSubRole, isChecked: boolean): void {
-    const current = new Set(this.userForm.controls.subRoles.value ?? []);
+  addSubRole(): void {
+    const candidate = this.subRoleInput.value.trim();
 
-    if (isChecked) {
-      current.add(subRole);
-    } else {
-      current.delete(subRole);
+    if (!candidate) {
+      return;
     }
+
+    const current = new Set(this.userForm.controls.subRoles.value ?? []);
+    current.add(candidate);
 
     this.userForm.controls.subRoles.setValue([...current]);
+    this.subRoleInput.setValue('');
   }
 
-  isSubRoleSelected(subRole: ProcurementSubRole): boolean {
-    return this.userForm.controls.subRoles.value?.includes(subRole) ?? false;
+  removeSubRole(subRole: ProcurementSubRole): void {
+    const current = new Set(this.userForm.controls.subRoles.value ?? []);
+    current.delete(subRole);
+    this.userForm.controls.subRoles.setValue([...current]);
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

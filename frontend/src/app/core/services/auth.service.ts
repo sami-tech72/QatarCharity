@@ -4,14 +4,7 @@ import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'r
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
-import {
-  PROCUREMENT_SUB_ROLES,
-  ProcurementSubRole,
-  UserRole,
-  LoginRequest,
-  LoginResponse,
-  UserSession,
-} from '../../shared/models/user.model';
+import { ProcurementSubRole, UserRole, LoginRequest, LoginResponse, UserSession } from '../../shared/models/user.model';
 import { ApiService } from './api.service';
 import { ApiResponse } from '../../shared/models/api-response.model';
 
@@ -88,9 +81,9 @@ export class AuthService {
   private normalizeSession(session: UserSession): UserSession {
     const normalizedSubRoles = Array.from(
       new Set(
-        (session.subRoles ?? []).filter((subRole): subRole is ProcurementSubRole =>
-          PROCUREMENT_SUB_ROLES.includes(subRole),
-        ),
+        (session.subRoles ?? [])
+          .map((subRole) => subRole?.trim())
+          .filter((subRole): subRole is ProcurementSubRole => !!subRole),
       ),
     );
 

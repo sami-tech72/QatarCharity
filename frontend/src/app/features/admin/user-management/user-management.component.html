@@ -199,23 +199,37 @@
                         </div>
                         <!--end::Input group-->
                         <div class="mb-7" *ngIf="userForm.controls.role.value === 'Procurement'">
-                          <label class="fw-semibold fs-6 mb-5">Procurement Sub-roles</label>
-                          <div class="d-flex flex-column gap-4">
-                            <label
-                              class="form-check form-check-custom form-check-solid"
-                              *ngFor="let option of procurementSubRoleOptions"
+                          <label class="fw-semibold fs-6 mb-3">Procurement Sub-roles</label>
+                          <div class="d-flex align-items-center gap-3 mb-4">
+                            <input
+                              type="text"
+                              class="form-control form-control-solid"
+                              placeholder="Type a sub-role name and press Add"
+                              [formControl]="subRoleInput"
+                              (keyup.enter)="addSubRole()"
+                            />
+                            <button type="button" class="btn btn-light" (click)="addSubRole()">
+                              Add
+                            </button>
+                          </div>
+                          <div class="d-flex flex-wrap gap-2">
+                            <span
+                              class="badge badge-light-primary d-inline-flex align-items-center gap-2"
+                              *ngFor="let subRole of userForm.controls.subRoles.value"
                             >
-                              <input
-                                type="checkbox"
-                                class="form-check-input me-3"
-                                [checked]="isSubRoleSelected(option.value)"
-                                (change)="onSubRoleToggle(option.value, $any($event.target).checked)"
-                              />
-                              <span class="form-check-label">
-                                <span class="fw-bold text-gray-800 d-block">{{ option.title }}</span>
-                                <span class="text-gray-600">{{ option.description }}</span>
-                              </span>
-                            </label>
+                              <span>{{ subRole }}</span>
+                              <button
+                                type="button"
+                                class="btn btn-icon btn-sm btn-light"
+                                aria-label="Remove sub-role"
+                                (click)="removeSubRole(subRole)"
+                              >
+                                <i class="ki-duotone ki-cross"></i>
+                              </button>
+                            </span>
+                            <span class="text-muted" *ngIf="!userForm.controls.subRoles.value?.length">
+                              No sub-roles added yet.
+                            </span>
                           </div>
                         </div>
                       </div>

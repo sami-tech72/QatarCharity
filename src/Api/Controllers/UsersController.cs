@@ -65,7 +65,7 @@ public class UsersController : ControllerBase
                 ? Roles.Procurement
                 : roles.FirstOrDefault() ?? Roles.Supplier;
             var subRoles = roles
-                .Where(role => role != primaryRole && ProcurementSubRoles.All.Contains(role))
+                .Where(role => role != primaryRole && primaryRole == Roles.Procurement)
                 .ToArray();
 
             response.Add(new UserResponse(
@@ -114,7 +114,7 @@ public class UsersController : ControllerBase
                 ? Roles.Procurement
                 : roles.FirstOrDefault() ?? Roles.Supplier;
             var subRoles = roles
-                .Where(role => role != primaryRole && ProcurementSubRoles.All.Contains(role))
+                .Where(role => role != primaryRole && primaryRole == Roles.Procurement)
                 .ToArray();
 
             responses.Add(new UserLookupResponse(
@@ -146,16 +146,6 @@ public class UsersController : ControllerBase
             return BadRequest(ApiResponse<UserResponse>.Fail(
                 "Sub-roles are only supported for Procurement users.",
                 errorCode: "users_invalid_subroles"));
-        }
-
-        var invalidSubRoles = GetInvalidSubRoles(request.SubRoles);
-
-        if (invalidSubRoles.Any())
-        {
-            return BadRequest(ApiResponse<UserResponse>.Fail(
-                "Invalid procurement sub-roles provided.",
-                errorCode: "users_invalid_subroles",
-                details: new Dictionary<string, object?> { ["invalidSubRoles"] = invalidSubRoles }));
         }
 
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
@@ -239,16 +229,6 @@ public class UsersController : ControllerBase
             return BadRequest(ApiResponse<UserResponse>.Fail(
                 "Sub-roles are only supported for Procurement users.",
                 errorCode: "users_invalid_subroles"));
-        }
-
-        var invalidSubRoles = GetInvalidSubRoles(request.SubRoles);
-
-        if (invalidSubRoles.Any())
-        {
-            return BadRequest(ApiResponse<UserResponse>.Fail(
-                "Invalid procurement sub-roles provided.",
-                errorCode: "users_invalid_subroles",
-                details: new Dictionary<string, object?> { ["invalidSubRoles"] = invalidSubRoles }));
         }
 
         var user = await _userManager.FindByIdAsync(id);
@@ -380,12 +360,13 @@ public class UsersController : ControllerBase
             return [primaryRole];
         }
 
-        var validSubRoles = (subRoles ?? Array.Empty<string>())
-            .Where(role => ProcurementSubRoles.All.Contains(role))
-            .Distinct()
-            .ToArray();
+        var normalizedSubRoles = (subRoles ?? Array.Empty<string>())
+            .Select(role => role?.Trim())
+            .Where(role => !string.IsNullOrWhiteSpace(role))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray()!;
 
-        return [primaryRole, .. validSubRoles];
+        return [primaryRole, .. normalizedSubRoles];
     }
 
     private async Task<IdentityResult> EnsureRolesExist(IEnumerable<string> roles)
@@ -422,11 +403,4 @@ public class UsersController : ControllerBase
         return errors.Any() ? IdentityResult.Failed([.. errors]) : IdentityResult.Success;
     }
 
-    private static string[] GetInvalidSubRoles(IEnumerable<string>? subRoles)
-    {
-        return (subRoles ?? Array.Empty<string>())
-            .Where(subRole => !ProcurementSubRoles.All.Contains(subRole))
-            .Distinct()
-            .ToArray();
-    }
 }

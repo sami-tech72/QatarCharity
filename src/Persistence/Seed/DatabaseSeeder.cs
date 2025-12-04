@@ -31,7 +31,14 @@ public static class DatabaseSeeder
             await roleManager.CreateAsync(new IdentityRole(role));
         }
 
-        foreach (var subRole in ProcurementSubRoles.All)
+        var defaultProcurementSubRoles = new[]
+        {
+            "ProcurementManager",
+            "ProcurementOfficer",
+            "ProcurementViewer",
+        };
+
+        foreach (var subRole in defaultProcurementSubRoles)
         {
             if (await roleManager.RoleExistsAsync(subRole))
             {
@@ -42,7 +49,7 @@ public static class DatabaseSeeder
         }
 
         await EnsureUserExists(userManager, "admin@qcharity.test", "Admin User", Roles.Admin);
-        await EnsureUserExists(userManager, "procurement@qcharity.test", "Procurement User", Roles.Procurement, ProcurementSubRoles.All);
+        await EnsureUserExists(userManager, "procurement@qcharity.test", "Procurement User", Roles.Procurement, defaultProcurementSubRoles);
         await EnsureUserExists(userManager, "supplier@qcharity.test", "Supplier User", Roles.Supplier);
 
         await SeedSuppliersAsync(dbContext, userManager);
