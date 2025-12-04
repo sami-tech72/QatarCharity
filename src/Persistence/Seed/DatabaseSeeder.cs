@@ -31,8 +31,18 @@ public static class DatabaseSeeder
             await roleManager.CreateAsync(new IdentityRole(role));
         }
 
+        foreach (var subRole in ProcurementSubRoles.All)
+        {
+            if (await roleManager.RoleExistsAsync(subRole))
+            {
+                continue;
+            }
+
+            await roleManager.CreateAsync(new IdentityRole(subRole));
+        }
+
         await EnsureUserExists(userManager, "admin@qcharity.test", "Admin User", Roles.Admin);
-        await EnsureUserExists(userManager, "procurement@qcharity.test", "Procurement User", Roles.Procurement);
+        await EnsureUserExists(userManager, "procurement@qcharity.test", "Procurement User", Roles.Procurement, ProcurementSubRoles.All);
         await EnsureUserExists(userManager, "supplier@qcharity.test", "Supplier User", Roles.Supplier);
 
         await SeedSuppliersAsync(dbContext, userManager);
@@ -42,12 +52,28 @@ public static class DatabaseSeeder
         UserManager<ApplicationUser> userManager,
         string email,
         string displayName,
-        string role)
+        string role,
+        IEnumerable<string>? subRoles = null)
     {
         var user = await userManager.FindByEmailAsync(email);
 
         if (user is not null)
         {
+            var existingRoles = await userManager.GetRolesAsync(user);
+            var targetRoles = new List<string> { role };
+
+            if (role == Roles.Procurement && subRoles is not null)
+            {
+                targetRoles.AddRange(subRoles);
+            }
+
+            var missingRoles = targetRoles.Except(existingRoles);
+
+            if (missingRoles.Any())
+            {
+                await userManager.AddToRolesAsync(user, missingRoles);
+            }
+
             return;
         }
 
@@ -61,6 +87,11 @@ public static class DatabaseSeeder
 
         await userManager.CreateAsync(user, "P@ssw0rd!");
         await userManager.AddToRoleAsync(user, role);
+
+        if (role == Roles.Procurement && subRoles is not null)
+        {
+            await userManager.AddToRolesAsync(user, subRoles);
+        }
     }
 
     private static async Task SeedSuppliersAsync(AppDbContext dbContext, UserManager<ApplicationUser> userManager)

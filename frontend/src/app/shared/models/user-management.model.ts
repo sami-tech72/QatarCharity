@@ -6,6 +6,7 @@ export interface ManagedUser {
   displayName: string;
   email: string;
   role: UserRole;
+  subRoles: string[];
 }
 
 export interface CreateUserRequest {
@@ -13,12 +14,14 @@ export interface CreateUserRequest {
   email: string;
   password: string;
   role: UserRole;
+  subRoles: string[];
 }
 
 export interface UpdateUserRequest {
   displayName: string;
   email: string;
   role: UserRole;
+  subRoles: string[];
 }
 
 export interface UserQueryRequest extends PageRequest {}

@@ -9,6 +9,8 @@ export interface LoginResponse {
   email: string;
   displayName: string;
   role: UserRole;
+  roles: string[];
+  subRoles: string[];
   token: string;
   expiresAt: string;
 }

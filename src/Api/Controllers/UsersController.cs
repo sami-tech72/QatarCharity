@@ -19,10 +19,14 @@ namespace Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
 
-    public UsersController(UserManager<ApplicationUser> userManager)
+    public UsersController(
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
     }
 
     [HttpGet]
@@ -57,12 +61,19 @@ public class UsersController : ControllerBase
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
+            var primaryRole = roles.Contains(Roles.Procurement)
+                ? Roles.Procurement
+                : roles.FirstOrDefault() ?? Roles.Supplier;
+            var subRoles = roles
+                .Where(role => role != primaryRole && ProcurementSubRoles.All.Contains(role))
+                .ToArray();
 
             response.Add(new UserResponse(
                 Id: user.Id,
                 DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier));
+                Role: primaryRole,
+                SubRoles: subRoles));
         }
 
         var pagedResult = new PagedResult<UserResponse>(
@@ -99,12 +110,19 @@ public class UsersController : ControllerBase
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
+            var primaryRole = roles.Contains(Roles.Procurement)
+                ? Roles.Procurement
+                : roles.FirstOrDefault() ?? Roles.Supplier;
+            var subRoles = roles
+                .Where(role => role != primaryRole && ProcurementSubRoles.All.Contains(role))
+                .ToArray();
 
             responses.Add(new UserLookupResponse(
                 Id: user.Id,
                 DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier));
+                Role: primaryRole,
+                SubRoles: subRoles));
         }
 
         return Ok(ApiResponse<IEnumerable<UserLookupResponse>>.Ok(responses, "Users retrieved successfully."));
@@ -121,6 +139,23 @@ public class UsersController : ControllerBase
             return BadRequest(ApiResponse<UserResponse>.Fail(
                 "Invalid role provided.",
                 errorCode: "users_invalid_role"));
+        }
+
+        if (request.Role != Roles.Procurement && request.SubRoles?.Any() == true)
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                "Sub-roles are only supported for Procurement users.",
+                errorCode: "users_invalid_subroles"));
+        }
+
+        var invalidSubRoles = GetInvalidSubRoles(request.SubRoles);
+
+        if (invalidSubRoles.Any())
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                "Invalid procurement sub-roles provided.",
+                errorCode: "users_invalid_subroles",
+                details: new Dictionary<string, object?> { ["invalidSubRoles"] = invalidSubRoles }));
         }
 
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
@@ -150,7 +185,20 @@ public class UsersController : ControllerBase
                 details: BuildErrorDetails(createResult)));
         }
 
-        var roleResult = await _userManager.AddToRoleAsync(user, request.Role);
+        var desiredRoles = BuildDesiredRoles(request.Role, request.SubRoles);
+        var ensureRolesResult = await EnsureRolesExist(desiredRoles);
+
+        if (!ensureRolesResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(user);
+
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                "Unable to assign role to the user.",
+                errorCode: "users_role_assignment_failed",
+                details: BuildErrorDetails(ensureRolesResult)));
+        }
+
+        var roleResult = await _userManager.AddToRolesAsync(user, desiredRoles);
 
         if (!roleResult.Succeeded)
         {
@@ -166,7 +214,8 @@ public class UsersController : ControllerBase
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Email: user.Email ?? string.Empty,
-            Role: request.Role);
+            Role: request.Role,
+            SubRoles: desiredRoles.Where(role => role != request.Role));
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User created successfully."));
     }
@@ -183,6 +232,23 @@ public class UsersController : ControllerBase
             return BadRequest(ApiResponse<UserResponse>.Fail(
                 "Invalid role provided.",
                 errorCode: "users_invalid_role"));
+        }
+
+        if (request.Role != Roles.Procurement && request.SubRoles?.Any() == true)
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                "Sub-roles are only supported for Procurement users.",
+                errorCode: "users_invalid_subroles"));
+        }
+
+        var invalidSubRoles = GetInvalidSubRoles(request.SubRoles);
+
+        if (invalidSubRoles.Any())
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                "Invalid procurement sub-roles provided.",
+                errorCode: "users_invalid_subroles",
+                details: new Dictionary<string, object?> { ["invalidSubRoles"] = invalidSubRoles }));
         }
 
         var user = await _userManager.FindByIdAsync(id);
@@ -217,11 +283,24 @@ public class UsersController : ControllerBase
                 details: BuildErrorDetails(updateResult)));
         }
 
-        var currentRoles = await _userManager.GetRolesAsync(user);
+        var desiredRoles = BuildDesiredRoles(request.Role, request.SubRoles);
+        var ensureRolesResult = await EnsureRolesExist(desiredRoles);
 
-        if (!currentRoles.Contains(request.Role))
+        if (!ensureRolesResult.Succeeded)
         {
-            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                "Unable to ensure roles exist.",
+                errorCode: "users_role_assignment_failed",
+                details: BuildErrorDetails(ensureRolesResult)));
+        }
+
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        var rolesToRemove = currentRoles.Except(desiredRoles).ToArray();
+        var rolesToAdd = desiredRoles.Except(currentRoles).ToArray();
+
+        if (rolesToRemove.Any())
+        {
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
 
             if (!removeResult.Succeeded)
             {
@@ -230,8 +309,11 @@ public class UsersController : ControllerBase
                     errorCode: "users_role_remove_failed",
                     details: BuildErrorDetails(removeResult)));
             }
+        }
 
-            var addResult = await _userManager.AddToRoleAsync(user, request.Role);
+        if (rolesToAdd.Any())
+        {
+            var addResult = await _userManager.AddToRolesAsync(user, rolesToAdd);
 
             if (!addResult.Succeeded)
             {
@@ -246,7 +328,8 @@ public class UsersController : ControllerBase
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Email: user.Email ?? string.Empty,
-            Role: request.Role);
+            Role: request.Role,
+            SubRoles: desiredRoles.Where(role => role != request.Role));
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User updated successfully."));
     }
@@ -288,5 +371,62 @@ public class UsersController : ControllerBase
                 error.Description
             }).ToArray()
         };
+    }
+
+    private static IEnumerable<string> BuildDesiredRoles(string primaryRole, IEnumerable<string>? subRoles)
+    {
+        if (primaryRole != Roles.Procurement)
+        {
+            return [primaryRole];
+        }
+
+        var validSubRoles = (subRoles ?? Array.Empty<string>())
+            .Where(role => ProcurementSubRoles.All.Contains(role))
+            .Distinct()
+            .ToArray();
+
+        return [primaryRole, .. validSubRoles];
+    }
+
+    private async Task<IdentityResult> EnsureRolesExist(IEnumerable<string> roles)
+    {
+        var missingRoles = new List<IdentityRole>();
+
+        foreach (var role in roles)
+        {
+            if (await _roleManager.RoleExistsAsync(role))
+            {
+                continue;
+            }
+
+            missingRoles.Add(new IdentityRole(role));
+        }
+
+        if (!missingRoles.Any())
+        {
+            return IdentityResult.Success;
+        }
+
+        var errors = new List<IdentityError>();
+
+        foreach (var role in missingRoles)
+        {
+            var result = await _roleManager.CreateAsync(role);
+
+            if (!result.Succeeded)
+            {
+                errors.AddRange(result.Errors);
+            }
+        }
+
+        return errors.Any() ? IdentityResult.Failed([.. errors]) : IdentityResult.Success;
+    }
+
+    private static string[] GetInvalidSubRoles(IEnumerable<string>? subRoles)
+    {
+        return (subRoles ?? Array.Empty<string>())
+            .Where(subRole => !ProcurementSubRoles.All.Contains(subRole))
+            .Distinct()
+            .ToArray();
     }
 }

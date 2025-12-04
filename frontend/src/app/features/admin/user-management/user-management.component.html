@@ -198,6 +198,26 @@
                           <!--end::Roles-->
                         </div>
                         <!--end::Input group-->
+                        <div class="mb-7" *ngIf="userForm.controls.role.value === 'Procurement'">
+                          <label class="fw-semibold fs-6 mb-5">Procurement Sub-roles</label>
+                          <div class="d-flex flex-column gap-4">
+                            <label
+                              class="form-check form-check-custom form-check-solid"
+                              *ngFor="let option of procurementSubRoleOptions"
+                            >
+                              <input
+                                type="checkbox"
+                                class="form-check-input me-3"
+                                [checked]="isSubRoleSelected(option.value)"
+                                (change)="onSubRoleToggle(option.value, $any($event.target).checked)"
+                              />
+                              <span class="form-check-label">
+                                <span class="fw-bold text-gray-800 d-block">{{ option.title }}</span>
+                                <span class="text-gray-600">{{ option.description }}</span>
+                              </span>
+                            </label>
+                          </div>
+                        </div>
                       </div>
                       <!--end::Scroll-->
                         <!--begin::Actions-->
@@ -279,7 +299,12 @@
                     <span class="text-muted">{{ user.email }}</span>
                   </div>
                 </td>
-                <td>{{ user.role }}</td>
+                <td>
+                  <div>{{ user.role }}</div>
+                  <div class="text-gray-600 fs-7" *ngIf="user.subRoles?.length">
+                    Sub-roles: {{ user.subRoles.join(', ') }}
+                  </div>
+                </td>
                 <td>
                   <span class="text-muted">—</span>
                 </td>

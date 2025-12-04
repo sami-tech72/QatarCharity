@@ -41,6 +41,23 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       description: 'Access supplier-specific tools and updates.',
     },
   ];
+  procurementSubRoleOptions: Array<{ value: string; title: string; description: string }> = [
+    {
+      value: 'ProcurementManager',
+      title: 'Procurement Manager',
+      description: 'Manage procurement operations and approvals.',
+    },
+    {
+      value: 'ProcurementOfficer',
+      title: 'Procurement Officer',
+      description: 'Handle day-to-day procurement execution tasks.',
+    },
+    {
+      value: 'ProcurementViewer',
+      title: 'Procurement Viewer',
+      description: 'Read-only access to procurement activities.',
+    },
+  ];
   isLoading = false;
   isSubmitting = false;
   deletingIds = new Set<string>();
@@ -64,6 +81,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     role: this.fb.nonNullable.control<UserRole>('Supplier'),
+    subRoles: this.fb.nonNullable.control<string[]>([]),
   });
 
   ngOnInit(): void {
@@ -75,6 +93,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       });
 
     this.loadUsers();
+
+    this.userForm.controls.role.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((role) => this.handleRoleChange(role));
   }
 
   ngOnDestroy(): void {
@@ -110,9 +132,9 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
     this.isSubmitting = true;
     if (this.editingUser) {
-      const { displayName, email, role } = this.userForm.getRawValue();
+      const { displayName, email, role, subRoles } = this.userForm.getRawValue();
 
-      this.userService.updateUser(this.editingUser.id, { displayName, email, role }).subscribe({
+      this.userService.updateUser(this.editingUser.id, { displayName, email, role, subRoles }).subscribe({
         next: (user) => {
           this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
           this.refreshFromServer();
@@ -182,6 +204,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: user.email,
       password: '',
       role: user.role,
+      subRoles: user.subRoles,
     });
   }
 
@@ -252,6 +275,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: '',
       password: '',
       role: 'Supplier',
+      subRoles: [],
     });
   }
 
@@ -286,6 +310,28 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     const control = this.userForm.controls.password;
     control.setValidators([Validators.required, Validators.minLength(6)]);
     control.updateValueAndValidity();
+  }
+
+  private handleRoleChange(role: UserRole): void {
+    if (role !== 'Procurement') {
+      this.userForm.controls.subRoles.setValue([]);
+    }
+  }
+
+  onSubRoleToggle(subRole: string, isChecked: boolean): void {
+    const current = new Set(this.userForm.controls.subRoles.value ?? []);
+
+    if (isChecked) {
+      current.add(subRole);
+    } else {
+      current.delete(subRole);
+    }
+
+    this.userForm.controls.subRoles.setValue([...current]);
+  }
+
+  isSubRoleSelected(subRole: string): boolean {
+    return this.userForm.controls.subRoles.value?.includes(subRole) ?? false;
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

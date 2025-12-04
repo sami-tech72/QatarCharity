@@ -30,7 +30,7 @@ export class AuthService {
           throw new Error(response.message || 'Login failed.');
         }
 
-        return response.data;
+        return this.normalizeSession(response.data);
       }),
       tap((session) => this.persistSession(session)),
       catchError((error) => throwError(() => error)),
@@ -70,10 +70,19 @@ export class AuthService {
     }
 
     try {
-      return JSON.parse(raw) as UserSession;
+      const parsed = JSON.parse(raw) as UserSession;
+      return this.normalizeSession(parsed);
     } catch (error) {
       console.error('Unable to parse stored session', error);
       return null;
     }
+  }
+
+  private normalizeSession(session: UserSession): UserSession {
+    return {
+      ...session,
+      roles: session.roles?.length ? session.roles : [session.role],
+      subRoles: session.subRoles ?? [],
+    };
   }
 }

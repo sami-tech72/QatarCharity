@@ -3,6 +3,7 @@ using Application.Interfaces.Authentication;
 using Application.DTOs.Authentication;
 using Domain.Entities;
 using Domain.Enums;
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -53,12 +54,18 @@ public class AuthController : ControllerBase
         }
 
         var roles = await _userManager.GetRolesAsync(user);
+        var primaryRole = roles.Contains(Roles.Procurement)
+            ? Roles.Procurement
+            : roles.FirstOrDefault() ?? Roles.Supplier;
+        var subRoles = roles.Where(role => role != primaryRole).ToArray();
         var tokenResult = _tokenService.CreateToken(user, roles);
 
         var response = new LoginResponse(
             Email: user.Email ?? string.Empty,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
-            Role: roles.FirstOrDefault() ?? Roles.Supplier,
+            Role: primaryRole,
+            Roles: roles,
+            SubRoles: subRoles,
             Token: tokenResult.Token,
             ExpiresAt: tokenResult.ExpiresAt);
 
