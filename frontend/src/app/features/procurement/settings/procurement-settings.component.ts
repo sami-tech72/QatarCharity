@@ -16,14 +16,7 @@ import {
   styleUrl: './procurement-settings.component.scss',
 })
 export class ProcurementSettingsComponent {
-  readonly subRoleForm = this.fb.group({
-    userId: ['', Validators.required],
-    name: ['', Validators.required],
-    canView: [true],
-    canCreate: [false],
-    canUpdate: [false],
-    canDelete: [false],
-  });
+  readonly subRoleForm: ReturnType<ProcurementSettingsComponent['buildForm']>;
 
   saving = false;
   lastResult: ProcurementSubRoleUpdateResult | null = null;
@@ -32,7 +25,20 @@ export class ProcurementSettingsComponent {
   constructor(
     private readonly fb: FormBuilder,
     private readonly procurementAdminService: ProcurementAdminService,
-  ) {}
+  ) {
+    this.subRoleForm = this.buildForm();
+  }
+
+  private buildForm() {
+    return this.fb.group({
+      userId: ['', Validators.required],
+      name: ['', Validators.required],
+      canView: [true],
+      canCreate: [false],
+      canUpdate: [false],
+      canDelete: [false],
+    });
+  }
 
   submit() {
     this.error = null;
