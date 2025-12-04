@@ -1,7 +1,11 @@
+using System.Linq;
+using System.Security.Claims;
 using Api.Models;
 using Application.Interfaces.Authentication;
 using Application.DTOs.Authentication;
+using Application.Permissions;
 using Domain.Entities;
+using Domain.Constants;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -53,15 +57,39 @@ public class AuthController : ControllerBase
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        var tokenResult = _tokenService.CreateToken(user, roles);
+        var claims = await _userManager.GetClaimsAsync(user);
+        var tokenResult = _tokenService.CreateToken(user, roles, claims);
+
+        var procurementSubRoles = GetProcurementSubRoles(claims, roles);
+        var procurementPermissions = procurementSubRoles.Any()
+            ? ProcurementPermissionCalculator.CombineFor(procurementSubRoles)
+            : null;
 
         var response = new LoginResponse(
             Email: user.Email ?? string.Empty,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Role: roles.FirstOrDefault() ?? Roles.Supplier,
             Token: tokenResult.Token,
-            ExpiresAt: tokenResult.ExpiresAt);
+            ExpiresAt: tokenResult.ExpiresAt,
+            ProcurementSubRoles: procurementSubRoles,
+            ProcurementPermissions: procurementPermissions);
 
         return Ok(ApiResponse<LoginResponse>.Ok(response, "Login successful."));
+    }
+
+    private static IReadOnlyCollection<string> GetProcurementSubRoles(
+        IEnumerable<System.Security.Claims.Claim> claims,
+        IEnumerable<string> roles)
+    {
+        if (!roles.Contains(Roles.Procurement))
+        {
+            return Array.Empty<string>();
+        }
+
+        return claims
+            .Where(claim => claim.Type == CustomClaimTypes.ProcurementSubRole)
+            .Select(claim => claim.Value)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 }

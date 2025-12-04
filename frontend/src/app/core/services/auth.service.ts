@@ -4,7 +4,13 @@ import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'r
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
-import { UserRole, LoginRequest, LoginResponse, UserSession } from '../../shared/models/user.model';
+import {
+  UserRole,
+  LoginRequest,
+  LoginResponse,
+  UserSession,
+  ProcurementPermissionSet,
+} from '../../shared/models/user.model';
 import { ApiService } from './api.service';
 import { ApiResponse } from '../../shared/models/api-response.model';
 
@@ -75,5 +81,21 @@ export class AuthService {
       console.error('Unable to parse stored session', error);
       return null;
     }
+  }
+
+  hasProcurementPermission(action: keyof ProcurementPermissionSet): boolean {
+    const session = this.currentSession();
+
+    if (!session || session.role !== 'Procurement') {
+      return false;
+    }
+
+    const permissions = session.procurementPermissions;
+
+    if (!permissions) {
+      return false;
+    }
+
+    return !!permissions[action];
   }
 }

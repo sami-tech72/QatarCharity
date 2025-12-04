@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
@@ -32,7 +33,7 @@ public static class DatabaseSeeder
         }
 
         await EnsureUserExists(userManager, "admin@qcharity.test", "Admin User", Roles.Admin);
-        await EnsureUserExists(userManager, "procurement@qcharity.test", "Procurement User", Roles.Procurement);
+        await EnsureProcurementUser(userManager);
         await EnsureUserExists(userManager, "supplier@qcharity.test", "Supplier User", Roles.Supplier);
 
         await SeedSuppliersAsync(dbContext, userManager);
@@ -61,6 +62,37 @@ public static class DatabaseSeeder
 
         await userManager.CreateAsync(user, "P@ssw0rd!");
         await userManager.AddToRoleAsync(user, role);
+    }
+
+    private static async Task EnsureProcurementUser(UserManager<ApplicationUser> userManager)
+    {
+        await EnsureUserExists(userManager, "procurement@qcharity.test", "Procurement User", Roles.Procurement);
+
+        var procurementUser = await userManager.FindByEmailAsync("procurement@qcharity.test");
+
+        if (procurementUser is null)
+        {
+            return;
+        }
+
+        var claims = await userManager.GetClaimsAsync(procurementUser);
+        var existingSubRoles = new HashSet<string>(
+            claims.Where(claim => claim.Type == Domain.Constants.CustomClaimTypes.ProcurementSubRole)
+                .Select(claim => claim.Value));
+
+        var defaultSubRoles = new[] { ProcurementSubRoles.Manager, ProcurementSubRoles.Contributor };
+
+        foreach (var subRole in defaultSubRoles)
+        {
+            if (existingSubRoles.Contains(subRole))
+            {
+                continue;
+            }
+
+            await userManager.AddClaimAsync(
+                procurementUser,
+                new Claim(Domain.Constants.CustomClaimTypes.ProcurementSubRole, subRole));
+        }
     }
 
     private static async Task SeedSuppliersAsync(AppDbContext dbContext, UserManager<ApplicationUser> userManager)
