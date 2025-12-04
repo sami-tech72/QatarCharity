@@ -5,4 +5,6 @@ namespace Domain.Entities;
 public class ApplicationUser : IdentityUser
 {
     public string? DisplayName { get; set; }
+
+    public string? ProcurementSubRole { get; set; }
 }

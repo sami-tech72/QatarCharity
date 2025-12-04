@@ -1,8 +1,11 @@
+using System;
+using System.Linq;
 using Api.Models;
 using Application.Interfaces.Authentication;
 using Application.DTOs.Authentication;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -55,12 +58,18 @@ public class AuthController : ControllerBase
         var roles = await _userManager.GetRolesAsync(user);
         var tokenResult = _tokenService.CreateToken(user, roles);
 
+        var procurementPermissions = roles.Contains(Roles.Procurement)
+            ? ProcurementPermissions.ForSubRole(user.ProcurementSubRole)
+            : Array.Empty<string>();
+
         var response = new LoginResponse(
             Email: user.Email ?? string.Empty,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Role: roles.FirstOrDefault() ?? Roles.Supplier,
             Token: tokenResult.Token,
-            ExpiresAt: tokenResult.ExpiresAt);
+            ExpiresAt: tokenResult.ExpiresAt,
+            ProcurementSubRole: user.ProcurementSubRole,
+            ProcurementPermissions: procurementPermissions);
 
         return Ok(ApiResponse<LoginResponse>.Ok(response, "Login successful."));
     }

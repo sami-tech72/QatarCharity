@@ -15,8 +15,18 @@ export const authGuard: CanMatchFn = (route) => {
   }
 
   const requiredRole = route.data?.['role'] as UserRole | undefined;
+  const requiredPermission = route.data?.['permission'] as string | undefined;
 
   if (requiredRole && session.role !== requiredRole) {
+    router.navigateByUrl(authService.defaultPathForRole(session.role));
+    return false;
+  }
+
+  if (
+    requiredPermission &&
+    session.role === 'Procurement' &&
+    !session.procurementPermissions?.includes(requiredPermission)
+  ) {
     router.navigateByUrl(authService.defaultPathForRole(session.role));
     return false;
   }

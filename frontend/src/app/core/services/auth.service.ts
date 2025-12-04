@@ -4,7 +4,13 @@ import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'r
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
-import { UserRole, LoginRequest, LoginResponse, UserSession } from '../../shared/models/user.model';
+import {
+  UserRole,
+  LoginRequest,
+  LoginResponse,
+  UserSession,
+  ProcurementPermission,
+} from '../../shared/models/user.model';
 import { ApiService } from './api.service';
 import { ApiResponse } from '../../shared/models/api-response.model';
 
@@ -48,13 +54,23 @@ export class AuthService {
   }
 
   defaultPathForRole(role: UserRole): string {
-    const map: Record<UserRole, string> = {
+    if (role === 'Procurement') {
+      const session = this.sessionSubject.value;
+      const permittedMenu = this.procurementMenu(session);
+
+      if (!permittedMenu.length) {
+        return '/login';
+      }
+
+      return permittedMenu[0].path;
+    }
+
+    const map: Record<Exclude<UserRole, 'Procurement'>, string> = {
       Admin: adminSidebarMenu[0].path,
-      Procurement: procurementSidebarMenu[0].path,
       Supplier: supplierSidebarMenu[0].path,
     };
 
-    return map[role];
+    return map[role as Exclude<UserRole, 'Procurement'>];
   }
 
   private persistSession(session: UserSession) {
@@ -75,5 +91,19 @@ export class AuthService {
       console.error('Unable to parse stored session', error);
       return null;
     }
+  }
+
+  private procurementMenu(session: UserSession | null) {
+    if (!session?.procurementPermissions?.length) {
+      return [];
+    }
+
+    const permissions = session.procurementPermissions;
+
+    return procurementSidebarMenu.filter((item) => {
+      const permission = item.permission as ProcurementPermission | undefined;
+
+      return permission ? permissions.includes(permission) : true;
+    });
   }
 }

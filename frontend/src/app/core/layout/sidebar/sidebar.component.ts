@@ -7,6 +7,7 @@ export interface SidebarMenuItem {
   title: string;
   icon: string;
   path: string;
+  permission?: string;
 }
 
 @Component({

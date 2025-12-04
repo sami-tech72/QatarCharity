@@ -32,7 +32,12 @@ public static class DatabaseSeeder
         }
 
         await EnsureUserExists(userManager, "admin@qcharity.test", "Admin User", Roles.Admin);
-        await EnsureUserExists(userManager, "procurement@qcharity.test", "Procurement User", Roles.Procurement);
+        await EnsureUserExists(
+            userManager,
+            "procurement@qcharity.test",
+            "Procurement User",
+            Roles.Procurement,
+            ProcurementSubRoles.Lead);
         await EnsureUserExists(userManager, "supplier@qcharity.test", "Supplier User", Roles.Supplier);
 
         await SeedSuppliersAsync(dbContext, userManager);
@@ -42,7 +47,8 @@ public static class DatabaseSeeder
         UserManager<ApplicationUser> userManager,
         string email,
         string displayName,
-        string role)
+        string role,
+        string? procurementSubRole = null)
     {
         var user = await userManager.FindByEmailAsync(email);
 
@@ -57,6 +63,7 @@ public static class DatabaseSeeder
             Email = email,
             EmailConfirmed = true,
             DisplayName = displayName,
+            ProcurementSubRole = procurementSubRole,
         };
 
         await userManager.CreateAsync(user, "P@ssw0rd!");
