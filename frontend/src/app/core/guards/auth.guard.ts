@@ -14,11 +14,15 @@ export const authGuard: CanMatchFn = (route) => {
     return false;
   }
 
-  const requiredRole = route.data?.['role'] as UserRole | undefined;
+  const requiredRole = route.data?.['role'] as UserRole[] | UserRole | undefined;
 
-  if (requiredRole && session.role !== requiredRole) {
-    router.navigateByUrl(authService.defaultPathForRole(session.role));
-    return false;
+  if (requiredRole) {
+    const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+
+    if (!allowedRoles.includes(session.role)) {
+      router.navigateByUrl(authService.defaultPathForRole(session.role));
+      return false;
+    }
   }
 
   return true;

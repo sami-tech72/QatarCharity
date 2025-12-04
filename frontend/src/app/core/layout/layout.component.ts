@@ -30,6 +30,7 @@ export class LayoutComponent implements AfterViewInit {
   readonly sidebarMenus: Record<UserRole, SidebarMenuItem[]> = {
     Admin: adminSidebarMenu,
     Procurement: procurementSidebarMenu,
+    CommitteeMember: procurementSidebarMenu,
     Supplier: supplierSidebarMenu,
   } as const;
 

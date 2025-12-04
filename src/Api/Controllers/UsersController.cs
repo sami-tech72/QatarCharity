@@ -29,7 +29,7 @@ public class UsersController : ControllerBase
         _dbContext = dbContext;
     }
 
-    [Authorize(Roles = $"{Roles.Admin},{Roles.Procurement}")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Procurement},{Roles.CommitteeMember}")]
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<UserResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<PagedResult<UserResponse>>>> GetUsers([FromQuery] UserQueryParameters query)
@@ -79,7 +79,7 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<PagedResult<UserResponse>>.Ok(pagedResult, "Users retrieved successfully."));
     }
 
-    [Authorize(Roles = $"{Roles.Admin},{Roles.Procurement}")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Procurement},{Roles.CommitteeMember}")]
     [HttpGet("lookup")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<UserLookupResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<IEnumerable<UserLookupResponse>>>> GetUserLookup([FromQuery] string? search)
@@ -116,14 +116,14 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<IEnumerable<UserLookupResponse>>.Ok(responses, "Users retrieved successfully."));
     }
 
-    [Authorize(Roles = $"{Roles.Admin},{Roles.Procurement}")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Procurement},{Roles.CommitteeMember}")]
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponse<UserResponse>>> CreateUser(CreateUserRequest request)
     {
-        var creatingAsProcurement = User.IsInRole(Roles.Procurement);
+        var creatingAsProcurement = User.IsInRole(Roles.Procurement) || User.IsInRole(Roles.CommitteeMember);
         var requestedRole = creatingAsProcurement ? Roles.Procurement : request.Role;
 
         if (!Roles.All.Contains(requestedRole))
@@ -316,25 +316,25 @@ public class UsersController : ControllerBase
             return usersQuery;
         }
 
-        if (!User.IsInRole(Roles.Procurement))
+        if (!User.IsInRole(Roles.Procurement) && !User.IsInRole(Roles.CommitteeMember))
         {
             return usersQuery.Where(_ => false);
         }
 
-        var procurementRoleId = await _dbContext.Roles
+        var procurementRoleIds = await _dbContext.Roles
             .AsNoTracking()
-            .Where(role => role.Name == Roles.Procurement)
+            .Where(role => role.Name == Roles.Procurement || role.Name == Roles.CommitteeMember)
             .Select(role => role.Id)
-            .FirstOrDefaultAsync();
+            .ToArrayAsync();
 
-        if (string.IsNullOrEmpty(procurementRoleId))
+        if (procurementRoleIds.Length == 0)
         {
             return usersQuery.Where(_ => false);
         }
 
         return from user in usersQuery
                join userRole in _dbContext.UserRoles.AsNoTracking() on user.Id equals userRole.UserId
-               where userRole.RoleId == procurementRoleId
+               where procurementRoleIds.Contains(userRole.RoleId)
                select user;
     }
 }

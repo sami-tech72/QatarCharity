@@ -33,6 +33,7 @@ public static class DatabaseSeeder
 
         await EnsureUserExists(userManager, "admin@qcharity.test", "Admin User", Roles.Admin);
         await EnsureUserExists(userManager, "procurement@qcharity.test", "Procurement User", Roles.Procurement);
+        await EnsureUserExists(userManager, "committee@qcharity.test", "Committee Member", Roles.CommitteeMember);
         await EnsureUserExists(userManager, "supplier@qcharity.test", "Supplier User", Roles.Supplier);
 
         await SeedSuppliersAsync(dbContext, userManager);

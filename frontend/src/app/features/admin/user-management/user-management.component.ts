@@ -27,6 +27,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserManagementService);
   private readonly notifier = inject(NotificationService);
+  private readonly procurementAccessRoles: UserRole[] = ['Procurement', 'CommitteeMember'];
 
   users: ManagedUser[] = [];
   usersPage: PagedResult<ManagedUser> | null = null;
@@ -42,12 +43,17 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       description: 'Manage procurement workflows and approvals.',
     },
     {
+      value: 'CommitteeMember',
+      title: 'Committee Member',
+      description: 'Serve on the procurement committee with procurement-area access.',
+    },
+    {
       value: 'Supplier',
       title: 'Supplier',
       description: 'Access supplier-specific tools and updates.',
     },
   ];
-  readonly isProcurementUser = this.auth.currentSession()?.role === 'Procurement';
+  readonly isProcurementUser = this.procurementAccessRoles.includes(this.auth.currentSession()?.role ?? '');
   readonly roleOptions = this.isProcurementUser
     ? this.allRoleOptions.filter((option) => option.value === 'Procurement')
     : this.allRoleOptions;

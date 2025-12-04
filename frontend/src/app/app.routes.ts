@@ -6,17 +6,20 @@ import { adminRoutes } from './features/admin/admin.routes';
 import { procurementRoutes } from './features/procurement/procurement.routes';
 import { supplierRoutes } from './features/supplier/supplier.routes';
 
-const withGuard = (role: UserRole, routes: Routes): Routes =>
-  routes.map((route) => ({
+const withGuard = (role: UserRole | UserRole[], routes: Routes): Routes => {
+  const allowedRoles = Array.isArray(role) ? role : [role];
+
+  return routes.map((route) => ({
     ...route,
     canMatch: [...(route.canMatch ?? []), authGuard],
-    data: { ...(route.data ?? {}), role },
+    data: { ...(route.data ?? {}), role: allowedRoles },
   }));
+};
 
 export const routes: Routes = [
   ...authRoutes,
   ...withGuard('Admin', adminRoutes),
-  ...withGuard('Procurement', procurementRoutes),
+  ...withGuard(['Procurement', 'CommitteeMember'], procurementRoutes),
   ...withGuard('Supplier', supplierRoutes),
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   { path: '**', redirectTo: 'login' },
