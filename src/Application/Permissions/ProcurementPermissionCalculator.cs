@@ -9,9 +9,9 @@ public static class ProcurementPermissionCalculator
     private static readonly IReadOnlyDictionary<string, ProcurementPermissionSet> _map =
         new Dictionary<string, ProcurementPermissionSet>(System.StringComparer.OrdinalIgnoreCase)
         {
-            [ProcurementSubRoles.Viewer] = new(canView: true),
-            [ProcurementSubRoles.Contributor] = new(canView: true, canCreate: true, canUpdate: true),
-            [ProcurementSubRoles.Manager] = new(canView: true, canCreate: true, canUpdate: true, canDelete: true),
+            [ProcurementSubRoles.Viewer] = new(CanView: true),
+            [ProcurementSubRoles.Contributor] = new(CanView: true, CanCreate: true, CanUpdate: true),
+            [ProcurementSubRoles.Manager] = new(CanView: true, CanCreate: true, CanUpdate: true, CanDelete: true),
         };
 
     public static ProcurementPermissionSet CombineFor(IEnumerable<string> subRoles)
