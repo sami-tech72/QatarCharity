@@ -82,6 +82,8 @@ public static class DatabaseSeeder
             claims.Where(claim => claim.Type == Domain.Constants.CustomClaimTypes.ProcurementSubRole)
                 .Select(claim => claim.Value.Split('|', 2)[0]));
 
+        // Add or edit default procurement sub-roles here; each entry becomes a claim
+        // on the seeded procurement account with the corresponding permission set.
         var defaultSubRoles = new Dictionary<string, ProcurementPermissionSet>
         {
             [ProcurementSubRoles.Manager] = new(CanView: true, CanCreate: true, CanUpdate: true, CanDelete: true),
