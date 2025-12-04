@@ -27,7 +27,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserManagementService);
   private readonly notifier = inject(NotificationService);
-  private readonly procurementAccessRoles: UserRole[] = ['Procurement', 'CommitteeMember'];
+  private readonly procurementAccessRoles: UserRole[] = ['Procurement'];
 
   users: ManagedUser[] = [];
   usersPage: PagedResult<ManagedUser> | null = null;
@@ -41,11 +41,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       value: 'Procurement',
       title: 'Procurement',
       description: 'Manage procurement workflows and approvals.',
-    },
-    {
-      value: 'CommitteeMember',
-      title: 'Committee Member',
-      description: 'Serve on the procurement committee with procurement-area access.',
     },
     {
       value: 'Supplier',
@@ -78,9 +73,23 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     role: this.fb.nonNullable.control<UserRole>(this.defaultRole),
+    procurementRole: this.fb.control<string | null>(null),
   });
 
   ngOnInit(): void {
+    this.userForm.controls.role.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((role) => {
+        if (role === 'Procurement' && !this.userForm.controls.procurementRole.value) {
+          this.userForm.controls.procurementRole.setValue('Committee Member');
+          return;
+        }
+
+        if (role !== 'Procurement') {
+          this.userForm.controls.procurementRole.setValue(null);
+        }
+      });
+
     this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((search) => {
@@ -136,12 +145,14 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
     this.isSubmitting = true;
     if (this.editingUser) {
-      const { displayName, email, role } = this.userForm.getRawValue();
+      const { displayName, email, role, procurementRole } = this.userForm.getRawValue();
 
-      this.userService.updateUser(this.editingUser.id, { displayName, email, role }).subscribe({
-        next: (user) => {
-          this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
-          this.refreshFromServer();
+      this.userService
+        .updateUser(this.editingUser.id, { displayName, email, role, procurementRole })
+        .subscribe({
+          next: (user) => {
+            this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
+            this.refreshFromServer();
           this.finishSubmit('User updated successfully.', 'success');
         },
         error: (error) => {
@@ -218,6 +229,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: user.email,
       password: '',
       role: user.role,
+      procurementRole: user.procurementRole || null,
     });
   }
 
@@ -287,8 +299,17 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       displayName: '',
       email: '',
       password: '',
-      role: 'Supplier',
+      role: this.defaultRole,
+      procurementRole: this.defaultRole === 'Procurement' ? 'Committee Member' : null,
     });
+  }
+
+  getRoleLabel(user: ManagedUser): string {
+    if (user.role === 'Procurement' && user.procurementRole) {
+      return `${user.role} (${user.procurementRole})`;
+    }
+
+    return user.role;
   }
 
   private finishSubmit(message: string, type: 'success' | 'danger' | 'info'): void {

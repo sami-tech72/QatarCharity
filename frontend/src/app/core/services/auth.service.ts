@@ -51,7 +51,6 @@ export class AuthService {
     const map: Record<UserRole, string> = {
       Admin: adminSidebarMenu[0].path,
       Procurement: procurementSidebarMenu[0].path,
-      CommitteeMember: procurementSidebarMenu[0].path,
       Supplier: supplierSidebarMenu[0].path,
     };
 

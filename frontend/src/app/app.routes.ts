@@ -19,7 +19,7 @@ const withGuard = (role: UserRole | UserRole[], routes: Routes): Routes => {
 export const routes: Routes = [
   ...authRoutes,
   ...withGuard('Admin', adminRoutes),
-  ...withGuard(['Procurement', 'CommitteeMember'], procurementRoutes),
+  ...withGuard('Procurement', procurementRoutes),
   ...withGuard('Supplier', supplierRoutes),
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   { path: '**', redirectTo: 'login' },

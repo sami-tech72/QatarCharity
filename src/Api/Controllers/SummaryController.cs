@@ -25,7 +25,7 @@ public class SummaryController : ControllerBase
         return Ok(ApiResponse<object>.Ok(summary, "Summary retrieved successfully."));
     }
 
-    [Authorize(Roles = $"{Roles.Procurement},{Roles.CommitteeMember}")]
+    [Authorize(Roles = Roles.Procurement)]
     [HttpGet("procurement/summary")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public ActionResult<ApiResponse<object>> GetProcurementSummary()

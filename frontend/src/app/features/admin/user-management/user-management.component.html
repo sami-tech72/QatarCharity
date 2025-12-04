@@ -197,6 +197,16 @@
                           </div>
                           <!--end::Roles-->
                         </div>
+                        <div class="fv-row mb-7" *ngIf="userForm.controls.role.value === 'Procurement'">
+                          <label class="fw-semibold fs-6 mb-2">Procurement sub-role</label>
+                          <input
+                            type="text"
+                            formControlName="procurementRole"
+                            class="form-control form-control-solid mb-2"
+                            placeholder="e.g. Committee Member"
+                          />
+                          <div class="text-muted fs-7">Identify the member's responsibility inside procurement.</div>
+                        </div>
                         <!--end::Input group-->
                       </div>
                       <!--end::Scroll-->
@@ -279,7 +289,7 @@
                     <span class="text-muted">{{ user.email }}</span>
                   </div>
                 </td>
-                <td>{{ user.role }}</td>
+                <td>{{ getRoleLabel(user) }}</td>
                 <td>
                   <span class="text-muted">—</span>
                 </td>

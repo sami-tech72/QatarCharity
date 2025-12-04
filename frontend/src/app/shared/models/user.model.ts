@@ -1,4 +1,4 @@
-export type UserRole = 'Admin' | 'Procurement' | 'CommitteeMember' | 'Supplier';
+export type UserRole = 'Admin' | 'Procurement' | 'Supplier';
 
 export interface LoginRequest {
   email: string;
@@ -9,6 +9,7 @@ export interface LoginResponse {
   email: string;
   displayName: string;
   role: UserRole;
+  procurementRole?: string | null;
   token: string;
   expiresAt: string;
 }

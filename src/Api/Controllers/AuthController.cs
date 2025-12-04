@@ -59,6 +59,7 @@ public class AuthController : ControllerBase
             Email: user.Email ?? string.Empty,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Role: roles.FirstOrDefault() ?? Roles.Supplier,
+            ProcurementRole: user.ProcurementRole,
             Token: tokenResult.Token,
             ExpiresAt: tokenResult.ExpiresAt);
 
