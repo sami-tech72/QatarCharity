@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { Modal } from 'bootstrap';
 
@@ -12,7 +12,13 @@ import {
   ManagedUser,
   UserQueryRequest,
 } from '../../../shared/models/user-management.model';
-import { UserRole } from '../../../shared/models/user.model';
+import { ProcurementSubRole, UserRole } from '../../../shared/models/user.model';
+
+interface ProcurementSubRoleOption {
+  value: ProcurementSubRole;
+  title: string;
+  description: string;
+}
 
 @Component({
   selector: 'app-user-management-page',
@@ -45,6 +51,48 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   isSubmitting = false;
   deletingIds = new Set<string>();
   editingUser: ManagedUser | null = null;
+  procurementSubRoleOptions: ProcurementSubRoleOption[] = [
+    {
+      value: 'Dashboard',
+      title: 'Dashboard',
+      description: 'High-level view of procurement metrics and activity.',
+    },
+    {
+      value: 'RFx Management',
+      title: 'RFx Management',
+      description: 'Create and manage RFx events, invitations, and responses.',
+    },
+    {
+      value: 'Bid Evaluation',
+      title: 'Bid Evaluation',
+      description: 'Review submissions, score bids, and recommend awards.',
+    },
+    {
+      value: 'Tender Committee',
+      title: 'Tender Committee',
+      description: 'Coordinate approvals and committee reviews.',
+    },
+    {
+      value: 'Contract Management',
+      title: 'Contract Management',
+      description: 'Draft contracts and oversee their lifecycle.',
+    },
+    {
+      value: 'Supplier Performance',
+      title: 'Supplier Performance',
+      description: 'Track supplier KPIs and performance history.',
+    },
+    {
+      value: 'Reports & Analytics',
+      title: 'Reports & Analytics',
+      description: 'Access dashboards and analytical reports.',
+    },
+    {
+      value: 'Settings',
+      title: 'Settings',
+      description: 'Configure procurement preferences and defaults.',
+    },
+  ];
   readonly pageSizes = [5, 10, 20, 50];
   readonly searchControl = new FormControl('', { nonNullable: true });
   private readonly destroy$ = new Subject<void>();
@@ -64,9 +112,18 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     role: this.fb.nonNullable.control<UserRole>('Supplier'),
+    procurementSubRoles: this.fb.nonNullable.control<ProcurementSubRole[]>([], [
+      this.requireProcurementSubRole(),
+    ]),
   });
 
   ngOnInit(): void {
+    this.userForm.controls.role.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((role) => this.syncProcurementRoleState(role));
+
+    this.syncProcurementRoleState(this.userForm.controls.role.value);
+
     this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((search) => {
@@ -109,10 +166,13 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     }
 
     this.isSubmitting = true;
-    if (this.editingUser) {
-      const { displayName, email, role } = this.userForm.getRawValue();
+    const { displayName, email, password, role, procurementSubRoles } = this.userForm.getRawValue();
+    const normalizedSubRoles = role === 'Procurement' ? procurementSubRoles : [];
 
-      this.userService.updateUser(this.editingUser.id, { displayName, email, role }).subscribe({
+    if (this.editingUser) {
+      this.userService
+        .updateUser(this.editingUser.id, { displayName, email, role, procurementSubRoles: normalizedSubRoles })
+        .subscribe({
         next: (user) => {
           this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
           this.refreshFromServer();
@@ -123,7 +183,13 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         },
       });
     } else {
-      const payload = this.userForm.getRawValue() as CreateUserRequest;
+      const payload: CreateUserRequest = {
+        displayName,
+        email,
+        password,
+        role,
+        procurementSubRoles: normalizedSubRoles,
+      };
 
       this.userService.createUser(payload).subscribe({
         next: (user) => {
@@ -182,6 +248,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: user.email,
       password: '',
       role: user.role,
+      procurementSubRoles: user.procurementSubRoles ?? [],
     });
   }
 
@@ -242,8 +309,34 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     return Array.from({ length: end - start + 1 }, (_, idx) => start + idx);
   }
 
+  get procurementSubRolesControl() {
+    return this.userForm.controls.procurementSubRoles;
+  }
+
+  get isProcurementSelected(): boolean {
+    return this.userForm.controls.role.value === 'Procurement';
+  }
+
+  onSubRoleToggle(subRole: ProcurementSubRole, checked: boolean): void {
+    const currentRoles = this.procurementSubRolesControl.value;
+    const updatedRoles = checked
+      ? Array.from(new Set([...currentRoles, subRole]))
+      : currentRoles.filter((role) => role !== subRole);
+
+    this.procurementSubRolesControl.setValue(updatedRoles);
+    this.procurementSubRolesControl.markAsTouched();
+  }
+
   private refreshFromServer(): void {
     this.loadUsers();
+  }
+
+  private syncProcurementRoleState(role: UserRole): void {
+    if (role !== 'Procurement') {
+      this.procurementSubRolesControl.setValue([], { emitEvent: false });
+    }
+
+    this.procurementSubRolesControl.updateValueAndValidity({ emitEvent: false });
   }
 
   private resetForm(): void {
@@ -252,7 +345,22 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: '',
       password: '',
       role: 'Supplier',
+      procurementSubRoles: [],
     });
+  }
+
+  private requireProcurementSubRole(): ValidatorFn {
+    return (control) => {
+      const roleControl = (control.root as FormGroup | null)?.get('role');
+      const isProcurementRole = roleControl?.value === 'Procurement';
+
+      if (!isProcurementRole) {
+        return null;
+      }
+
+      const hasSelection = Array.isArray(control.value) && control.value.length > 0;
+      return hasSelection ? null : { procurementSubRolesRequired: true };
+    };
   }
 
   private finishSubmit(message: string, type: 'success' | 'danger' | 'info'): void {

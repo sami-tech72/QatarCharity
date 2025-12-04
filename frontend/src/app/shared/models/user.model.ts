@@ -1,5 +1,15 @@
 export type UserRole = 'Admin' | 'Procurement' | 'Supplier';
 
+export type ProcurementSubRole =
+  | 'Dashboard'
+  | 'RFx Management'
+  | 'Bid Evaluation'
+  | 'Tender Committee'
+  | 'Contract Management'
+  | 'Supplier Performance'
+  | 'Reports & Analytics'
+  | 'Settings';
+
 export interface LoginRequest {
   email: string;
   password: string;

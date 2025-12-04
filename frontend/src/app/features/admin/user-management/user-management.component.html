@@ -198,6 +198,36 @@
                           <!--end::Roles-->
                         </div>
                         <!--end::Input group-->
+                        <!--begin::Input group-->
+                        <div class="mb-7" *ngIf="isProcurementSelected">
+                          <label class="required fw-semibold fs-6 mb-3">Procurement Sub-Roles</label>
+                          <div class="text-muted mb-4">
+                            Assign one or more Procurement sub-roles. These control access to the Procurement-only menus shown
+                            after login.
+                          </div>
+                          <div class="d-flex flex-column gap-4">
+                            <label
+                              class="form-check form-check-custom form-check-solid"
+                              *ngFor="let option of procurementSubRoleOptions; let idx = index"
+                            >
+                              <input
+                                type="checkbox"
+                                class="form-check-input me-3"
+                                [id]="'kt_procurement_subrole_' + idx"
+                                [checked]="procurementSubRolesControl.value.includes(option.value)"
+                                (change)="onSubRoleToggle(option.value, $any($event.target).checked)"
+                              />
+                              <span class="form-check-label">
+                                <span class="fw-bold text-gray-800">{{ option.title }}</span>
+                                <span class="d-block text-gray-600">{{ option.description }}</span>
+                              </span>
+                            </label>
+                          </div>
+                          <div class="text-danger mt-2" *ngIf="procurementSubRolesControl.touched && procurementSubRolesControl.invalid">
+                            Select at least one Procurement sub-role.
+                          </div>
+                        </div>
+                        <!--end::Input group-->
                       </div>
                       <!--end::Scroll-->
                         <!--begin::Actions-->
@@ -256,6 +286,7 @@
               >
                 <th class="min-w-125px">User</th>
                 <th class="min-w-125px">Role</th>
+                <th class="min-w-150px">Procurement Sub-Roles</th>
                 <th class="min-w-125px">Last login</th>
                 <th class="min-w-100px">Status</th>
                 <th class="text-end min-w-125px">Actions</th>
@@ -280,6 +311,21 @@
                   </div>
                 </td>
                 <td>{{ user.role }}</td>
+                <td>
+                  <ng-container *ngIf="user.role === 'Procurement'; else nonProcurement">
+                    <ng-container *ngIf="user.procurementSubRoles?.length; else noSubRoles">
+                      <div class="d-flex flex-wrap gap-2">
+                        <span class="badge badge-light-primary" *ngFor="let subRole of user.procurementSubRoles">
+                          {{ subRole }}
+                        </span>
+                      </div>
+                    </ng-container>
+                    <ng-template #noSubRoles>
+                      <span class="text-muted">No sub-roles assigned</span>
+                    </ng-template>
+                  </ng-container>
+                  <ng-template #nonProcurement>—</ng-template>
+                </td>
                 <td>
                   <span class="text-muted">—</span>
                 </td>
