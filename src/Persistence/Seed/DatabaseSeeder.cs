@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Application.DTOs;
+using Application.Permissions;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
@@ -80,10 +82,10 @@ public static class DatabaseSeeder
             claims.Where(claim => claim.Type == Domain.Constants.CustomClaimTypes.ProcurementSubRole)
                 .Select(claim => claim.Value.Split('|', 2)[0]));
 
-        var defaultSubRoles = new Dictionary<string, string>
+        var defaultSubRoles = new Dictionary<string, ProcurementPermissionSet>
         {
-            [ProcurementSubRoles.Manager] = "view,create,update,delete",
-            [ProcurementSubRoles.Contributor] = "view,create,update",
+            [ProcurementSubRoles.Manager] = new(CanView: true, CanCreate: true, CanUpdate: true, CanDelete: true),
+            [ProcurementSubRoles.Contributor] = new(CanView: true, CanCreate: true, CanUpdate: true),
         };
 
         foreach (var subRole in defaultSubRoles)
@@ -97,7 +99,7 @@ public static class DatabaseSeeder
                 procurementUser,
                 new Claim(
                     Domain.Constants.CustomClaimTypes.ProcurementSubRole,
-                    $"{subRole.Key}|{subRole.Value}"));
+                    ProcurementPermissionCalculator.ToClaimValue(subRole.Key, subRole.Value)));
         }
     }
 
