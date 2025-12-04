@@ -10,21 +10,26 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Persistence.Context;
 
 namespace Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
-[Authorize(Roles = Roles.Admin)]
 public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly AppDbContext _dbContext;
 
-    public UsersController(UserManager<ApplicationUser> userManager)
+    public UsersController(
+        UserManager<ApplicationUser> userManager,
+        AppDbContext dbContext)
     {
         _userManager = userManager;
+        _dbContext = dbContext;
     }
 
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Procurement}")]
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<UserResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<PagedResult<UserResponse>>>> GetUsers([FromQuery] UserQueryParameters query)
@@ -33,7 +38,7 @@ public class UsersController : ControllerBase
         var pageNumber = query.PageNumber <= 0 ? 1 : query.PageNumber;
         var searchTerm = query.Search?.Trim();
 
-        var usersQuery = _userManager.Users.AsNoTracking();
+        var usersQuery = await ApplyRoleScopeAsync(_userManager.Users.AsNoTracking());
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -74,11 +79,12 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<PagedResult<UserResponse>>.Ok(pagedResult, "Users retrieved successfully."));
     }
 
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Procurement}")]
     [HttpGet("lookup")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<UserLookupResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<IEnumerable<UserLookupResponse>>>> GetUserLookup([FromQuery] string? search)
     {
-        var usersQuery = _userManager.Users.AsNoTracking();
+        var usersQuery = await ApplyRoleScopeAsync(_userManager.Users.AsNoTracking());
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -110,17 +116,28 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<IEnumerable<UserLookupResponse>>.Ok(responses, "Users retrieved successfully."));
     }
 
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Procurement}")]
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponse<UserResponse>>> CreateUser(CreateUserRequest request)
     {
-        if (!Roles.All.Contains(request.Role))
+        var creatingAsProcurement = User.IsInRole(Roles.Procurement);
+        var requestedRole = creatingAsProcurement ? Roles.Procurement : request.Role;
+
+        if (!Roles.All.Contains(requestedRole))
         {
             return BadRequest(ApiResponse<UserResponse>.Fail(
                 "Invalid role provided.",
                 errorCode: "users_invalid_role"));
+        }
+
+        if (creatingAsProcurement && !string.Equals(request.Role, Roles.Procurement, StringComparison.Ordinal))
+        {
+            return BadRequest(ApiResponse<UserResponse>.Fail(
+                "Procurement users can only create Procurement accounts.",
+                errorCode: "users_role_not_allowed"));
         }
 
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
@@ -150,7 +167,7 @@ public class UsersController : ControllerBase
                 details: BuildErrorDetails(createResult)));
         }
 
-        var roleResult = await _userManager.AddToRoleAsync(user, request.Role);
+        var roleResult = await _userManager.AddToRoleAsync(user, requestedRole);
 
         if (!roleResult.Succeeded)
         {
@@ -166,11 +183,12 @@ public class UsersController : ControllerBase
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Email: user.Email ?? string.Empty,
-            Role: request.Role);
+            Role: requestedRole);
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User created successfully."));
     }
 
+    [Authorize(Roles = Roles.Admin)]
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -251,6 +269,7 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<UserResponse>.Ok(response, "User updated successfully."));
     }
 
+    [Authorize(Roles = Roles.Admin)]
     [HttpDelete("{id}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
@@ -288,5 +307,34 @@ public class UsersController : ControllerBase
                 error.Description
             }).ToArray()
         };
+    }
+
+    private async Task<IQueryable<ApplicationUser>> ApplyRoleScopeAsync(IQueryable<ApplicationUser> usersQuery)
+    {
+        if (User.IsInRole(Roles.Admin))
+        {
+            return usersQuery;
+        }
+
+        if (!User.IsInRole(Roles.Procurement))
+        {
+            return usersQuery.Where(_ => false);
+        }
+
+        var procurementRoleId = await _dbContext.Roles
+            .AsNoTracking()
+            .Where(role => role.Name == Roles.Procurement)
+            .Select(role => role.Id)
+            .FirstOrDefaultAsync();
+
+        if (string.IsNullOrEmpty(procurementRoleId))
+        {
+            return usersQuery.Where(_ => false);
+        }
+
+        return from user in usersQuery
+               join userRole in _dbContext.UserRoles.AsNoTracking() on user.Id equals userRole.UserId
+               where userRole.RoleId == procurementRoleId
+               select user;
     }
 }

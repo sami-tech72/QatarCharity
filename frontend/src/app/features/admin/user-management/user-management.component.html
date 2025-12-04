@@ -258,7 +258,7 @@
                 <th class="min-w-125px">Role</th>
                 <th class="min-w-125px">Last login</th>
                 <th class="min-w-100px">Status</th>
-                <th class="text-end min-w-125px">Actions</th>
+                <th class="text-end min-w-125px" *ngIf="canManageExistingUsers">Actions</th>
               </tr>
             </thead>
             <tbody class="text-gray-600 fw-semibold">
@@ -286,7 +286,7 @@
                 <td>
                   <div class="badge badge-light fw-bold">Active</div>
                 </td>
-                <td class="text-end">
+                <td class="text-end" *ngIf="canManageExistingUsers">
                   <div class="dropdown">
                     <button
                       class="btn btn-light btn-active-light-primary btn-flex btn-center btn-sm dropdown-toggle"

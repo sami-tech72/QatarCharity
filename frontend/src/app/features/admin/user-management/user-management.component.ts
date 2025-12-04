@@ -13,6 +13,7 @@ import {
   UserQueryRequest,
 } from '../../../shared/models/user-management.model';
 import { UserRole } from '../../../shared/models/user.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-user-management-page',
@@ -24,7 +25,7 @@ import { UserRole } from '../../../shared/models/user.model';
 export class UserManagementComponent implements OnInit, OnDestroy {
   users: ManagedUser[] = [];
   usersPage: PagedResult<ManagedUser> | null = null;
-  roleOptions: Array<{ value: UserRole; title: string; description: string }> = [
+  readonly allRoleOptions: Array<{ value: UserRole; title: string; description: string }> = [
     {
       value: 'Admin',
       title: 'Administrator',
@@ -41,6 +42,12 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       description: 'Access supplier-specific tools and updates.',
     },
   ];
+  readonly isProcurementUser = this.auth.currentSession()?.role === 'Procurement';
+  readonly roleOptions = this.isProcurementUser
+    ? this.allRoleOptions.filter((option) => option.value === 'Procurement')
+    : this.allRoleOptions;
+  readonly canManageExistingUsers = !this.isProcurementUser;
+  readonly defaultRole: UserRole = this.isProcurementUser ? 'Procurement' : 'Supplier';
   isLoading = false;
   isSubmitting = false;
   deletingIds = new Set<string>();
@@ -56,6 +63,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   };
 
   private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
   private readonly userService = inject(UserManagementService);
   private readonly notifier = inject(NotificationService);
 
@@ -63,7 +71,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     displayName: ['', [Validators.required, Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    role: this.fb.nonNullable.control<UserRole>('Supplier'),
+    role: this.fb.nonNullable.control<UserRole>(this.defaultRole),
   });
 
   ngOnInit(): void {
@@ -83,6 +91,18 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   }
 
   loadUsers(): void {
+    if (!this.canManageExistingUsers) {
+      this.users = [];
+      this.usersPage = {
+        items: [],
+        totalCount: 0,
+        pageNumber: 1,
+        pageSize: this.paginationState.pageSize,
+        totalPages: 0,
+      };
+      return;
+    }
+
     this.isLoading = true;
     this.userService.loadUsers(this.paginationState).subscribe({
       next: (page) => {
@@ -128,7 +148,9 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       this.userService.createUser(payload).subscribe({
         next: (user) => {
           this.users = [user, ...this.users.filter((existing) => existing.id !== user.id)];
-          this.refreshFromServer();
+          if (this.canManageExistingUsers) {
+            this.refreshFromServer();
+          }
           this.finishSubmit('User created successfully.', 'success');
         },
         error: (error) => {
@@ -143,6 +165,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   }
 
   deleteUser(user: ManagedUser): void {
+    if (!this.canManageExistingUsers) {
+      return;
+    }
+
     if (this.deletingIds.has(user.id)) {
       return;
     }
@@ -175,6 +201,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   }
 
   startEdit(user: ManagedUser): void {
+    if (!this.canManageExistingUsers) {
+      return;
+    }
+
     this.editingUser = user;
     this.disablePasswordValidators();
     this.userForm.patchValue({

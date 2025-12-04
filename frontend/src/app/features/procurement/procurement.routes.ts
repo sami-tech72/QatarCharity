@@ -54,6 +54,12 @@ export const procurementRoutes: Routes = [
           import('./reports-analytics/reports-analytics.component').then((m) => m.ReportsAnalyticsComponent),
       },
       {
+        path: 'user-management',
+        title: 'User Management',
+        loadComponent: () =>
+          import('../admin/user-management/user-management.component').then((m) => m.UserManagementComponent),
+      },
+      {
         path: 'settings',
         title: 'Procurement Settings',
         loadComponent: () => import('./settings/procurement-settings.component').then((m) => m.ProcurementSettingsComponent),
