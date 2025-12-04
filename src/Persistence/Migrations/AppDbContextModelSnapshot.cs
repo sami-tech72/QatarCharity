@@ -172,12 +172,12 @@ namespace Persistence.Migrations
                         .HasMaxLength(600)
                         .HasColumnType("nvarchar(600)");
 
-                    b.Property<int>("YearEstablished")
-                        .HasColumnType("int");
-
                     b.Property<string>("Website")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("YearEstablished")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -192,7 +192,7 @@ namespace Persistence.Migrations
                     b.HasIndex("SupplierCode")
                         .IsUnique();
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Workflow", b =>
@@ -226,7 +226,7 @@ namespace Persistence.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Workflows");
+                    b.ToTable("Workflows", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.WorkflowStep", b =>
@@ -261,7 +261,7 @@ namespace Persistence.Migrations
                     b.HasIndex("WorkflowId", "Order")
                         .IsUnique();
 
-                    b.ToTable("WorkflowSteps");
+                    b.ToTable("WorkflowSteps", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -397,15 +397,6 @@ namespace Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
                 {
                     b.HasOne("Domain.Entities.ApplicationUser", null)
@@ -430,6 +421,15 @@ namespace Persistence.Migrations
                     b.Navigation("Assignee");
 
                     b.Navigation("Workflow");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -465,11 +465,6 @@ namespace Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Entities.Workflow", b =>
-                {
-                    b.Navigation("Steps");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.HasOne("Domain.Entities.ApplicationUser", null)
@@ -477,6 +472,11 @@ namespace Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Workflow", b =>
+                {
+                    b.Navigation("Steps");
                 });
 #pragma warning restore 612, 618
         }
