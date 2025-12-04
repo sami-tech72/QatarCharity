@@ -75,7 +75,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     role: this.fb.nonNullable.control<UserRole>('Procurement'),
-    procurementSubRole: this.fb.control<ProcurementSubRole | ''>(''),
+    procurementSubRole: this.fb.control<ProcurementSubRole | null>(null),
     procurementCanCreate: this.fb.nonNullable.control(false),
     procurementCanDelete: this.fb.nonNullable.control(false),
     procurementCanView: this.fb.nonNullable.control(true),
@@ -143,18 +143,20 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         procurementCanEdit,
       } = this.userForm.getRawValue();
 
+      const procurement = this.buildProcurementPayload(role, {
+        procurementSubRole,
+        procurementCanCreate,
+        procurementCanDelete,
+        procurementCanView,
+        procurementCanEdit,
+      });
+
       this.userService
         .updateUser(this.editingUser.id, {
           displayName,
           email,
           role,
-          ...this.buildProcurementPayload(role, {
-            procurementSubRole,
-            procurementCanCreate,
-            procurementCanDelete,
-            procurementCanView,
-            procurementCanEdit,
-          }),
+          ...procurement,
         })
         .subscribe({
         next: (user) => {
@@ -167,10 +169,16 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         },
       });
     } else {
-      const payload = {
-        ...this.userForm.getRawValue(),
-        ...this.buildProcurementPayload(this.userForm.controls.role.value, this.userForm.getRawValue()),
-      } as CreateUserRequest;
+      const formValues = this.userForm.getRawValue();
+      const procurement = this.buildProcurementPayload(formValues.role, formValues);
+
+      const payload: CreateUserRequest = {
+        displayName: formValues.displayName,
+        email: formValues.email,
+        password: formValues.password,
+        role: formValues.role,
+        ...procurement,
+      };
 
       this.userService.createUser(payload).subscribe({
         next: (user) => {
@@ -224,17 +232,20 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   startEdit(user: ManagedUser): void {
     this.editingUser = user;
     this.disablePasswordValidators();
-    this.userForm.patchValue({
-      displayName: user.displayName,
-      email: user.email,
-      password: '',
-      role: user.role,
-      procurementSubRole: user.procurementSubRole ?? '',
-      procurementCanCreate: user.procurementCanCreate,
-      procurementCanDelete: user.procurementCanDelete,
-      procurementCanView: user.procurementCanView,
-      procurementCanEdit: user.procurementCanEdit,
-    }, { emitEvent: false });
+    this.userForm.patchValue(
+      {
+        displayName: user.displayName,
+        email: user.email,
+        password: '',
+        role: user.role,
+        procurementSubRole: user.procurementSubRole ?? null,
+        procurementCanCreate: user.procurementCanCreate,
+        procurementCanDelete: user.procurementCanDelete,
+        procurementCanView: user.procurementCanView,
+        procurementCanEdit: user.procurementCanEdit,
+      },
+      { emitEvent: false },
+    );
     this.handleRoleChange(user.role);
   }
 
@@ -305,7 +316,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: '',
       password: '',
       role: 'Procurement',
-      procurementSubRole: '',
+      procurementSubRole: null,
       procurementCanCreate: false,
       procurementCanDelete: false,
       procurementCanView: true,
@@ -358,7 +369,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     if (role !== 'Procurement') {
       this.userForm.patchValue(
         {
-          procurementSubRole: '',
+          procurementSubRole: null,
           procurementCanCreate: false,
           procurementCanDelete: false,
           procurementCanView: false,
@@ -393,8 +404,14 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   private buildProcurementPayload(
     role: UserRole,
-    values: Partial<CreateUserRequest>,
-  ): Partial<CreateUserRequest> {
+    values: Partial<CreateUserRequest & { procurementSubRole: ProcurementSubRole | null }>,
+  ): {
+    procurementSubRole?: ProcurementSubRole;
+    procurementCanCreate: boolean;
+    procurementCanDelete: boolean;
+    procurementCanView: boolean;
+    procurementCanEdit: boolean;
+  } {
     if (role !== 'Procurement') {
       return {
         procurementSubRole: undefined,
@@ -405,8 +422,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       };
     }
 
+    const procurementSubRole = values.procurementSubRole ?? this.procurementSubRoles[0];
+
     return {
-      procurementSubRole: values.procurementSubRole,
+      procurementSubRole,
       procurementCanCreate: !!values.procurementCanCreate,
       procurementCanDelete: !!values.procurementCanDelete,
       procurementCanView: !!values.procurementCanView,

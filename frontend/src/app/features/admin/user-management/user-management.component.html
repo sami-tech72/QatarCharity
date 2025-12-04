@@ -201,7 +201,7 @@
                           <div class="col-md-6 mb-5 mb-md-0">
                             <label class="required fw-semibold fs-6 mb-2">Procurement Sub-role</label>
                             <select class="form-select form-select-solid" formControlName="procurementSubRole">
-                              <option value="" disabled>Select a sub-role</option>
+                              <option [ngValue]="null" disabled>Select a sub-role</option>
                               <option *ngFor="let subRole of procurementSubRoles" [value]="subRole">
                                 {{ subRole }}
                               </option>
