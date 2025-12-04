@@ -422,8 +422,8 @@
         <div class="card-body">
           <ng-container *ngIf="selectedProcurementUser; else selectPrompt">
             <app-procurement-settings
-              [userId]="selectedProcurementUser?.id"
-              [userName]="selectedProcurementUser?.displayName"
+              [userId]="selectedProcurementUser.id"
+              [userName]="selectedProcurementUser.displayName"
             ></app-procurement-settings>
           </ng-container>
           <ng-template #selectPrompt>
