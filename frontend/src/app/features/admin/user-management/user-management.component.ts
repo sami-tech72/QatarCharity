@@ -46,6 +46,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   isSubmitting = false;
   deletingIds = new Set<string>();
   editingUser: ManagedUser | null = null;
+  selectedProcurementUser: ManagedUser | null = null;
   readonly pageSizes = [5, 10, 20, 50];
   readonly searchControl = new FormControl('', { nonNullable: true });
   private readonly destroy$ = new Subject<void>();
@@ -159,6 +160,9 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.userService.deleteUser(user.id).subscribe({
       next: () => {
         this.users = this.users.filter((existing) => existing.id !== user.id);
+        if (this.selectedProcurementUser?.id === user.id) {
+          this.selectedProcurementUser = null;
+        }
         this.deletingIds.delete(user.id);
         this.notifier.success('User deleted successfully.');
       },
@@ -188,6 +192,15 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   onCancel(): void {
     this.startCreate();
+  }
+
+  openProcurementSubRoles(user: ManagedUser): void {
+    if (user.role !== 'Procurement') {
+      this.notifier.error('Procurement sub-roles can only be managed for procurement users.');
+      return;
+    }
+
+    this.selectedProcurementUser = user;
   }
 
   changePage(pageNumber: number): void {

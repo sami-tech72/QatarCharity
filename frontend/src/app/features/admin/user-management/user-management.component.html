@@ -309,6 +309,16 @@
                           Edit
                         </button>
                       </li>
+                      <li *ngIf="user.role === 'Procurement'">
+                        <button
+                          type="button"
+                          class="dropdown-item"
+                          (click)="openProcurementSubRoles(user)"
+                          [disabled]="deletingIds.has(user.id)"
+                        >
+                          Procurement sub-roles
+                        </button>
+                      </li>
                       <li>
                         <button
                           type="button"
@@ -396,8 +406,29 @@
 
       <!--begin::Procurement sub-roles-->
       <div class="card mt-10">
+        <div class="card-header align-items-center">
+          <div>
+            <h2 class="card-title fw-bold">Procurement sub-roles</h2>
+            <div class="text-muted fs-7">
+              Select a procurement user from the table above to manage their sub-roles and permissions.
+            </div>
+          </div>
+          <div class="d-flex align-items-center" *ngIf="selectedProcurementUser">
+            <div class="badge badge-light-primary px-3 py-2">
+              Managing {{ selectedProcurementUser.displayName }}
+            </div>
+          </div>
+        </div>
         <div class="card-body">
-          <app-procurement-settings></app-procurement-settings>
+          <ng-container *ngIf="selectedProcurementUser; else selectPrompt">
+            <app-procurement-settings
+              [userId]="selectedProcurementUser?.id"
+              [userName]="selectedProcurementUser?.displayName"
+            ></app-procurement-settings>
+          </ng-container>
+          <ng-template #selectPrompt>
+            <div class="text-muted">Use the Actions menu for a procurement user to assign sub-roles.</div>
+          </ng-template>
         </div>
       </div>
       <!--end::Procurement sub-roles-->

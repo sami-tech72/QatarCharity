@@ -87,6 +87,19 @@
   font-weight: 500;
 }
 
+.form-field--static {
+  background: #f8f9fb;
+  border: 1px dashed #d5d9e2;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.static-value {
+  margin: 0;
+  font-weight: 700;
+  color: #111827;
+}
+
 .form-field small {
   color: #c44536;
   font-weight: 500;

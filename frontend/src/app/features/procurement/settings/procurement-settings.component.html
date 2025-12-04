@@ -12,17 +12,28 @@
     <div class="card__header">
       <div>
         <h2 class="card__title">Assign sub-role</h2>
-        <p class="card__subtitle">Enter the procurement user's ID, the sub-role name, and toggle permissions.</p>
+        <p class="card__subtitle">
+          {{ userId ? 'Add or update sub-roles for this procurement user.' : "Enter the user's ID, sub-role name, and toggle permissions." }}
+        </p>
       </div>
       <button class="btn" type="submit" [disabled]="saving">{{ saving ? 'Saving…' : 'Save' }}</button>
     </div>
 
     <div class="grid">
-      <label class="form-field">
-        <span>User ID</span>
-        <input type="text" formControlName="userId" placeholder="e.g. 9d7d5e40-..." />
-        <small *ngIf="subRoleForm.controls.userId.invalid && subRoleForm.controls.userId.touched">User ID is required.</small>
-      </label>
+      <ng-container *ngIf="!userId; else fixedUser">
+        <label class="form-field">
+          <span>User ID</span>
+          <input type="text" formControlName="userId" placeholder="e.g. 9d7d5e40-..." />
+          <small *ngIf="subRoleForm.controls.userId.invalid && subRoleForm.controls.userId.touched">User ID is required.</small>
+        </label>
+      </ng-container>
+      <ng-template #fixedUser>
+        <div class="form-field form-field--static">
+          <span>User</span>
+          <p class="static-value">{{ userName || userId }}</p>
+          <small>This assignment will be applied to this procurement user.</small>
+        </div>
+      </ng-template>
 
       <label class="form-field">
         <span>Sub-role name</span>

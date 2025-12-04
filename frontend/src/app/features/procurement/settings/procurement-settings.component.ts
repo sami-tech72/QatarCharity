@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import {
@@ -15,7 +15,10 @@ import {
   templateUrl: './procurement-settings.component.html',
   styleUrl: './procurement-settings.component.scss',
 })
-export class ProcurementSettingsComponent {
+export class ProcurementSettingsComponent implements OnChanges {
+  @Input() userId: string | null = null;
+  @Input() userName: string | null = null;
+
   readonly subRoleForm: ReturnType<ProcurementSettingsComponent['buildForm']>;
 
   saving = false;
@@ -27,6 +30,20 @@ export class ProcurementSettingsComponent {
     private readonly procurementAdminService: ProcurementAdminService,
   ) {
     this.subRoleForm = this.buildForm();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['userId']) {
+      const control = this.subRoleForm.controls.userId;
+
+      if (this.userId) {
+        control.disable({ emitEvent: false });
+        control.setValue(this.userId);
+      } else {
+        control.enable({ emitEvent: false });
+        control.reset('');
+      }
+    }
   }
 
   private buildForm() {
