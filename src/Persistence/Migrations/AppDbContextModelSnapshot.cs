@@ -114,7 +114,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProcurementPermissionDefinitions", (string)null);
+                    b.ToTable("ProcurementPermissionDefinitions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRoleAvatar", b =>
@@ -137,7 +137,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProcurementRoleTemplateId");
 
-                    b.ToTable("ProcurementRoleAvatars", (string)null);
+                    b.ToTable("ProcurementRoleAvatars");
                 });
 
             modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRolePermission", b =>
@@ -169,7 +169,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProcurementRoleTemplateId");
 
-                    b.ToTable("ProcurementRolePermissions", (string)null);
+                    b.ToTable("ProcurementRolePermissions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRoleTemplate", b =>
@@ -201,7 +201,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProcurementRoleTemplates", (string)null);
+                    b.ToTable("ProcurementRoleTemplates");
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
@@ -511,14 +511,6 @@ namespace Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.Supplier", b =>
-                {
-                    b.HasOne("Domain.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("PortalUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-                });
-
             modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRoleAvatar", b =>
                 {
                     b.HasOne("Domain.Entities.Procurement.ProcurementRoleTemplate", "ProcurementRoleTemplate")
@@ -547,6 +539,14 @@ namespace Persistence.Migrations
                     b.Navigation("ProcurementPermissionDefinition");
 
                     b.Navigation("ProcurementRoleTemplate");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Supplier", b =>
+                {
+                    b.HasOne("Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Domain.Entities.WorkflowStep", b =>
