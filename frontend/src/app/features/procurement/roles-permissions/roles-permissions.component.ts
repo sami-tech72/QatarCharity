@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ProcurementRolesService } from '../../../core/services/procurement-roles.service';
+import { ProcurementPermission, ProcurementRolesResponse } from '../../../shared/models/procurement-roles.model';
 
 interface RoleCard {
   name: string;
@@ -19,70 +21,22 @@ interface RoleCard {
   templateUrl: './roles-permissions.component.html',
   styleUrl: './roles-permissions.component.scss',
 })
-export class RolesPermissionsComponent {
+export class RolesPermissionsComponent implements OnInit {
   showAddRoleModal = false;
   roleName = '';
   administratorAccess = false;
   selectAll = false;
 
-  private readonly defaultPermissions: Permission[] = [
-    { name: 'User Management', actions: { read: true, write: true, create: true } },
-    { name: 'Content Management', actions: { read: true, write: true, create: false } },
-    { name: 'Disputes Management', actions: { read: true, write: false, create: false } },
-    { name: 'Database Management', actions: { read: true, write: true, create: true } },
-    { name: 'Finance Management', actions: { read: true, write: true, create: true } },
-    { name: 'Reporting', actions: { read: true, write: true, create: true } },
-    { name: 'API Control', actions: { read: true, write: false, create: true } },
-    { name: 'Repository Management', actions: { read: true, write: true, create: false } },
-    { name: 'Payroll', actions: { read: true, write: true, create: true } },
-  ];
+  permissions: Permission[] = [];
+  roles: RoleCard[] = [];
+  mainRole = '';
+  private defaultPermissions: Permission[] = [];
 
-  permissions: Permission[] = this.createDefaultPermissions();
+  constructor(private readonly procurementRolesService: ProcurementRolesService) {}
 
-  readonly roles: RoleCard[] = [
-    {
-      name: 'Administrator',
-      totalUsers: 4,
-      newUsers: 2,
-      description: 'Best for business owners and company administrators',
-      avatars: ['300-6.jpg', '300-5.jpg', '300-11.jpg', '300-3.jpg'],
-      actionLabel: 'Add user',
-    },
-    {
-      name: 'Manager',
-      totalUsers: 5,
-      newUsers: 2,
-      description: 'Best for team leads to manage permissions',
-      avatars: ['300-14.jpg', '300-2.jpg', '300-7.jpg', '300-8.jpg'],
-      extraCount: 1,
-      actionLabel: 'Add user',
-    },
-    {
-      name: 'Users',
-      totalUsers: 8,
-      newUsers: 4,
-      description: 'Best for standard users who need access to all standard features.',
-      avatars: ['300-9.jpg', '300-10.jpg', '300-12.jpg', '300-13.jpg'],
-      extraCount: 2,
-      actionLabel: 'Add user',
-    },
-    {
-      name: 'Support',
-      totalUsers: 3,
-      newUsers: 2,
-      description: 'Best for employees who regularly refund payments',
-      avatars: ['300-4.jpg', '300-1.jpg', '300-19.jpg'],
-      actionLabel: 'Add user',
-    },
-    {
-      name: 'Restricted User',
-      totalUsers: 4,
-      newUsers: 1,
-      description: 'Best for people who need restricted access to sensitive data',
-      avatars: ['300-21.jpg', '300-23.jpg', '300-24.jpg', '300-25.jpg'],
-      actionLabel: 'Add user',
-    },
-  ];
+  ngOnInit(): void {
+    this.loadRoles();
+  }
 
   openAddRoleModal(): void {
     this.showAddRoleModal = true;
@@ -146,13 +100,27 @@ export class RolesPermissionsComponent {
       actions: { ...permission.actions },
     }));
   }
+
+  private loadRoles(): void {
+    this.procurementRolesService.loadRoles().subscribe({
+      next: (response: ProcurementRolesResponse) => {
+        this.mainRole = response.mainRole;
+        this.roles = response.subRoles.map((role) => ({
+          name: role.name,
+          description: role.description,
+          newUsers: role.newUsers,
+          totalUsers: role.totalUsers,
+          avatars: role.avatars,
+          extraCount: role.extraCount,
+          actionLabel: 'Add user',
+        }));
+
+        this.defaultPermissions = response.defaultPermissions;
+        this.permissions = this.createDefaultPermissions();
+        this.updateSelectAllState();
+      },
+    });
+  }
 }
 
-interface Permission {
-  name: string;
-  actions: {
-    read: boolean;
-    write: boolean;
-    create: boolean;
-  };
-}
+type Permission = ProcurementPermission;
