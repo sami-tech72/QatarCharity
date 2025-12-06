@@ -20,13 +20,13 @@ public class ProcurementRolesController : ControllerBase
         var defaultPermissions = new List<ProcurementPermission>
         {
             new("User Management", new ProcurementPermissionActions(true, true, true)),
-            new("Content Management", new ProcurementPermissionActions(true, true, false)),
-            new("Disputes Management", new ProcurementPermissionActions(true, false, false)),
+            new("Content Management", new ProcurementPermissionActions(true, true, true)),
+            new("Disputes Management", new ProcurementPermissionActions(true, true, true)),
             new("Database Management", new ProcurementPermissionActions(true, true, true)),
             new("Finance Management", new ProcurementPermissionActions(true, true, true)),
             new("Reporting", new ProcurementPermissionActions(true, true, true)),
-            new("API Control", new ProcurementPermissionActions(true, false, true)),
-            new("Repository Management", new ProcurementPermissionActions(true, true, false)),
+            new("API Control", new ProcurementPermissionActions(true, true, true)),
+            new("Repository Management", new ProcurementPermissionActions(true, true, true)),
             new("Payroll", new ProcurementPermissionActions(true, true, true)),
         };
 
@@ -49,7 +49,7 @@ public class ProcurementRolesController : ControllerBase
                     NewUsers: 2,
                     Avatars: new[] { "300-14.jpg", "300-2.jpg", "300-7.jpg", "300-8.jpg" },
                     ExtraCount: 1,
-                    Permissions: ClonePermissions(defaultPermissions, write: false)),
+                    Permissions: ClonePermissions(defaultPermissions, create: false)),
                 new(
                     Name: "Users",
                     Description: "Best for standard users who need access to all standard features.",
@@ -57,7 +57,7 @@ public class ProcurementRolesController : ControllerBase
                     NewUsers: 4,
                     Avatars: new[] { "300-9.jpg", "300-10.jpg", "300-12.jpg", "300-13.jpg" },
                     ExtraCount: 2,
-                    Permissions: ClonePermissions(defaultPermissions, create: false)),
+                    Permissions: ClonePermissions(defaultPermissions, write: false, create: false)),
                 new(
                     Name: "Support",
                     Description: "Best for employees who regularly refund payments",
@@ -65,7 +65,7 @@ public class ProcurementRolesController : ControllerBase
                     NewUsers: 2,
                     Avatars: new[] { "300-4.jpg", "300-1.jpg", "300-19.jpg" },
                     ExtraCount: null,
-                    Permissions: ClonePermissions(defaultPermissions, write: false)),
+                    Permissions: ClonePermissions(defaultPermissions, write: false, create: false)),
                 new(
                     Name: "Restricted User",
                     Description: "Best for people who need restricted access to sensitive data",
