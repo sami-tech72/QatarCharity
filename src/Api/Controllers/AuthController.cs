@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
 using Api.Models;
 using Application.Interfaces.Authentication;
 using Application.DTOs.Authentication;
@@ -53,15 +57,47 @@ public class AuthController : ControllerBase
         }
 
         var roles = await _userManager.GetRolesAsync(user);
+        var response = CreateLoginResponse(user, roles);
+
+        return Ok(ApiResponse<LoginResponse>.Ok(response, "Login successful."));
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ApiResponse<LoginResponse>>> GetCurrentUser()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized(ApiResponse<LoginResponse>.Fail("Invalid or expired token.", errorCode: "auth_invalid_token"));
+        }
+
+        var user = await _userManager.FindByIdAsync(userId);
+
+        if (user is null)
+        {
+            return Unauthorized(ApiResponse<LoginResponse>.Fail("User not found.", errorCode: "auth_invalid_token"));
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var response = CreateLoginResponse(user, roles);
+
+        return Ok(ApiResponse<LoginResponse>.Ok(response, "Session verified."));
+    }
+
+    private LoginResponse CreateLoginResponse(ApplicationUser user, IList<string> roles)
+    {
         var tokenResult = _tokenService.CreateToken(user, roles);
 
-        var response = new LoginResponse(
+        return new LoginResponse(
             Email: user.Email ?? string.Empty,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Role: roles.FirstOrDefault() ?? Roles.Supplier,
             Token: tokenResult.Token,
             ExpiresAt: tokenResult.ExpiresAt);
-
-        return Ok(ApiResponse<LoginResponse>.Ok(response, "Login successful."));
     }
 }
