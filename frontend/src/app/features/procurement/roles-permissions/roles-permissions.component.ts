@@ -2,7 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ProcurementRolesService } from '../../../core/services/procurement-roles.service';
-import { ProcurementPermission, ProcurementRolesResponse } from '../../../shared/models/procurement-roles.model';
+import {
+  CreateProcurementRoleRequest,
+  ProcurementPermission,
+  ProcurementRolesResponse,
+  ProcurementSubRole,
+} from '../../../shared/models/procurement-roles.model';
 import { procurementSidebarMenu } from '../models/menu';
 
 interface RoleCard {
@@ -32,6 +37,8 @@ export class RolesPermissionsComponent implements OnInit {
   roles: RoleCard[] = [];
   mainRole = '';
   private defaultPermissions: Permission[] = [];
+  isSubmitting = false;
+  submissionError = '';
 
   constructor(private readonly procurementRolesService: ProcurementRolesService) {}
 
@@ -46,6 +53,34 @@ export class RolesPermissionsComponent implements OnInit {
   closeAddRoleModal(): void {
     this.showAddRoleModal = false;
     this.resetRoleForm();
+  }
+
+  submitAddRole(): void {
+    this.submissionError = '';
+
+    if (!this.roleName.trim() || this.isSubmitting) {
+      return;
+    }
+
+    const payload: CreateProcurementRoleRequest = {
+      name: this.roleName.trim(),
+      description: 'Custom procurement role',
+      permissions: this.permissions,
+    };
+
+    this.isSubmitting = true;
+
+    this.procurementRolesService.createRole(payload).subscribe({
+      next: (newRole) => {
+        this.roles = [...this.roles, this.mapToRoleCard(newRole)];
+        this.isSubmitting = false;
+        this.closeAddRoleModal();
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        this.submissionError = error?.message || 'Unable to create role at this time.';
+      },
+    });
   }
 
   toggleAdministratorAccess(): void {
@@ -91,6 +126,8 @@ export class RolesPermissionsComponent implements OnInit {
   private resetRoleForm(): void {
     this.roleName = '';
     this.administratorAccess = false;
+    this.submissionError = '';
+    this.isSubmitting = false;
     this.permissions = this.createDefaultPermissions();
     this.updateSelectAllState();
   }
@@ -106,15 +143,7 @@ export class RolesPermissionsComponent implements OnInit {
     this.procurementRolesService.loadRoles().subscribe({
       next: (response: ProcurementRolesResponse) => {
         this.mainRole = response.mainRole;
-        this.roles = response.subRoles.map((role) => ({
-          name: role.name,
-          description: role.description,
-          newUsers: role.newUsers,
-          totalUsers: role.totalUsers,
-          avatars: role.avatars,
-          extraCount: role.extraCount,
-          actionLabel: 'Add user',
-        }));
+        this.roles = response.subRoles.map((role) => this.mapToRoleCard(role));
 
         this.defaultPermissions = this.mergeMenuPermissions(response.defaultPermissions);
         this.permissions = this.createDefaultPermissions();
@@ -134,6 +163,18 @@ export class RolesPermissionsComponent implements OnInit {
         actions: { ...actions },
       };
     });
+  }
+
+  private mapToRoleCard(role: ProcurementSubRole): RoleCard {
+    return {
+      name: role.name,
+      description: role.description,
+      newUsers: role.newUsers,
+      totalUsers: role.totalUsers,
+      avatars: role.avatars,
+      extraCount: role.extraCount,
+      actionLabel: 'Add user',
+    };
   }
 }
 

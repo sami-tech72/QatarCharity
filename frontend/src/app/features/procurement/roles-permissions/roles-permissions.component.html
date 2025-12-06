@@ -111,6 +111,10 @@
               </div>
             </div>
 
+            <div *ngIf="submissionError" class="alert alert-danger mt-4 mb-0" role="alert">
+              {{ submissionError }}
+            </div>
+
             <div class="section-divider my-6"></div>
 
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-5">
@@ -186,7 +190,14 @@
 
         <div class="modal-footer px-6 py-4 border-0 justify-content-end gap-3">
           <button type="button" class="btn btn-light" (click)="closeAddRoleModal()">Cancel</button>
-          <button type="button" class="btn btn-primary">Submit</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="!roleName.trim() || isSubmitting"
+            (click)="submitAddRole()"
+          >
+            {{ isSubmitting ? 'Saving...' : 'Submit' }}
+          </button>
         </div>
       </div>
     </div>

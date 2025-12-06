@@ -4,6 +4,12 @@ export interface ProcurementRolesResponse {
   defaultPermissions: ProcurementPermission[];
 }
 
+export interface CreateProcurementRoleRequest {
+  name: string;
+  description?: string;
+  permissions: ProcurementPermission[];
+}
+
 export interface ProcurementSubRole {
   name: string;
   description: string;

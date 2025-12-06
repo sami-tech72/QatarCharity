@@ -3,7 +3,11 @@ import { map, Observable } from 'rxjs';
 
 import { ApiService } from './api.service';
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { ProcurementRolesResponse } from '../../shared/models/procurement-roles.model';
+import {
+  CreateProcurementRoleRequest,
+  ProcurementRolesResponse,
+  ProcurementSubRole,
+} from '../../shared/models/procurement-roles.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProcurementRolesService {
@@ -11,6 +15,10 @@ export class ProcurementRolesService {
 
   loadRoles(): Observable<ProcurementRolesResponse> {
     return this.api.get<ProcurementRolesResponse>('procurement/roles').pipe(map((response) => this.unwrap(response)));
+  }
+
+  createRole(payload: CreateProcurementRoleRequest): Observable<ProcurementSubRole> {
+    return this.api.post<ProcurementSubRole>('procurement/roles', payload).pipe(map((response) => this.unwrap(response)));
   }
 
   private unwrap<T>(response: ApiResponse<T>): T {

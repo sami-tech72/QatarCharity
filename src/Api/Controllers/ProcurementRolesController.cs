@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Models;
 using Api.Models.Procurement;
+using Domain.Entities.Procurement;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -69,9 +71,50 @@ public class ProcurementRolesController : ControllerBase
         return Ok(ApiResponse<ProcurementRolesResponse>.Ok(response, "Procurement roles retrieved successfully."));
     }
 
+    [HttpPost]
+    [ProducesResponseType(typeof(ApiResponse<ProcurementSubRole>), StatusCodes.Status201Created)]
+    public async Task<ActionResult<ApiResponse<ProcurementSubRole>>> CreateProcurementRole(
+        [FromBody] CreateProcurementRoleRequest request)
+    {
+        var permissionDefinitions = await _dbContext.ProcurementPermissionDefinitions
+            .AsNoTracking()
+            .OrderBy(p => p.Id)
+            .ToListAsync();
+
+        var permissionsByName = (request.Permissions ?? Array.Empty<ProcurementPermission>())
+            .ToDictionary(permission => permission.Name, permission => permission.Actions, StringComparer.OrdinalIgnoreCase);
+
+        var template = new ProcurementRoleTemplate
+        {
+            Name = request.Name.Trim(),
+            Description = string.IsNullOrWhiteSpace(request.Description)
+                ? "Custom procurement role"
+                : request.Description.Trim(),
+            TotalUsers = 0,
+            NewUsers = 0,
+            Permissions = MapRolePermissions(permissionDefinitions, permissionsByName),
+        };
+
+        _dbContext.ProcurementRoleTemplates.Add(template);
+        await _dbContext.SaveChangesAsync();
+
+        var subRole = new ProcurementSubRole(
+            Name: template.Name,
+            Description: template.Description,
+            TotalUsers: template.TotalUsers,
+            NewUsers: template.NewUsers,
+            Avatars: template.Avatars.Select(a => a.FileName).ToList(),
+            ExtraCount: template.ExtraCount,
+            Permissions: MapPermissions(template.Permissions, permissionDefinitions));
+
+        return StatusCode(
+            StatusCodes.Status201Created,
+            ApiResponse<ProcurementSubRole>.Ok(subRole, "Procurement role created successfully."));
+    }
+
     private static IReadOnlyList<ProcurementPermission> MapPermissions(
-        IEnumerable<Domain.Entities.Procurement.ProcurementRolePermission> rolePermissions,
-        IEnumerable<Domain.Entities.Procurement.ProcurementPermissionDefinition> definitions)
+        IEnumerable<ProcurementRolePermission> rolePermissions,
+        IEnumerable<ProcurementPermissionDefinition> definitions)
     {
         var permissionLookup = rolePermissions.ToDictionary(p => p.ProcurementPermissionDefinitionId);
 
@@ -86,6 +129,29 @@ public class ProcurementRolesController : ControllerBase
                         matchingPermission?.CanRead ?? definition.DefaultRead,
                         matchingPermission?.CanWrite ?? definition.DefaultWrite,
                         matchingPermission?.CanCreate ?? definition.DefaultCreate));
+            })
+            .ToList();
+    }
+
+    private static List<ProcurementRolePermission> MapRolePermissions(
+        IEnumerable<ProcurementPermissionDefinition> definitions,
+        IReadOnlyDictionary<string, ProcurementPermissionActions> overrides)
+    {
+        return definitions
+            .Select(definition =>
+            {
+                var hasOverride = overrides.TryGetValue(definition.Name, out var actions);
+                var read = hasOverride ? actions!.Read : definition.DefaultRead;
+                var write = hasOverride ? actions!.Write : definition.DefaultWrite;
+                var create = hasOverride ? actions!.Create : definition.DefaultCreate;
+
+                return new ProcurementRolePermission
+                {
+                    ProcurementPermissionDefinitionId = definition.Id,
+                    CanRead = read,
+                    CanWrite = write,
+                    CanCreate = create,
+                };
             })
             .ToList();
     }
