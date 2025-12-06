@@ -90,6 +90,120 @@ namespace Persistence.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.Procurement.ProcurementPermissionDefinition", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("DefaultCreate")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("DefaultRead")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("DefaultWrite")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProcurementPermissionDefinitions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRoleAvatar", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("ProcurementRoleTemplateId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProcurementRoleTemplateId");
+
+                    b.ToTable("ProcurementRoleAvatars");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRolePermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CanCreate")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanRead")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanWrite")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ProcurementPermissionDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProcurementRoleTemplateId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProcurementPermissionDefinitionId");
+
+                    b.HasIndex("ProcurementRoleTemplateId");
+
+                    b.ToTable("ProcurementRolePermissions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRoleTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<int?>("ExtraCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("NewUsers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalUsers")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProcurementRoleTemplates");
+                });
+
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
                 {
                     b.Property<Guid>("Id")
@@ -397,6 +511,36 @@ namespace Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRoleAvatar", b =>
+                {
+                    b.HasOne("Domain.Entities.Procurement.ProcurementRoleTemplate", "ProcurementRoleTemplate")
+                        .WithMany("Avatars")
+                        .HasForeignKey("ProcurementRoleTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProcurementRoleTemplate");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRolePermission", b =>
+                {
+                    b.HasOne("Domain.Entities.Procurement.ProcurementPermissionDefinition", "ProcurementPermissionDefinition")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("ProcurementPermissionDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Procurement.ProcurementRoleTemplate", "ProcurementRoleTemplate")
+                        .WithMany("Permissions")
+                        .HasForeignKey("ProcurementRoleTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProcurementPermissionDefinition");
+
+                    b.Navigation("ProcurementRoleTemplate");
+                });
+
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
                 {
                     b.HasOne("Domain.Entities.ApplicationUser", null)
@@ -472,6 +616,18 @@ namespace Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Procurement.ProcurementPermissionDefinition", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRoleTemplate", b =>
+                {
+                    b.Navigation("Avatars");
+
+                    b.Navigation("Permissions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Workflow", b =>

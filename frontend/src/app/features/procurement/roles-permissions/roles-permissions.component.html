@@ -1,0 +1,205 @@
+<div class="d-flex flex-column flex-column-fluid">
+  <div id="kt_app_content" class="app-content flex-column-fluid">
+    <div id="kt_app_content_container" class="app-container container-xxl">
+      <div class="d-flex flex-wrap align-items-center justify-content-between mb-6 gap-3">
+        <div>
+          <div class="text-uppercase text-gray-500 fw-semibold mb-1">Main Role</div>
+          <div class="d-flex align-items-center gap-3">
+            <h1 class="page-title mb-0">{{ mainRole || 'Procurement' }}</h1>
+            <span class="badge badge-light-primary text-uppercase fw-bold">Active</span>
+          </div>
+          <div class="text-gray-600">
+            {{ mainRole || 'Procurement' }} has full access to procurement. Manage sub-roles and their permissions
+            below.
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-5">
+        <div
+          class="card role-card flex-grow-1"
+          *ngFor="let role of roles"
+        >
+          <div class="card-body d-flex flex-column h-100">
+            <div class="d-flex justify-content-between align-items-start mb-5">
+              <span class="badge badge-light-success fw-semibold py-2 px-3">{{ role.newUsers }} New Users</span>
+              <div class="d-flex align-items-center gap-2">
+                <a class="btn btn-sm btn-light-primary">Edit Role</a>
+                <button type="button" class="btn btn-sm btn-icon btn-light-danger">
+                  <i class="ki-duotone ki-trash fs-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-start mb-3">
+              <div class="d-flex flex-column me-3">
+                <span class="fs-3qx fw-bold text-gray-900">{{ role.totalUsers }}</span>
+                <span class="text-gray-600">Total {{ role.totalUsers }} users</span>
+              </div>
+              <div>
+                <div class="fs-2 fw-bold text-gray-900">{{ role.name }}</div>
+                <p class="text-gray-600 mb-0">{{ role.description }}</p>
+              </div>
+            </div>
+
+            <div class="mt-auto d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div class="symbol-group symbol-hover">
+                <div class="symbol symbol-circle symbol-35px" *ngFor="let avatar of role.avatars">
+                  <img [src]="'assets/media/avatars/' + avatar" alt="Avatar" />
+                </div>
+                <div
+                  class="symbol symbol-35px symbol-circle symbol-light"
+                  *ngIf="role.extraCount"
+                >
+                  <span class="symbol-label fw-semibold text-gray-800">+{{ role.extraCount }}</span>
+                </div>
+              </div>
+              <a class="btn btn-sm btn-outline btn-outline-dashed btn-outline-default fw-bold">
+                {{ role.actionLabel }}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card role-card role-card--new flex-grow-1">
+          <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+            <img
+              src="assets/media/illustrations/dozzy-1/7.png"
+              alt="Add new role illustration"
+              class="mw-200px mb-5"
+            />
+            <div class="mb-6">
+              <div class="fs-2 fw-bold text-gray-900">Add New Role</div>
+              <p class="text-gray-600 mb-0">Add new role, if it doesn’t exist in the account.</p>
+            </div>
+            <a class="btn btn-primary" (click)="openAddRoleModal()">
+              <i class="ki-duotone ki-plus fs-2 me-2"></i>
+              Add New Role
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop-custom" *ngIf="showAddRoleModal" (click)="closeAddRoleModal()"></div>
+  <div class="modal-custom" *ngIf="showAddRoleModal">
+    <div class="modal-dialog-custom">
+      <div class="modal-content">
+        <div class="modal-header px-6 py-4 border-0">
+          <div>
+            <h3 class="modal-title mb-1">Add New Role</h3>
+            <div class="text-muted">Set role permissions</div>
+          </div>
+          <button type="button" class="btn btn-icon btn-sm btn-light" aria-label="Close" (click)="closeAddRoleModal()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <div class="modal-body px-6 pb-6 pt-0">
+          <form class="needs-validation" novalidate>
+            <div class="row g-4">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold">Role Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter a role name"
+                  [(ngModel)]="roleName"
+                  name="roleName"
+                />
+              </div>
+            </div>
+
+            <div *ngIf="submissionError" class="alert alert-danger mt-4 mb-0" role="alert">
+              {{ submissionError }}
+            </div>
+
+            <div class="section-divider my-6"></div>
+
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-5">
+              <div class="form-check form-check-custom form-check-solid form-check-success">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="administratorAccess"
+                  [checked]="administratorAccess"
+                  (change)="toggleAdministratorAccess()"
+                />
+                <label class="form-check-label ms-2" for="administratorAccess">Administrator Access</label>
+              </div>
+
+              <div class="form-check form-check-custom form-check-solid">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="selectAll"
+                  [checked]="selectAll"
+                  (change)="toggleSelectAll()"
+                />
+                <label class="form-check-label ms-2" for="selectAll">Select All</label>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table align-middle table-row-dashed mb-0">
+                <thead>
+                  <tr class="border-bottom border-light">
+                    <th class="text-gray-600 fw-semibold">Role Permissions</th>
+                    <th class="text-gray-600 fw-semibold text-center">Read</th>
+                    <th class="text-gray-600 fw-semibold text-center">Write</th>
+                    <th class="text-gray-600 fw-semibold text-center">Create</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let permission of permissions">
+                    <td class="text-gray-900 fw-semibold">{{ permission.name }}</td>
+                    <td class="text-center">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [(ngModel)]="permission.actions.read"
+                        name="{{ permission.name }}-read"
+                        (change)="onPermissionChange()"
+                      />
+                    </td>
+                    <td class="text-center">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [(ngModel)]="permission.actions.write"
+                        name="{{ permission.name }}-write"
+                        (change)="onPermissionChange()"
+                      />
+                    </td>
+                    <td class="text-center">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [(ngModel)]="permission.actions.create"
+                        name="{{ permission.name }}-create"
+                        (change)="onPermissionChange()"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer px-6 py-4 border-0 justify-content-end gap-3">
+          <button type="button" class="btn btn-light" (click)="closeAddRoleModal()">Cancel</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="!roleName.trim() || isSubmitting"
+            (click)="submitAddRole()"
+          >
+            {{ isSubmitting ? 'Saving...' : 'Submit' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
