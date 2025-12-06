@@ -20,13 +20,13 @@ public class ProcurementRolesController : ControllerBase
     {
         var permissions = new List<ProcurementPermissionDto>
         {
-            new("Supplier Management", view: true, edit: true, create: true, delete: true),
-            new("RFx Management", view: true, edit: true, create: true, delete: false),
-            new("Purchase Orders", view: true, edit: true, create: true, delete: false),
-            new("Contracts", view: true, edit: true, create: false, delete: false),
-            new("Invoices", view: true, edit: false, create: false, delete: false),
-            new("Reports", view: true, edit: false, create: false, delete: false),
-            new("Settings", view: true, edit: true, create: false, delete: false),
+            new("Supplier Management", View: true, Edit: true, Create: true, Delete: true),
+            new("RFx Management", View: true, Edit: true, Create: true, Delete: false),
+            new("Purchase Orders", View: true, Edit: true, Create: true, Delete: false),
+            new("Contracts", View: true, Edit: true, Create: false, Delete: false),
+            new("Invoices", View: true, Edit: false, Create: false, Delete: false),
+            new("Reports", View: true, Edit: false, Create: false, Delete: false),
+            new("Settings", View: true, Edit: true, Create: false, Delete: false),
         };
 
         var subRoles = new List<ProcurementSubRoleDto>
