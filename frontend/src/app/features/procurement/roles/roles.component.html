@@ -1,20 +1,100 @@
-<div class="page-placeholder">
-  <h1 class="page-placeholder__title">Roles &amp; Permissions</h1>
-  <p class="page-placeholder__subtitle">
-    Define procurement roles and assign permissions to control who can perform sensitive actions.
-  </p>
-
-  <div class="page-placeholder__grid">
-    <div class="page-placeholder__card">
-      <h2 class="page-placeholder__card-title">Roles</h2>
-      <p class="page-placeholder__card-text">Create, edit, and organize procurement roles to mirror your team's responsibilities.</p>
-    </div>
-
-    <div class="page-placeholder__card">
-      <h2 class="page-placeholder__card-title">Permissions</h2>
-      <p class="page-placeholder__card-text">
-        Configure permissions for each role to keep sourcing, approvals, and contracting secure.
+<div class="page">
+  <header class="page__header">
+    <div>
+      <p class="page__eyebrow">Access control</p>
+      <h1 class="page__title">Procurement roles &amp; permissions</h1>
+      <p class="page__subtitle">
+        Set the main procurement role and fine-tune sub-roles with menu-level permissions for view, edit, create,
+        and delete.
       </p>
     </div>
-  </div>
+    <span class="page__badge">Updated today</span>
+  </header>
+
+  <section class="card main-role">
+    <div class="main-role__header">
+      <div>
+        <p class="overline">Main role</p>
+        <h2 class="main-role__title">{{ mainRole.name }}</h2>
+      </div>
+      <div class="main-role__meta">
+        <span class="pill">{{ mainRole.members }} members</span>
+        <span class="pill pill--outline">Default owner</span>
+      </div>
+    </div>
+    <p class="muted">{{ mainRole.description }}</p>
+    <div class="main-role__permissions">
+      <p class="muted">Default permissions</p>
+      <div class="permission-chips">
+        <span class="permission-chip permission-chip--active" *ngFor="let permission of mainRole.permissions">
+          {{ permission }}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section__header">
+      <div>
+        <p class="overline">Sub-roles</p>
+        <h3 class="section__title">Specialized procurement duties</h3>
+        <p class="muted">Create tailored access for the different responsibilities inside the procurement team.</p>
+      </div>
+      <span class="muted">{{ subRoles.length }} roles</span>
+    </div>
+
+    <div class="sub-roles">
+      <article class="card sub-role" *ngFor="let role of subRoles; trackBy: role.name">
+        <div class="sub-role__header">
+          <h4 class="sub-role__title">{{ role.name }}</h4>
+          <span class="pill">{{ role.members }} members</span>
+        </div>
+        <p class="muted">{{ role.description }}</p>
+        <div class="permission-chips">
+          <span
+            class="permission-chip"
+            [class.permission-chip--active]="role.permissions.includes(permission)"
+            *ngFor="let permission of permissionTypes"
+          >
+            {{ permission }}
+          </span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section__header section__header--compact">
+      <div>
+        <p class="overline">Menu permissions</p>
+        <h3 class="section__title">Access by procurement menu</h3>
+        <p class="muted">Quick view of who can see, edit, create, or delete items within each procurement module.</p>
+      </div>
+    </div>
+
+    <div class="permissions-table" role="table">
+      <div class="permissions-table__row permissions-table__row--head" role="row">
+        <div class="permissions-table__cell permissions-table__cell--menu" role="columnheader">Menu</div>
+        <div class="permissions-table__cell" role="columnheader">View</div>
+        <div class="permissions-table__cell" role="columnheader">Edit</div>
+        <div class="permissions-table__cell" role="columnheader">Create</div>
+        <div class="permissions-table__cell" role="columnheader">Delete</div>
+      </div>
+      <div class="permissions-table__row" role="row" *ngFor="let permission of menuPermissions; trackBy: permission.menu">
+        <div class="permissions-table__cell permissions-table__cell--menu" role="cell">{{ permission.menu }}</div>
+        <div class="permissions-table__cell" role="cell">
+          <span class="permission-indicator" [class.permission-indicator--on]="permission.view">View</span>
+        </div>
+        <div class="permissions-table__cell" role="cell">
+          <span class="permission-indicator" [class.permission-indicator--on]="permission.edit">Edit</span>
+        </div>
+        <div class="permissions-table__cell" role="cell">
+          <span class="permission-indicator" [class.permission-indicator--on]="permission.create">Create</span>
+        </div>
+        <div class="permissions-table__cell" role="cell">
+          <span class="permission-indicator" [class.permission-indicator--on]="permission.delete">Delete</span>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
