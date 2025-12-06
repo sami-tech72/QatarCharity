@@ -17,12 +17,15 @@ export class RolesService {
 
   private getFallbackPayload(): ProcurementRolePayload {
     const menuPermissions = [
-      { menu: 'Supplier Management', view: true, edit: true, create: true, delete: true },
+      { menu: 'Dashboard', view: true, edit: false, create: false, delete: false },
       { menu: 'RFx Management', view: true, edit: true, create: true, delete: false },
-      { menu: 'Purchase Orders', view: true, edit: true, create: true, delete: false },
-      { menu: 'Contracts', view: true, edit: true, create: false, delete: false },
-      { menu: 'Invoices', view: true, edit: false, create: false, delete: false },
-      { menu: 'Reports', view: true, edit: false, create: false, delete: false },
+      { menu: 'Bid Evaluation', view: true, edit: true, create: false, delete: false },
+      { menu: 'Tender Committee', view: true, edit: true, create: false, delete: false },
+      { menu: 'Contract Management', view: true, edit: true, create: true, delete: false },
+      { menu: 'Supplier Performance', view: true, edit: true, create: false, delete: false },
+      { menu: 'Reports & Analytics', view: true, edit: false, create: false, delete: false },
+      { menu: 'Members', view: true, edit: true, create: true, delete: false },
+      { menu: 'Roles & Permissions', view: true, edit: true, create: true, delete: false },
       { menu: 'Settings', view: true, edit: true, create: false, delete: false },
     ];
 
@@ -57,7 +60,8 @@ export class RolesService {
           permissions: menuPermissions.map((p) => ({
             ...p,
             edit: false,
-            create: p.menu === 'RFx Management' || p.menu === 'Purchase Orders',
+            create:
+              p.menu === 'RFx Management' || p.menu === 'Contract Management' || p.menu === 'Members',
             delete: false,
           })),
         },

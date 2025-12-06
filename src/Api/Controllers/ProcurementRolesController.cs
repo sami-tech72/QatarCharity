@@ -20,12 +20,15 @@ public class ProcurementRolesController : ControllerBase
     {
         var permissions = new List<ProcurementPermissionDto>
         {
-            new("Supplier Management", View: true, Edit: true, Create: true, Delete: true),
+            new("Dashboard", View: true, Edit: false, Create: false, Delete: false),
             new("RFx Management", View: true, Edit: true, Create: true, Delete: false),
-            new("Purchase Orders", View: true, Edit: true, Create: true, Delete: false),
-            new("Contracts", View: true, Edit: true, Create: false, Delete: false),
-            new("Invoices", View: true, Edit: false, Create: false, Delete: false),
-            new("Reports", View: true, Edit: false, Create: false, Delete: false),
+            new("Bid Evaluation", View: true, Edit: true, Create: false, Delete: false),
+            new("Tender Committee", View: true, Edit: true, Create: false, Delete: false),
+            new("Contract Management", View: true, Edit: true, Create: true, Delete: false),
+            new("Supplier Performance", View: true, Edit: true, Create: false, Delete: false),
+            new("Reports & Analytics", View: true, Edit: false, Create: false, Delete: false),
+            new("Members", View: true, Edit: true, Create: true, Delete: false),
+            new("Roles & Permissions", View: true, Edit: true, Create: true, Delete: false),
             new("Settings", View: true, Edit: true, Create: false, Delete: false),
         };
 
@@ -69,7 +72,7 @@ public class ProcurementRolesController : ControllerBase
                     .Select(p => p with
                     {
                         Edit = false,
-                        Create = p.Menu is "RFx Management" or "Purchase Orders",
+                        Create = p.Menu is "RFx Management" or "Contract Management" or "Members",
                         Delete = false
                     })
                     .ToList()
