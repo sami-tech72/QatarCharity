@@ -96,11 +96,14 @@ public class AuthController : ControllerBase
 
     private async Task<LoginResponse> CreateLoginResponseAsync(ApplicationUser user, IList<string> roles)
     {
-        var tokenResult = _tokenService.CreateToken(user, roles);
-
         var procurementRole = roles.Contains(Roles.Procurement)
             ? await BuildProcurementRoleAsync(user)
             : null;
+
+        var tokenResult = _tokenService.CreateToken(
+            user,
+            roles,
+            BuildProcurementClaims(procurementRole));
 
         return new LoginResponse(
             Email: user.Email ?? string.Empty,
@@ -109,6 +112,30 @@ public class AuthController : ControllerBase
             Token: tokenResult.Token,
             ExpiresAt: tokenResult.ExpiresAt,
             ProcurementRole: procurementRole);
+    }
+
+    private static IEnumerable<Claim>? BuildProcurementClaims(ProcurementUserRoleDto? procurementRole)
+    {
+        if (procurementRole is null)
+        {
+            return null;
+        }
+
+        var claims = new List<Claim>
+        {
+            new("procurement_role_id", procurementRole.Id.ToString())
+        };
+
+        claims.AddRange(procurementRole.Permissions.Select(permission =>
+            new Claim($"procurement_permission:{permission.Name}",
+                string.Join(",", new[]
+                {
+                    permission.Actions.Read ? "read" : null,
+                    permission.Actions.Write ? "write" : null,
+                    permission.Actions.Create ? "create" : null,
+                }.Where(action => action is not null)!))));
+
+        return claims;
     }
 
     private async Task<ProcurementUserRoleDto?> BuildProcurementRoleAsync(ApplicationUser user)
