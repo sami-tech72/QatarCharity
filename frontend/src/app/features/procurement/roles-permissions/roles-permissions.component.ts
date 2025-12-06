@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 interface RoleCard {
   name: string;
@@ -14,11 +15,30 @@ interface RoleCard {
 @Component({
   selector: 'app-procurement-roles-permissions-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './roles-permissions.component.html',
   styleUrl: './roles-permissions.component.scss',
 })
 export class RolesPermissionsComponent {
+  showAddRoleModal = false;
+  roleName = '';
+  administratorAccess = false;
+  selectAll = false;
+
+  private readonly defaultPermissions: Permission[] = [
+    { name: 'User Management', actions: { read: true, write: true, create: true } },
+    { name: 'Content Management', actions: { read: true, write: true, create: false } },
+    { name: 'Disputes Management', actions: { read: true, write: false, create: false } },
+    { name: 'Database Management', actions: { read: true, write: true, create: true } },
+    { name: 'Finance Management', actions: { read: true, write: true, create: true } },
+    { name: 'Reporting', actions: { read: true, write: true, create: true } },
+    { name: 'API Control', actions: { read: true, write: false, create: true } },
+    { name: 'Repository Management', actions: { read: true, write: true, create: false } },
+    { name: 'Payroll', actions: { read: true, write: true, create: true } },
+  ];
+
+  permissions: Permission[] = this.createDefaultPermissions();
+
   readonly roles: RoleCard[] = [
     {
       name: 'Administrator',
@@ -63,4 +83,76 @@ export class RolesPermissionsComponent {
       actionLabel: 'Add user',
     },
   ];
+
+  openAddRoleModal(): void {
+    this.showAddRoleModal = true;
+  }
+
+  closeAddRoleModal(): void {
+    this.showAddRoleModal = false;
+    this.resetRoleForm();
+  }
+
+  toggleAdministratorAccess(): void {
+    this.administratorAccess = !this.administratorAccess;
+
+    if (this.administratorAccess) {
+      this.setAllPermissions(true);
+    } else {
+      this.updateSelectAllState();
+    }
+  }
+
+  toggleSelectAll(): void {
+    this.selectAll = !this.selectAll;
+    this.setAllPermissions(this.selectAll);
+  }
+
+  onPermissionChange(): void {
+    this.updateSelectAllState();
+  }
+
+  private setAllPermissions(value: boolean): void {
+    this.permissions = this.permissions.map((permission) => ({
+      ...permission,
+      actions: {
+        read: value,
+        write: value,
+        create: value,
+      },
+    }));
+
+    this.updateSelectAllState();
+  }
+
+  private updateSelectAllState(): void {
+    const allSelected = this.permissions.every(
+      (permission) => permission.actions.read && permission.actions.write && permission.actions.create,
+    );
+
+    this.selectAll = allSelected;
+  }
+
+  private resetRoleForm(): void {
+    this.roleName = '';
+    this.administratorAccess = false;
+    this.permissions = this.createDefaultPermissions();
+    this.updateSelectAllState();
+  }
+
+  private createDefaultPermissions(): Permission[] {
+    return this.defaultPermissions.map((permission) => ({
+      name: permission.name,
+      actions: { ...permission.actions },
+    }));
+  }
+}
+
+interface Permission {
+  name: string;
+  actions: {
+    read: boolean;
+    write: boolean;
+    create: boolean;
+  };
 }
