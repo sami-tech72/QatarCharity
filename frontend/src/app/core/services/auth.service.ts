@@ -1,6 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  catchError,
+  firstValueFrom,
+  map,
+  tap,
+  throwError,
+} from 'rxjs';
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
@@ -23,6 +31,32 @@ export class AuthService {
     private readonly router: Router,
   ) {}
 
+  async initialize(): Promise<void> {
+    const session = this.currentSession();
+
+    if (!session) {
+      return;
+    }
+
+    try {
+      const freshSession = await firstValueFrom(
+        this.api.get<LoginResponse>('auth/me').pipe(
+          map((response: ApiResponse<LoginResponse>) => {
+            if (!response.success || !response.data) {
+              throw new Error(response.message || 'Unable to verify session.');
+            }
+
+            return response.data;
+          }),
+        ),
+      );
+
+      this.persistSession(freshSession);
+    } catch {
+      this.logout();
+    }
+  }
+
   login(request: LoginRequest): Observable<UserSession> {
     return this.api.post<LoginResponse>('auth/login', request).pipe(
       map((response: ApiResponse<LoginResponse>) => {
@@ -37,10 +71,13 @@ export class AuthService {
     );
   }
 
-  logout() {
+  logout(shouldRedirect = true) {
     localStorage.removeItem(this.storageKey);
     this.sessionSubject.next(null);
-    this.router.navigate(['/login']);
+
+    if (shouldRedirect) {
+      this.router.navigate(['/login']);
+    }
   }
 
   currentSession(): UserSession | null {
@@ -70,10 +107,21 @@ export class AuthService {
     }
 
     try {
-      return JSON.parse(raw) as UserSession;
+      const session = JSON.parse(raw) as UserSession;
+
+      if (this.isExpired(session.expiresAt)) {
+        localStorage.removeItem(this.storageKey);
+        return null;
+      }
+
+      return session;
     } catch (error) {
       console.error('Unable to parse stored session', error);
       return null;
     }
+  }
+
+  private isExpired(expiresAt: string | Date): boolean {
+    return new Date(expiresAt).getTime() <= Date.now();
   }
 }

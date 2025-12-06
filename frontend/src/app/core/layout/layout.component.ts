@@ -3,12 +3,14 @@ import { AfterViewInit, Component, DestroyRef } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { SidebarComponent, SidebarMenuItem } from './sidebar/sidebar.component';
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
 import { AuthService } from '../services/auth.service';
 import { UserRole, UserSession } from '../../shared/models/user.model';
+import { ThemeMode, ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-layout',
@@ -33,6 +35,14 @@ export class LayoutComponent implements AfterViewInit {
     Supplier: supplierSidebarMenu,
   } as const;
 
+  readonly themeModes: { label: string; icon: string; value: ThemeMode }[] = [
+    { label: 'Light', icon: 'ki-duotone ki-night-day', value: 'light' },
+    { label: 'Dark', icon: 'ki-duotone ki-moon', value: 'dark' },
+    { label: 'System', icon: 'ki-duotone ki-screen', value: 'system' },
+  ];
+
+  readonly themeMode$: Observable<ThemeMode>;
+
   roles: UserRole[] = [];
 
   currentRole: UserRole = 'Admin';
@@ -51,7 +61,10 @@ export class LayoutComponent implements AfterViewInit {
     private readonly router: Router,
     destroyRef: DestroyRef,
     private readonly authService: AuthService,
+    private readonly themeService: ThemeService,
   ) {
+    this.themeMode$ = this.themeService.mode$;
+
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -81,6 +94,11 @@ export class LayoutComponent implements AfterViewInit {
     }
 
     this.router.navigateByUrl(this.authService.defaultPathForRole(role));
+  }
+
+  changeTheme(mode: ThemeMode) {
+    this.themeService.setMode(mode);
+    this.scheduleLayoutInitialization();
   }
 
   private updateActivePageTitle(url: string) {
