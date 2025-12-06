@@ -3,6 +3,7 @@ import { AfterViewInit, Component, DestroyRef } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { SidebarComponent, SidebarMenuItem } from './sidebar/sidebar.component';
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
@@ -40,7 +41,7 @@ export class LayoutComponent implements AfterViewInit {
     { label: 'System', icon: 'ki-duotone ki-screen', value: 'system' },
   ];
 
-  readonly themeMode$ = this.themeService.mode$;
+  readonly themeMode$: Observable<ThemeMode>;
 
   roles: UserRole[] = [];
 
@@ -62,6 +63,8 @@ export class LayoutComponent implements AfterViewInit {
     private readonly authService: AuthService,
     private readonly themeService: ThemeService,
   ) {
+    this.themeMode$ = this.themeService.mode$;
+
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
