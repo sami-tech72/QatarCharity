@@ -54,6 +54,26 @@ export const procurementRoutes: Routes = [
           import('./reports-analytics/reports-analytics.component').then((m) => m.ReportsAnalyticsComponent),
       },
       {
+        path: 'members',
+        title: 'Members',
+        loadComponent: () => import('./members/members.component').then((m) => m.MembersComponent),
+      },
+      {
+        path: 'roles-permissions',
+        title: 'Roles & Permissions',
+        loadComponent: () => import('./roles/roles.component').then((m) => m.RolesComponent),
+      },
+      {
+        path: 'roles',
+        pathMatch: 'full',
+        redirectTo: 'roles-permissions',
+      },
+      {
+        path: 'permissions',
+        pathMatch: 'full',
+        redirectTo: 'roles-permissions',
+      },
+      {
         path: 'settings',
         title: 'Procurement Settings',
         loadComponent: () => import('./settings/procurement-settings.component').then((m) => m.ProcurementSettingsComponent),
