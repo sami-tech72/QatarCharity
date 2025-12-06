@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.Entities.Procurement;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<Workflow> Workflows => Set<Workflow>();
     public DbSet<WorkflowStep> WorkflowSteps => Set<WorkflowStep>();
+    public DbSet<ProcurementPermissionDefinition> ProcurementPermissionDefinitions => Set<ProcurementPermissionDefinition>();
+    public DbSet<ProcurementRoleTemplate> ProcurementRoleTemplates => Set<ProcurementRoleTemplate>();
+    public DbSet<ProcurementRoleAvatar> ProcurementRoleAvatars => Set<ProcurementRoleAvatar>();
+    public DbSet<ProcurementRolePermission> ProcurementRolePermissions => Set<ProcurementRolePermission>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
