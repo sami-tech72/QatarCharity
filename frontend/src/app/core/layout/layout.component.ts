@@ -9,6 +9,7 @@ import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
 import { AuthService } from '../services/auth.service';
 import { UserRole, UserSession } from '../../shared/models/user.model';
+import { ThemeMode, ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-layout',
@@ -33,6 +34,14 @@ export class LayoutComponent implements AfterViewInit {
     Supplier: supplierSidebarMenu,
   } as const;
 
+  readonly themeModes: { label: string; icon: string; value: ThemeMode }[] = [
+    { label: 'Light', icon: 'ki-duotone ki-night-day', value: 'light' },
+    { label: 'Dark', icon: 'ki-duotone ki-moon', value: 'dark' },
+    { label: 'System', icon: 'ki-duotone ki-screen', value: 'system' },
+  ];
+
+  readonly themeMode$ = this.themeService.mode$;
+
   roles: UserRole[] = [];
 
   currentRole: UserRole = 'Admin';
@@ -51,6 +60,7 @@ export class LayoutComponent implements AfterViewInit {
     private readonly router: Router,
     destroyRef: DestroyRef,
     private readonly authService: AuthService,
+    private readonly themeService: ThemeService,
   ) {
     this.router.events
       .pipe(
@@ -81,6 +91,11 @@ export class LayoutComponent implements AfterViewInit {
     }
 
     this.router.navigateByUrl(this.authService.defaultPathForRole(role));
+  }
+
+  changeTheme(mode: ThemeMode) {
+    this.themeService.setMode(mode);
+    this.scheduleLayoutInitialization();
   }
 
   private updateActivePageTitle(url: string) {
