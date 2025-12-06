@@ -1,0 +1,17 @@
+.role-card {
+  max-width: 360px;
+  min-width: 320px;
+}
+
+.role-card--new {
+  align-self: stretch;
+  max-width: 360px;
+}
+
+@media (max-width: 1199.98px) {
+  .role-card,
+  .role-card--new {
+    max-width: 100%;
+    min-width: 100%;
+  }
+}

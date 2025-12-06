@@ -8,5 +8,6 @@ export const procurementSidebarMenu: SidebarMenuItem[] = [
   { title: 'Contract Management', icon: 'ki-duotone ki-file-added fs-2', path: '/procurement/contract-management' },
   { title: 'Supplier Performance', icon: 'ki-duotone ki-activity fs-2', path: '/procurement/supplier-performance' },
   { title: 'Reports & Analytics', icon: 'ki-duotone ki-chart-line-up fs-2', path: '/procurement/reports-analytics' },
+  { title: 'Roles & Permissions', icon: 'ki-duotone ki-profile-user fs-2', path: '/procurement/roles-permissions' },
   { title: 'Settings', icon: 'ki-duotone ki-setting-2 fs-2', path: '/procurement/settings' },
 ];
