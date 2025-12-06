@@ -31,7 +31,7 @@
           <span class="avatar avatar--extra" *ngIf="role.extraUsers">+{{ role.extraUsers }}</span>
         </div>
         <div class="role-card__actions">
-          <a class="link" href="javascript:void(0)">Edit Role</a>
+          <a class="link" href="javascript:void(0)" (click)="openModal()">Edit Role</a>
           <button type="button" class="icon-button" aria-label="Copy role">
             <span class="icon-button__square"></span>
           </button>
@@ -64,6 +64,7 @@
         <span class="field__label">Role Name</span>
         <input
           name="roleName"
+          #roleNameInput
           [(ngModel)]="newRoleName"
           placeholder="Enter a role name"
           class="field__input"

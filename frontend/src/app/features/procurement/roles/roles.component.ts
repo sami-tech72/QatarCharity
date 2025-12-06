@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 type PermissionKey = 'read' | 'write' | 'create';
@@ -27,7 +27,10 @@ type RoleCard = {
   styleUrls: ['./roles.component.scss'],
 })
 export class RolesComponent {
-  protected roles: RoleCard[] = [
+  @ViewChild('roleNameInput')
+  public roleNameInput?: ElementRef<HTMLInputElement>;
+
+  public roles: RoleCard[] = [
     {
       name: 'Administrator',
       users: 14,
@@ -65,10 +68,10 @@ export class RolesComponent {
     },
   ];
 
-  protected showAddRoleModal = false;
-  protected newRoleName = '';
-  protected adminAccess = false;
-  protected selectAllPermissions = false;
+  public showAddRoleModal = false;
+  public newRoleName = '';
+  public adminAccess = false;
+  public selectAllPermissions = false;
 
   private readonly basePermissionRows: PermissionRow[] = [
     { module: 'User Management', read: true, write: true, create: true },
@@ -82,26 +85,27 @@ export class RolesComponent {
     { module: 'Payroll', read: true, write: false, create: false },
   ];
 
-  protected permissionRows: PermissionRow[] = this.basePermissionRows.map((row) => ({ ...row }));
+  public permissionRows: PermissionRow[] = this.basePermissionRows.map((row) => ({ ...row }));
 
-  protected trackByRole(_: number, role: RoleCard): string {
+  public trackByRole(_: number, role: RoleCard): string {
     return role.name;
   }
 
-  protected trackByPermissionRow(_: number, permission: PermissionRow): string {
+  public trackByPermissionRow(_: number, permission: PermissionRow): string {
     return permission.module;
   }
 
-  protected openModal(): void {
+  public openModal(): void {
     this.showAddRoleModal = true;
+    queueMicrotask(() => this.roleNameInput?.nativeElement.focus());
   }
 
-  protected closeModal(): void {
+  public closeModal(): void {
     this.showAddRoleModal = false;
     this.resetForm();
   }
 
-  protected toggleSelectAll(checked: boolean): void {
+  public toggleSelectAll(checked: boolean): void {
     this.permissionRows = this.permissionRows.map((row) => ({
       ...row,
       read: checked,
@@ -112,12 +116,12 @@ export class RolesComponent {
     this.adminAccess = checked;
   }
 
-  protected togglePermission(row: PermissionRow, key: PermissionKey, checked: boolean): void {
+  public togglePermission(row: PermissionRow, key: PermissionKey, checked: boolean): void {
     row[key] = checked;
     this.syncSelectAllState();
   }
 
-  protected submitRole(): void {
+  public submitRole(): void {
     const trimmedName = this.newRoleName.trim();
     if (!trimmedName) {
       return;
@@ -133,7 +137,7 @@ export class RolesComponent {
     this.closeModal();
   }
 
-  protected onAdminAccessChange(checked: boolean): void {
+  public onAdminAccessChange(checked: boolean): void {
     this.adminAccess = checked;
     this.toggleSelectAll(checked);
   }
