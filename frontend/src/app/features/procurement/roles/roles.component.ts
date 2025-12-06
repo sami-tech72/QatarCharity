@@ -1,86 +1,155 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
-type PermissionType = 'View' | 'Edit' | 'Create' | 'Delete';
+type PermissionKey = 'read' | 'write' | 'create';
 
-type MenuPermission = {
-  menu: string;
-  view: boolean;
-  edit: boolean;
+type PermissionRow = {
+  module: string;
+  read: boolean;
+  write: boolean;
   create: boolean;
-  delete: boolean;
 };
 
-type SubRole = {
+type RoleCard = {
   name: string;
-  description: string;
-  members: number;
-  permissions: PermissionType[];
+  users: number;
+  avatars: string[];
+  extraUsers?: number;
+  badge?: string;
 };
 
 @Component({
   selector: 'app-procurement-roles',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './roles.component.html',
   styleUrls: ['./roles.component.scss'],
 })
 export class RolesComponent {
-  protected readonly permissionTypes: PermissionType[] = ['View', 'Edit', 'Create', 'Delete'];
-
-  protected readonly mainRole = {
-    name: 'Procurement',
-    members: 18,
-    description:
-      'Primary role with visibility across procurement sourcing, evaluation, contracting, and performance oversight.',
-    permissions: ['View', 'Edit', 'Create'] as PermissionType[],
-  };
-
-  protected readonly subRoles: SubRole[] = [
+  protected roles: RoleCard[] = [
     {
-      name: 'Category Manager',
-      members: 6,
-      description: 'Owns sourcing cycles, category strategies, and approvals for assigned spend areas.',
-      permissions: ['View', 'Edit', 'Create'],
+      name: 'Administrator',
+      users: 14,
+      avatars: ['AN', 'MT', 'CR', 'HD'],
+      extraUsers: 4,
+      badge: 'Default',
     },
     {
-      name: 'Sourcing Analyst',
-      members: 4,
-      description: 'Prepares RFx events, runs evaluations, and manages supplier responses.',
-      permissions: ['View', 'Edit', 'Create'],
+      name: 'Manager',
+      users: 9,
+      avatars: ['LS', 'BK', 'AO', 'TT'],
+      extraUsers: 2,
     },
     {
-      name: 'Committee Reviewer',
-      members: 5,
-      description: 'Reviews submissions and records committee decisions for each tender.',
-      permissions: ['View', 'Edit'],
+      name: 'Users',
+      users: 7,
+      avatars: ['GM', 'ID', 'RS', 'LP'],
+      extraUsers: 3,
     },
     {
-      name: 'Auditor',
-      members: 3,
-      description: 'Observes procurement activities and reporting with read-only access.',
-      permissions: ['View'],
+      name: 'Support',
+      users: 5,
+      avatars: ['CF', 'NI', 'JD', 'HB'],
+    },
+    {
+      name: 'Restricted User',
+      users: 4,
+      avatars: ['TW', 'MG', 'CY', 'EL'],
+    },
+    {
+      name: 'New Role',
+      users: 2,
+      avatars: ['AV', 'TR'],
+      badge: 'Pending approval',
     },
   ];
 
-  protected readonly menuPermissions: MenuPermission[] = [
-    { menu: 'Dashboard', view: true, edit: false, create: false, delete: false },
-    { menu: 'RFx Management', view: true, edit: true, create: true, delete: true },
-    { menu: 'Bid Evaluation', view: true, edit: true, create: true, delete: false },
-    { menu: 'Tender Committee', view: true, edit: true, create: false, delete: false },
-    { menu: 'Contract Management', view: true, edit: true, create: true, delete: true },
-    { menu: 'Supplier Performance', view: true, edit: true, create: false, delete: false },
-    { menu: 'Reports & Analytics', view: true, edit: false, create: false, delete: false },
-    { menu: 'Members', view: true, edit: true, create: true, delete: true },
-    { menu: 'Roles & Permissions', view: true, edit: true, create: true, delete: true },
-    { menu: 'Settings', view: true, edit: true, create: false, delete: false },
+  protected showAddRoleModal = false;
+  protected newRoleName = '';
+  protected adminAccess = false;
+  protected selectAllPermissions = false;
+
+  private readonly basePermissionRows: PermissionRow[] = [
+    { module: 'User Management', read: true, write: true, create: true },
+    { module: 'Content Management', read: true, write: true, create: false },
+    { module: 'Disputes Management', read: true, write: false, create: false },
+    { module: 'Database Management', read: true, write: true, create: true },
+    { module: 'Email & Files', read: true, write: true, create: true },
+    { module: 'Reporting', read: true, write: false, create: false },
+    { module: 'API Control', read: true, write: true, create: true },
+    { module: 'Repository Management', read: true, write: true, create: true },
+    { module: 'Payroll', read: true, write: false, create: false },
   ];
 
-  protected trackBySubRole(_: number, role: SubRole): string {
+  protected permissionRows: PermissionRow[] = this.basePermissionRows.map((row) => ({ ...row }));
+
+  protected trackByRole(_: number, role: RoleCard): string {
     return role.name;
   }
 
-  protected trackByMenuPermission(_: number, permission: MenuPermission): string {
-    return permission.menu;
+  protected trackByPermissionRow(_: number, permission: PermissionRow): string {
+    return permission.module;
+  }
+
+  protected openModal(): void {
+    this.showAddRoleModal = true;
+  }
+
+  protected closeModal(): void {
+    this.showAddRoleModal = false;
+    this.resetForm();
+  }
+
+  protected toggleSelectAll(checked: boolean): void {
+    this.permissionRows = this.permissionRows.map((row) => ({
+      ...row,
+      read: checked,
+      write: checked,
+      create: checked,
+    }));
+    this.selectAllPermissions = checked;
+    this.adminAccess = checked;
+  }
+
+  protected togglePermission(row: PermissionRow, key: PermissionKey, checked: boolean): void {
+    row[key] = checked;
+    this.syncSelectAllState();
+  }
+
+  protected submitRole(): void {
+    const trimmedName = this.newRoleName.trim();
+    if (!trimmedName) {
+      return;
+    }
+
+    this.roles.push({
+      name: trimmedName,
+      users: 0,
+      avatars: [],
+      badge: 'Draft',
+    });
+
+    this.closeModal();
+  }
+
+  protected onAdminAccessChange(checked: boolean): void {
+    this.adminAccess = checked;
+    this.toggleSelectAll(checked);
+  }
+
+  private resetForm(): void {
+    this.newRoleName = '';
+    this.adminAccess = false;
+    this.selectAllPermissions = false;
+    this.permissionRows = this.basePermissionRows.map((row) => ({ ...row }));
+  }
+
+  private syncSelectAllState(): void {
+    const everyPermissionEnabled = this.permissionRows.every(
+      (row) => row.read && row.write && row.create,
+    );
+    this.selectAllPermissions = everyPermissionEnabled;
+    this.adminAccess = everyPermissionEnabled;
   }
 }

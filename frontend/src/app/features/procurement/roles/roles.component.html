@@ -2,99 +2,133 @@
   <header class="page__header">
     <div>
       <p class="page__eyebrow">Access control</p>
-      <h1 class="page__title">Procurement roles &amp; permissions</h1>
+      <h1 class="page__title">Roles &amp; Permissions</h1>
       <p class="page__subtitle">
-        Set the main procurement role and fine-tune sub-roles with menu-level permissions for view, edit, create,
-        and delete.
+        Manage procurement roles, assign menu access, and create new roles with the right level of privileges.
       </p>
     </div>
-    <span class="page__badge">Updated today</span>
+    <button type="button" class="btn btn--primary" (click)="openModal()">Add New Role</button>
   </header>
 
-  <section class="card main-role">
-    <div class="main-role__header">
-      <div>
-        <p class="overline">Main role</p>
-        <h2 class="main-role__title">{{ mainRole.name }}</h2>
-      </div>
-      <div class="main-role__meta">
-        <span class="pill">{{ mainRole.members }} members</span>
-        <span class="pill pill--outline">Default owner</span>
-      </div>
-    </div>
-    <p class="muted">{{ mainRole.description }}</p>
-    <div class="main-role__permissions">
-      <p class="muted">Default permissions</p>
-      <div class="permission-chips">
-        <span class="permission-chip permission-chip--active" *ngFor="let permission of mainRole.permissions">
-          {{ permission }}
-        </span>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
+  <section>
     <div class="section__header">
       <div>
-        <p class="overline">Sub-roles</p>
-        <h3 class="section__title">Specialized procurement duties</h3>
-        <p class="muted">Create tailored access for the different responsibilities inside the procurement team.</p>
+        <p class="overline">Roles list</p>
+        <h2 class="section__title">A role provides access to predefined menus and features</h2>
+        <p class="muted">Depending on assigned role an administrator can tune what each user can do.</p>
       </div>
-      <span class="muted">{{ subRoles.length }} roles</span>
     </div>
 
-    <div class="sub-roles">
-      <article class="card sub-role" *ngFor="let role of subRoles; trackBy: trackBySubRole">
-        <div class="sub-role__header">
-          <h4 class="sub-role__title">{{ role.name }}</h4>
-          <span class="pill">{{ role.members }} members</span>
+    <div class="roles-grid">
+      <article class="card role-card" *ngFor="let role of roles; trackBy: trackByRole">
+        <div class="role-card__meta">
+          <p class="muted">Total {{ role.users }} users</p>
+          <span class="pill" *ngIf="role.badge">{{ role.badge }}</span>
         </div>
-        <p class="muted">{{ role.description }}</p>
-        <div class="permission-chips">
-          <span
-            class="permission-chip"
-            [class.permission-chip--active]="role.permissions.includes(permission)"
-            *ngFor="let permission of permissionTypes"
-          >
-            {{ permission }}
-          </span>
+        <h3 class="role-card__title">{{ role.name }}</h3>
+        <div class="avatar-group" *ngIf="role.avatars.length">
+          <span class="avatar" *ngFor="let avatar of role.avatars">{{ avatar }}</span>
+          <span class="avatar avatar--extra" *ngIf="role.extraUsers">+{{ role.extraUsers }}</span>
         </div>
+        <div class="role-card__actions">
+          <a class="link" href="javascript:void(0)">Edit Role</a>
+          <button type="button" class="icon-button" aria-label="Copy role">
+            <span class="icon-button__square"></span>
+          </button>
+        </div>
+      </article>
+
+      <article class="card role-card role-card--new" (click)="openModal()">
+        <div class="role-card__meta">
+          <p class="muted">Add New Role</p>
+        </div>
+        <div class="empty-illustration">+</div>
+        <p class="muted">Add new role, if it doesn't exist.</p>
       </article>
     </div>
   </section>
+</div>
 
-  <section class="card">
-    <div class="section__header section__header--compact">
+<div class="modal-backdrop" *ngIf="showAddRoleModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addRoleTitle">
+    <header class="modal__header">
       <div>
-        <p class="overline">Menu permissions</p>
-        <h3 class="section__title">Access by procurement menu</h3>
-        <p class="muted">Quick view of who can see, edit, create, or delete items within each procurement module.</p>
+        <p class="overline">Set role permissions</p>
+        <h3 class="modal__title" id="addRoleTitle">Add New Role</h3>
       </div>
-    </div>
+      <button type="button" class="icon-button" aria-label="Close" (click)="closeModal()">×</button>
+    </header>
 
-    <div class="permissions-table" role="table">
-      <div class="permissions-table__row permissions-table__row--head" role="row">
-        <div class="permissions-table__cell permissions-table__cell--menu" role="columnheader">Menu</div>
-        <div class="permissions-table__cell" role="columnheader">View</div>
-        <div class="permissions-table__cell" role="columnheader">Edit</div>
-        <div class="permissions-table__cell" role="columnheader">Create</div>
-        <div class="permissions-table__cell" role="columnheader">Delete</div>
+    <form class="modal__body" (ngSubmit)="submitRole()">
+      <label class="field">
+        <span class="field__label">Role Name</span>
+        <input
+          name="roleName"
+          [(ngModel)]="newRoleName"
+          placeholder="Enter a role name"
+          class="field__input"
+          required
+        />
+      </label>
+
+      <div class="permissions">
+        <div class="permissions__controls">
+          <label class="checkbox">
+            <input type="checkbox" [checked]="adminAccess" (change)="onAdminAccessChange($event.target.checked)" />
+            <span>Administrator Access</span>
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" [checked]="selectAllPermissions" (change)="toggleSelectAll($event.target.checked)" />
+            <span>Select All</span>
+          </label>
+        </div>
+
+        <div class="permissions__table" role="table">
+          <div class="permissions__row permissions__row--head" role="row">
+            <div class="permissions__cell permissions__cell--label" role="columnheader">Role Permissions</div>
+            <div class="permissions__cell" role="columnheader">Read</div>
+            <div class="permissions__cell" role="columnheader">Write</div>
+            <div class="permissions__cell" role="columnheader">Create</div>
+          </div>
+
+          <div
+            class="permissions__row"
+            role="row"
+            *ngFor="let permission of permissionRows; trackBy: trackByPermissionRow"
+          >
+            <div class="permissions__cell permissions__cell--label" role="cell">{{ permission.module }}</div>
+            <div class="permissions__cell" role="cell">
+              <input
+                type="checkbox"
+                [checked]="permission.read"
+                (change)="togglePermission(permission, 'read', $event.target.checked)"
+              />
+              <span class="checkbox__label">Read</span>
+            </div>
+            <div class="permissions__cell" role="cell">
+              <input
+                type="checkbox"
+                [checked]="permission.write"
+                (change)="togglePermission(permission, 'write', $event.target.checked)"
+              />
+              <span class="checkbox__label">Write</span>
+            </div>
+            <div class="permissions__cell" role="cell">
+              <input
+                type="checkbox"
+                [checked]="permission.create"
+                (change)="togglePermission(permission, 'create', $event.target.checked)"
+              />
+              <span class="checkbox__label">Create</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="permissions-table__row" role="row" *ngFor="let permission of menuPermissions; trackBy: trackByMenuPermission">
-        <div class="permissions-table__cell permissions-table__cell--menu" role="cell">{{ permission.menu }}</div>
-        <div class="permissions-table__cell" role="cell">
-          <span class="permission-indicator" [class.permission-indicator--on]="permission.view">View</span>
-        </div>
-        <div class="permissions-table__cell" role="cell">
-          <span class="permission-indicator" [class.permission-indicator--on]="permission.edit">Edit</span>
-        </div>
-        <div class="permissions-table__cell" role="cell">
-          <span class="permission-indicator" [class.permission-indicator--on]="permission.create">Create</span>
-        </div>
-        <div class="permissions-table__cell" role="cell">
-          <span class="permission-indicator" [class.permission-indicator--on]="permission.delete">Delete</span>
-        </div>
-      </div>
-    </div>
-  </section>
+
+      <footer class="modal__footer">
+        <button type="submit" class="btn btn--primary">Submit</button>
+        <button type="button" class="btn" (click)="closeModal()">Cancel</button>
+      </footer>
+    </form>
+  </div>
 </div>

@@ -1,6 +1,7 @@
 :host {
   display: block;
   color: #0f172a;
+  background: #f8fafc;
 }
 
 .page {
@@ -34,24 +35,7 @@
 .page__subtitle {
   margin: 0.35rem 0 0;
   color: #5f6275;
-  max-width: 800px;
-}
-
-.page__badge {
-  background: #eef2ff;
-  color: #4338ca;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.card {
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
-  border-radius: 1rem;
-  box-shadow: 0 12px 32px -20px rgba(15, 23, 42, 0.4);
-  padding: 1.5rem;
+  max-width: 720px;
 }
 
 .overline {
@@ -67,6 +51,151 @@
   margin: 0.25rem 0 0;
 }
 
+.section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.section__title {
+  margin: 0;
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  box-shadow: 0 12px 32px -24px rgba(15, 23, 42, 0.35);
+  padding: 1.25rem;
+}
+
+.role-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  cursor: default;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.role-card:hover {
+  box-shadow: 0 20px 35px -26px rgba(15, 23, 42, 0.5);
+  transform: translateY(-2px);
+}
+
+.role-card--new {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  border-style: dashed;
+  color: #334155;
+  background: #f8fafc;
+}
+
+.role-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.role-card__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.avatar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #eef2ff, #c7d2fe);
+  color: #312e81;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 2px solid #fff;
+}
+
+.avatar--extra {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.role-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.link {
+  color: #4338ca;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.icon-button {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.icon-button__square {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #475569;
+  border-radius: 4px;
+}
+
+.btn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #1f2937;
+  font-weight: 700;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+  box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  border: none;
+  color: #fff;
+}
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -80,169 +209,156 @@
   font-weight: 600;
 }
 
-.pill--outline {
-  background: #fff;
+.empty-illustration {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 2rem;
+  display: grid;
+  place-items: center;
+  margin: 0.5rem 0;
 }
 
-.main-role {
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 20;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  width: min(960px, 100%);
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -25px rgba(15, 23, 42, 0.5);
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 0.75rem;
+}
+
+.modal__title {
+  margin: 0;
+}
+
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 1.5rem 1.25rem;
+}
+
+.modal__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-start;
+  padding: 0 1.5rem 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field__label {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.field__input {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+  font-size: 1rem;
+  outline: none;
+}
+
+.field__input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.permissions {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.main-role__header {
+.permissions__controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
 }
 
-.main-role__title {
-  margin: 0;
-}
-
-.main-role__meta {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.main-role__permissions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.section__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.section__header--compact {
-  margin-bottom: 0.5rem;
-}
-
-.section__title {
-  margin: 0;
-}
-
-.sub-roles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1rem;
-}
-
-.sub-role {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.sub-role__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.sub-role__title {
-  margin: 0;
-}
-
-.permission-chips {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.permission-chip {
+.checkbox {
   display: inline-flex;
   align-items: center;
-  padding: 0.3rem 0.75rem;
-  border-radius: 999px;
-  background: #f8fafc;
-  color: #475569;
-  font-weight: 600;
-  border: 1px dashed #cbd5e1;
-  transition: all 0.2s ease;
-}
-
-.permission-chip--active {
-  background: #eef2ff;
-  color: #312e81;
-  border-color: #c7d2fe;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-.permissions-table {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.permissions-table__row {
-  display: grid;
-  grid-template-columns: 2fr repeat(4, 1fr);
-  align-items: center;
-  padding: 0.65rem 0.75rem;
-  border-radius: 0.75rem;
-}
-
-.permissions-table__row--head {
-  background: #f8fafc;
-  color: #475569;
+  gap: 0.5rem;
   font-weight: 700;
-  border: 1px solid #e2e8f0;
-}
-
-.permissions-table__row:not(.permissions-table__row--head) {
-  border: 1px solid #f1f5f9;
-}
-
-.permissions-table__row:not(.permissions-table__row--head):hover {
-  background: #f8fafc;
-}
-
-.permissions-table__cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  font-weight: 600;
   color: #1f2937;
 }
 
-.permissions-table__cell--menu {
-  justify-content: flex-start;
+.permissions__table {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.permissions__row {
+  display: grid;
+  grid-template-columns: 2fr repeat(3, 1fr);
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.permissions__row--head {
+  background: #f8fafc;
   font-weight: 700;
 }
 
-.permission-indicator {
-  padding: 0.25rem 0.65rem;
-  border-radius: 999px;
-  border: 1px dashed #cbd5e1;
-  color: #475569;
-  background: #f8fafc;
+.permissions__cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1f2937;
+  font-weight: 600;
 }
 
-.permission-indicator--on {
-  background: #ecfdf3;
-  color: #15803d;
-  border-color: #bbf7d0;
+.permissions__cell--label {
+  font-weight: 700;
+}
+
+.checkbox__label {
+  color: #475569;
+  font-weight: 500;
 }
 
 @media (max-width: 720px) {
-  .permissions-table__row {
-    grid-template-columns: 1.5fr repeat(4, 1fr);
+  .roles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .permissions__row {
+    grid-template-columns: 1.5fr repeat(3, 1fr);
   }
 }
