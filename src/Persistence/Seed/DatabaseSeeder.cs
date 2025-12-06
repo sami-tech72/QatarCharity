@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Domain.Entities;
-using Domain.Entities.Procurement;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +35,6 @@ public static class DatabaseSeeder
         await EnsureUserExists(userManager, "supplier@qcharity.test", "Supplier User", Roles.Supplier);
 
         await SeedSuppliersAsync(dbContext, userManager);
-        await SeedProcurementRoleTemplatesAsync(dbContext);
     }
 
     private static async Task EnsureUserExists(
@@ -150,113 +146,5 @@ public static class DatabaseSeeder
 
         await dbContext.Suppliers.AddRangeAsync(seededSuppliers);
         await dbContext.SaveChangesAsync();
-    }
-
-    private static async Task SeedProcurementRoleTemplatesAsync(AppDbContext dbContext)
-    {
-        if (await dbContext.ProcurementPermissionDefinitions.AnyAsync())
-        {
-            return;
-        }
-
-        var permissions = new List<ProcurementPermissionDefinition>
-        {
-            new() { Name = "User Management", DefaultRead = true, DefaultWrite = true, DefaultCreate = true },
-            new() { Name = "Content Management", DefaultRead = true, DefaultWrite = true, DefaultCreate = true },
-            new() { Name = "Disputes Management", DefaultRead = true, DefaultWrite = true, DefaultCreate = true },
-            new() { Name = "Database Management", DefaultRead = true, DefaultWrite = true, DefaultCreate = true },
-            new() { Name = "Finance Management", DefaultRead = true, DefaultWrite = true, DefaultCreate = true },
-            new() { Name = "Reporting", DefaultRead = true, DefaultWrite = true, DefaultCreate = true },
-            new() { Name = "API Control", DefaultRead = true, DefaultWrite = true, DefaultCreate = true },
-            new() { Name = "Repository Management", DefaultRead = true, DefaultWrite = true, DefaultCreate = true },
-            new() { Name = "Payroll", DefaultRead = true, DefaultWrite = true, DefaultCreate = true },
-        };
-
-        var administrator = BuildTemplate(
-            "Administrator",
-            "Best for business owners and company administrators",
-            totalUsers: 4,
-            newUsers: 2,
-            avatars: new[] { "300-6.jpg", "300-5.jpg", "300-11.jpg", "300-3.jpg" },
-            permissions: permissions,
-            actionOverride: _ => (true, true, true));
-
-        var manager = BuildTemplate(
-            "Manager",
-            "Best for team leads to manage permissions",
-            totalUsers: 5,
-            newUsers: 2,
-            avatars: new[] { "300-14.jpg", "300-2.jpg", "300-7.jpg", "300-8.jpg" },
-            extraCount: 1,
-            permissions: permissions,
-            actionOverride: _ => (true, true, false));
-
-        var users = BuildTemplate(
-            "Users",
-            "Best for standard users who need access to all standard features.",
-            totalUsers: 8,
-            newUsers: 4,
-            avatars: new[] { "300-9.jpg", "300-10.jpg", "300-12.jpg", "300-13.jpg" },
-            extraCount: 2,
-            permissions: permissions,
-            actionOverride: _ => (true, false, false));
-
-        var support = BuildTemplate(
-            "Support",
-            "Best for employees who regularly refund payments",
-            totalUsers: 3,
-            newUsers: 2,
-            avatars: new[] { "300-4.jpg", "300-1.jpg", "300-19.jpg" },
-            permissions: permissions,
-            actionOverride: _ => (true, false, false));
-
-        var restrictedUser = BuildTemplate(
-            "Restricted User",
-            "Best for people who need restricted access to sensitive data",
-            totalUsers: 4,
-            newUsers: 1,
-            avatars: new[] { "300-21.jpg", "300-23.jpg", "300-24.jpg", "300-25.jpg" },
-            permissions: permissions,
-            actionOverride: p => p.Name == "Reporting" ? (true, false, false) : (false, false, false));
-
-        await dbContext.ProcurementPermissionDefinitions.AddRangeAsync(permissions);
-        await dbContext.ProcurementRoleTemplates.AddRangeAsync(new[] { administrator, manager, users, support, restrictedUser });
-        await dbContext.SaveChangesAsync();
-    }
-
-    private static ProcurementRoleTemplate BuildTemplate(
-        string name,
-        string description,
-        int totalUsers,
-        int newUsers,
-        IEnumerable<string> avatars,
-        IEnumerable<ProcurementPermissionDefinition> permissions,
-        int? extraCount = null,
-        Func<ProcurementPermissionDefinition, (bool read, bool write, bool create)>? actionOverride = null)
-    {
-        var template = new ProcurementRoleTemplate
-        {
-            Name = name,
-            Description = description,
-            TotalUsers = totalUsers,
-            NewUsers = newUsers,
-            ExtraCount = extraCount,
-            Avatars = avatars.Select(a => new ProcurementRoleAvatar { FileName = a }).ToList(),
-        };
-
-        foreach (var permission in permissions)
-        {
-            var actions = actionOverride?.Invoke(permission) ?? (permission.DefaultRead, permission.DefaultWrite, permission.DefaultCreate);
-
-            template.Permissions.Add(new ProcurementRolePermission
-            {
-                ProcurementPermissionDefinition = permission,
-                CanRead = actions.read,
-                CanWrite = actions.write,
-                CanCreate = actions.create,
-            });
-        }
-
-        return template;
     }
 }
