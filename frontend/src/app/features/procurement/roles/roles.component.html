@@ -74,11 +74,21 @@
       <div class="permissions">
         <div class="permissions__controls">
           <label class="checkbox">
-            <input type="checkbox" [checked]="adminAccess" (change)="onAdminAccessChange($event.target.checked)" />
+            <input
+              #adminToggle
+              type="checkbox"
+              [checked]="adminAccess"
+              (change)="onAdminAccessChange(adminToggle.checked)"
+            />
             <span>Administrator Access</span>
           </label>
           <label class="checkbox">
-            <input type="checkbox" [checked]="selectAllPermissions" (change)="toggleSelectAll($event.target.checked)" />
+            <input
+              #selectAllToggle
+              type="checkbox"
+              [checked]="selectAllPermissions"
+              (change)="toggleSelectAll(selectAllToggle.checked)"
+            />
             <span>Select All</span>
           </label>
         </div>
@@ -99,25 +109,28 @@
             <div class="permissions__cell permissions__cell--label" role="cell">{{ permission.module }}</div>
             <div class="permissions__cell" role="cell">
               <input
+                #readToggle
                 type="checkbox"
                 [checked]="permission.read"
-                (change)="togglePermission(permission, 'read', $event.target.checked)"
+                (change)="togglePermission(permission, 'read', readToggle.checked)"
               />
               <span class="checkbox__label">Read</span>
             </div>
             <div class="permissions__cell" role="cell">
               <input
+                #writeToggle
                 type="checkbox"
                 [checked]="permission.write"
-                (change)="togglePermission(permission, 'write', $event.target.checked)"
+                (change)="togglePermission(permission, 'write', writeToggle.checked)"
               />
               <span class="checkbox__label">Write</span>
             </div>
             <div class="permissions__cell" role="cell">
               <input
+                #createToggle
                 type="checkbox"
                 [checked]="permission.create"
-                (change)="togglePermission(permission, 'create', $event.target.checked)"
+                (change)="togglePermission(permission, 'create', createToggle.checked)"
               />
               <span class="checkbox__label">Create</span>
             </div>
