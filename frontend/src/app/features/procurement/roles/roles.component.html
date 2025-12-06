@@ -6,6 +6,7 @@
       <p class="page__subtitle">
         Manage procurement roles, assign menu access, and create new roles with the right level of privileges.
       </p>
+      <div class="main-role">Main role: {{ mainRole }}</div>
     </div>
     <button type="button" class="btn btn--primary" (click)="openModal()">Add New Role</button>
   </header>
@@ -97,9 +98,10 @@
         <div class="permissions__table" role="table">
           <div class="permissions__row permissions__row--head" role="row">
             <div class="permissions__cell permissions__cell--label" role="columnheader">Role Permissions</div>
-            <div class="permissions__cell" role="columnheader">Read</div>
-            <div class="permissions__cell" role="columnheader">Write</div>
+            <div class="permissions__cell" role="columnheader">View</div>
+            <div class="permissions__cell" role="columnheader">Edit</div>
             <div class="permissions__cell" role="columnheader">Create</div>
+            <div class="permissions__cell" role="columnheader">Delete</div>
           </div>
 
           <div
@@ -107,24 +109,24 @@
             role="row"
             *ngFor="let permission of permissionRows; trackBy: trackByPermissionRow"
           >
-            <div class="permissions__cell permissions__cell--label" role="cell">{{ permission.module }}</div>
+            <div class="permissions__cell permissions__cell--label" role="cell">{{ permission.menu }}</div>
             <div class="permissions__cell" role="cell">
               <input
-                #readToggle
+                #viewToggle
                 type="checkbox"
-                [checked]="permission.read"
-                (change)="togglePermission(permission, 'read', readToggle.checked)"
+                [checked]="permission.view"
+                (change)="togglePermission(permission, 'view', viewToggle.checked)"
               />
-              <span class="checkbox__label">Read</span>
+              <span class="checkbox__label">View</span>
             </div>
             <div class="permissions__cell" role="cell">
               <input
-                #writeToggle
+                #editToggle
                 type="checkbox"
-                [checked]="permission.write"
-                (change)="togglePermission(permission, 'write', writeToggle.checked)"
+                [checked]="permission.edit"
+                (change)="togglePermission(permission, 'edit', editToggle.checked)"
               />
-              <span class="checkbox__label">Write</span>
+              <span class="checkbox__label">Edit</span>
             </div>
             <div class="permissions__cell" role="cell">
               <input
@@ -134,6 +136,15 @@
                 (change)="togglePermission(permission, 'create', createToggle.checked)"
               />
               <span class="checkbox__label">Create</span>
+            </div>
+            <div class="permissions__cell" role="cell">
+              <input
+                #deleteToggle
+                type="checkbox"
+                [checked]="permission.delete"
+                (change)="togglePermission(permission, 'delete', deleteToggle.checked)"
+              />
+              <span class="checkbox__label">Delete</span>
             </div>
           </div>
         </div>

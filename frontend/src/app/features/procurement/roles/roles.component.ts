@@ -1,14 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RolesService } from './roles.service';
+import { ProcurementRolePayload } from './models/procurement-role.model';
 
-type PermissionKey = 'read' | 'write' | 'create';
+type PermissionKey = 'view' | 'edit' | 'create' | 'delete';
 
 type PermissionRow = {
-  module: string;
-  read: boolean;
-  write: boolean;
+  menu: string;
+  view: boolean;
+  edit: boolean;
   create: boolean;
+  delete: boolean;
 };
 
 type RoleCard = {
@@ -26,73 +29,35 @@ type RoleCard = {
   templateUrl: './roles.component.html',
   styleUrls: ['./roles.component.scss'],
 })
-export class RolesComponent {
+export class RolesComponent implements OnInit {
   @ViewChild('roleNameInput')
   public roleNameInput?: ElementRef<HTMLInputElement>;
 
-  public roles: RoleCard[] = [
-    {
-      name: 'Administrator',
-      users: 14,
-      avatars: ['AN', 'MT', 'CR', 'HD'],
-      extraUsers: 4,
-      badge: 'Default',
-    },
-    {
-      name: 'Manager',
-      users: 9,
-      avatars: ['LS', 'BK', 'AO', 'TT'],
-      extraUsers: 2,
-    },
-    {
-      name: 'Users',
-      users: 7,
-      avatars: ['GM', 'ID', 'RS', 'LP'],
-      extraUsers: 3,
-    },
-    {
-      name: 'Support',
-      users: 5,
-      avatars: ['CF', 'NI', 'JD', 'HB'],
-    },
-    {
-      name: 'Restricted User',
-      users: 4,
-      avatars: ['TW', 'MG', 'CY', 'EL'],
-    },
-    {
-      name: 'New Role',
-      users: 2,
-      avatars: ['AV', 'TR'],
-      badge: 'Pending approval',
-    },
-  ];
+  public mainRole = 'Procurement';
+  public roles: RoleCard[] = [];
 
   public showAddRoleModal = false;
   public newRoleName = '';
   public adminAccess = false;
   public selectAllPermissions = false;
+  public loading = false;
 
-  private readonly basePermissionRows: PermissionRow[] = [
-    { module: 'User Management', read: true, write: true, create: true },
-    { module: 'Content Management', read: true, write: true, create: false },
-    { module: 'Disputes Management', read: true, write: false, create: false },
-    { module: 'Database Management', read: true, write: true, create: true },
-    { module: 'Email & Files', read: true, write: true, create: true },
-    { module: 'Reporting', read: true, write: false, create: false },
-    { module: 'API Control', read: true, write: true, create: true },
-    { module: 'Repository Management', read: true, write: true, create: true },
-    { module: 'Payroll', read: true, write: false, create: false },
-  ];
+  private basePermissionRows: PermissionRow[] = [];
 
-  public permissionRows: PermissionRow[] = this.basePermissionRows.map((row) => ({ ...row }));
+  public permissionRows: PermissionRow[] = [];
+
+  constructor(private readonly rolesService: RolesService) {}
+
+  public ngOnInit(): void {
+    this.loadRoles();
+  }
 
   public trackByRole(_: number, role: RoleCard): string {
     return role.name;
   }
 
   public trackByPermissionRow(_: number, permission: PermissionRow): string {
-    return permission.module;
+    return permission.menu;
   }
 
   public openModal(): void {
@@ -110,9 +75,10 @@ export class RolesComponent {
   public toggleSelectAll(checked: boolean): void {
     this.permissionRows = this.permissionRows.map((row) => ({
       ...row,
-      read: checked,
-      write: checked,
+      view: checked,
+      edit: checked,
       create: checked,
+      delete: checked,
     }));
     this.selectAllPermissions = checked;
     this.adminAccess = checked;
@@ -153,9 +119,37 @@ export class RolesComponent {
 
   private syncSelectAllState(): void {
     const everyPermissionEnabled = this.permissionRows.every(
-      (row) => row.read && row.write && row.create,
+      (row) => row.view && row.edit && row.create && row.delete,
     );
     this.selectAllPermissions = everyPermissionEnabled;
     this.adminAccess = everyPermissionEnabled;
+  }
+
+  private loadRoles(): void {
+    this.loading = true;
+    this.rolesService.getProcurementRoles().subscribe({
+      next: (payload: ProcurementRolePayload) => {
+        this.applyPayload(payload);
+        this.loading = false;
+      },
+      error: () => {
+        this.applyPayload({ mainRole: 'Procurement', subRoles: [], menuPermissions: [] });
+        this.loading = false;
+      },
+    });
+  }
+
+  private applyPayload(payload: ProcurementRolePayload): void {
+    this.mainRole = payload.mainRole;
+    this.roles = payload.subRoles.map((role) => ({
+      name: role.name,
+      users: role.users,
+      avatars: role.avatars,
+      extraUsers: role.extraUsers,
+      badge: role.badge,
+    }));
+
+    this.basePermissionRows = payload.menuPermissions.map((permission) => ({ ...permission }));
+    this.permissionRows = this.basePermissionRows.map((row) => ({ ...row }));
   }
 }

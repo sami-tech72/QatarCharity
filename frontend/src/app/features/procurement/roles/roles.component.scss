@@ -38,6 +38,19 @@
   max-width: 720px;
 }
 
+.main-role {
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: #eef2ff;
+  color: #312e81;
+  border-radius: 999px;
+  font-weight: 700;
+  border: 1px solid #c7d2fe;
+}
+
 .overline {
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -323,7 +336,7 @@
 
 .permissions__row {
   display: grid;
-  grid-template-columns: 2fr repeat(3, 1fr);
+  grid-template-columns: 2fr repeat(4, 1fr);
   align-items: center;
   padding: 0.65rem 0.75rem;
   border-radius: 0.75rem;
@@ -359,6 +372,6 @@
   }
 
   .permissions__row {
-    grid-template-columns: 1.5fr repeat(3, 1fr);
+    grid-template-columns: 1.5fr repeat(4, 1fr);
   }
 }
