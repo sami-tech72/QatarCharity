@@ -44,7 +44,7 @@
     </div>
 
     <div class="sub-roles">
-      <article class="card sub-role" *ngFor="let role of subRoles; trackBy: role.name">
+      <article class="card sub-role" *ngFor="let role of subRoles; trackBy: trackBySubRole">
         <div class="sub-role__header">
           <h4 class="sub-role__title">{{ role.name }}</h4>
           <span class="pill">{{ role.members }} members</span>
@@ -80,7 +80,7 @@
         <div class="permissions-table__cell" role="columnheader">Create</div>
         <div class="permissions-table__cell" role="columnheader">Delete</div>
       </div>
-      <div class="permissions-table__row" role="row" *ngFor="let permission of menuPermissions; trackBy: permission.menu">
+      <div class="permissions-table__row" role="row" *ngFor="let permission of menuPermissions; trackBy: trackByMenuPermission">
         <div class="permissions-table__cell permissions-table__cell--menu" role="cell">{{ permission.menu }}</div>
         <div class="permissions-table__cell" role="cell">
           <span class="permission-indicator" [class.permission-indicator--on]="permission.view">View</span>

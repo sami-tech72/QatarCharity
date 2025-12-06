@@ -75,4 +75,12 @@ export class RolesComponent {
     { menu: 'Roles & Permissions', view: true, edit: true, create: true, delete: true },
     { menu: 'Settings', view: true, edit: true, create: false, delete: false },
   ];
+
+  protected trackBySubRole(_: number, role: SubRole): string {
+    return role.name;
+  }
+
+  protected trackByMenuPermission(_: number, permission: MenuPermission): string {
+    return permission.menu;
+  }
 }
