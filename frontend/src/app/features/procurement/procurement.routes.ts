@@ -54,6 +54,12 @@ export const procurementRoutes: Routes = [
           import('./reports-analytics/reports-analytics.component').then((m) => m.ReportsAnalyticsComponent),
       },
       {
+        path: 'roles-permissions',
+        title: 'Roles & Permissions',
+        loadComponent: () =>
+          import('./roles-permissions/roles-permissions.component').then((m) => m.ProcurementRolesPermissionsComponent),
+      },
+      {
         path: 'settings',
         title: 'Procurement Settings',
         loadComponent: () => import('./settings/procurement-settings.component').then((m) => m.ProcurementSettingsComponent),

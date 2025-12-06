@@ -1,0 +1,188 @@
+<div class="roles-permissions container-xxl py-8">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-6">
+    <div>
+      <h1 class="page-title mb-1">Roles &amp; Permissions</h1>
+      <p class="text-muted mb-0">Manage procurement access levels, approvals, and access trails.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-3">
+      <button type="button" class="btn btn-light fw-semibold">Back</button>
+      <button
+        type="button"
+        class="btn btn-primary fw-semibold"
+        data-bs-toggle="modal"
+        data-bs-target="#roleModal"
+        (click)="startCreate()"
+      >
+        Add New Role
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-6">
+    <div class="col-12 col-md-6 col-xl-4" *ngFor="let role of roles; trackBy: trackByRole">
+      <div class="card h-100 shadow-sm role-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <div class="text-muted small">Total {{ role.usersCount }} users</div>
+              <h4 class="role-name mb-0">{{ role.name }}</h4>
+            </div>
+            <button
+              type="button"
+              class="btn btn-sm btn-light-primary"
+              data-bs-toggle="modal"
+              data-bs-target="#roleModal"
+              (click)="startEdit(role)"
+            >
+              Edit Role
+            </button>
+          </div>
+
+          <p class="text-muted mb-4">{{ role.description }}</p>
+
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="symbol-group">
+              <ng-container *ngFor="let avatar of role.userAvatars; let idx = index">
+                <div class="symbol symbol-35px">
+                  <img [src]="avatar" [alt]="role.name + ' member ' + idx" />
+                </div>
+              </ng-container>
+              <div class="symbol symbol-35px symbol-light">+{{ role.usersCount }}</div>
+            </div>
+            <div class="text-end">
+              <a href="#" class="text-primary fw-semibold text-decoration-none">+{{ role.requests }}</a>
+              <div class="text-muted small">Requests</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4">
+      <div class="card h-100 bg-gradient role-add-card">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <h4 class="text-dark">Add New Role</h4>
+            <p class="text-muted">Add new role, if it doesn't exist.</p>
+          </div>
+          <img src="assets/media/illustrations/sketchy-1/4.png" alt="Add role" class="img-fluid" />
+          <button
+            type="button"
+            class="btn btn-primary w-100 fw-semibold"
+            data-bs-toggle="modal"
+            data-bs-target="#roleModal"
+            (click)="startCreate()"
+          >
+            Add New Role
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  #roleModalRef
+  class="modal fade"
+  id="roleModal"
+  tabindex="-1"
+  aria-labelledby="roleModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title fs-4" id="roleModalLabel">{{ editingRole ? 'Edit Role' : 'Add New Role' }}</h2>
+          <p class="text-muted mb-0">Set role permissions</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="roleForm" (ngSubmit)="saveRole()" class="row g-5">
+          <div class="col-12">
+            <label for="roleName" class="form-label fw-semibold">Role Name</label>
+            <input
+              id="roleName"
+              type="text"
+              formControlName="roleName"
+              class="form-control form-control-lg"
+              placeholder="Enter a role name"
+              [class.is-invalid]="roleForm.get('roleName')?.invalid && roleForm.get('roleName')?.touched"
+            />
+            <div class="invalid-feedback">Role name is required.</div>
+          </div>
+
+          <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="form-check form-switch">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="adminAccess"
+                formControlName="administratorAccess"
+              />
+              <label class="form-check-label fw-semibold" for="adminAccess">Administrator Access</label>
+            </div>
+            <div class="form-check">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="selectAllPermissions"
+                [checked]="isSelectAllChecked()"
+                (change)="toggleSelectAll($event.target.checked)"
+              />
+              <label class="form-check-label fw-semibold" for="selectAllPermissions">Select All</label>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="table-responsive">
+              <table class="table align-middle mb-0">
+                <thead>
+                  <tr class="text-muted fw-semibold">
+                    <th scope="col">Role Permissions</th>
+                    <th scope="col" class="text-center">Read</th>
+                    <th scope="col" class="text-center">Write</th>
+                    <th scope="col" class="text-center">Create</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let permission of permissionCategories">
+                    <th scope="row" class="text-muted">{{ permission.title }}</th>
+                    <td class="text-center">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        [formControl]="getPermissionGroup(permission.key).get('read')"
+                      />
+                    </td>
+                    <td class="text-center">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        [formControl]="getPermissionGroup(permission.key).get('write')"
+                      />
+                    </td>
+                    <td class="text-center">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        [formControl]="getPermissionGroup(permission.key).get('create')"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="col-12 d-flex justify-content-end gap-3">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal" (click)="startCreate()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
