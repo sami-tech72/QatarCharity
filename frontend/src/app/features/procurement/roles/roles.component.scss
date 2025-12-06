@@ -221,7 +221,7 @@
   margin: 0.5rem 0;
 }
 
-.modal-backdrop {
+.roles-modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.35);
@@ -232,7 +232,7 @@
   z-index: 1050;
 }
 
-.modal {
+.roles-modal {
   background: #fff;
   border-radius: 16px;
   width: min(960px, 100%);
@@ -241,25 +241,25 @@
   box-shadow: 0 25px 60px -25px rgba(15, 23, 42, 0.5);
 }
 
-.modal__header {
+.roles-modal__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem 0.75rem;
 }
 
-.modal__title {
+.roles-modal__title {
   margin: 0;
 }
 
-.modal__body {
+.roles-modal__body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   padding: 0 1.5rem 1.25rem;
 }
 
-.modal__footer {
+.roles-modal__footer {
   display: flex;
   align-items: center;
   gap: 0.75rem;

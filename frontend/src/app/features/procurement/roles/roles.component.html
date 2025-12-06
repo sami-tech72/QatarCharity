@@ -49,17 +49,17 @@
   </section>
 </div>
 
-<div class="modal-backdrop" *ngIf="showAddRoleModal">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addRoleTitle">
-    <header class="modal__header">
+<div class="roles-modal-backdrop" *ngIf="showAddRoleModal">
+  <div class="roles-modal" role="dialog" aria-modal="true" aria-labelledby="addRoleTitle">
+    <header class="roles-modal__header">
       <div>
         <p class="overline">Set role permissions</p>
-        <h3 class="modal__title" id="addRoleTitle">Add New Role</h3>
+        <h3 class="roles-modal__title" id="addRoleTitle">Add New Role</h3>
       </div>
       <button type="button" class="icon-button" aria-label="Close" (click)="closeModal()">×</button>
     </header>
 
-    <form class="modal__body" (ngSubmit)="submitRole()">
+    <form class="roles-modal__body" (ngSubmit)="submitRole()">
       <label class="field">
         <span class="field__label">Role Name</span>
         <input
@@ -139,7 +139,7 @@
         </div>
       </div>
 
-      <footer class="modal__footer">
+      <footer class="roles-modal__footer">
         <button type="submit" class="btn btn--primary">Submit</button>
         <button type="button" class="btn" (click)="closeModal()">Cancel</button>
       </footer>
