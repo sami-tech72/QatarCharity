@@ -20,6 +20,7 @@ type RoleCard = {
   avatars: string[];
   extraUsers?: number;
   badge?: string;
+  permissions: PermissionRow[];
 };
 
 @Component({
@@ -35,6 +36,7 @@ export class RolesComponent implements OnInit {
 
   public mainRole = 'Procurement';
   public roles: RoleCard[] = [];
+  public selectedRole?: RoleCard;
 
   public showAddRoleModal = false;
   public newRoleName = '';
@@ -42,9 +44,8 @@ export class RolesComponent implements OnInit {
   public selectAllPermissions = false;
   public loading = false;
 
-  private basePermissionRows: PermissionRow[] = [];
-
   public permissionRows: PermissionRow[] = [];
+  private permissionTemplate: PermissionRow[] = [];
 
   constructor(private readonly rolesService: RolesService) {}
 
@@ -80,12 +81,14 @@ export class RolesComponent implements OnInit {
       create: checked,
       delete: checked,
     }));
+    this.persistSelectedRolePermissions();
     this.selectAllPermissions = checked;
     this.adminAccess = checked;
   }
 
   public togglePermission(row: PermissionRow, key: PermissionKey, checked: boolean): void {
     row[key] = checked;
+    this.persistSelectedRolePermissions();
     this.syncSelectAllState();
   }
 
@@ -95,12 +98,16 @@ export class RolesComponent implements OnInit {
       return;
     }
 
-    this.roles.push({
+    const newRole: RoleCard = {
       name: trimmedName,
       users: 0,
       avatars: [],
       badge: 'Draft',
-    });
+      permissions: this.permissionRows.map((row) => ({ ...row })),
+    };
+
+    this.roles = [...this.roles, newRole];
+    this.selectRole(newRole);
 
     this.closeModal();
   }
@@ -114,7 +121,7 @@ export class RolesComponent implements OnInit {
     this.newRoleName = '';
     this.adminAccess = false;
     this.selectAllPermissions = false;
-    this.permissionRows = this.basePermissionRows.map((row) => ({ ...row }));
+    this.permissionRows = this.permissionTemplate.map((row) => ({ ...row }));
   }
 
   private syncSelectAllState(): void {
@@ -141,15 +148,38 @@ export class RolesComponent implements OnInit {
 
   private applyPayload(payload: ProcurementRolePayload): void {
     this.mainRole = payload.mainRole;
+    this.permissionTemplate = payload.menuPermissions.map((permission) => ({ ...permission }));
+
     this.roles = payload.subRoles.map((role) => ({
       name: role.name,
       users: role.users,
       avatars: role.avatars,
       extraUsers: role.extraUsers,
       badge: role.badge,
+      permissions: (role.permissions?.length ? role.permissions : payload.menuPermissions).map((permission) => ({
+        ...permission,
+      })),
     }));
 
-    this.basePermissionRows = payload.menuPermissions.map((permission) => ({ ...permission }));
-    this.permissionRows = this.basePermissionRows.map((row) => ({ ...row }));
+    if (this.roles.length > 0) {
+      this.selectRole(this.roles[0]);
+    } else {
+      this.permissionRows = this.permissionTemplate.map((row) => ({ ...row }));
+      this.syncSelectAllState();
+    }
+  }
+
+  public selectRole(role: RoleCard): void {
+    this.selectedRole = role;
+    this.permissionRows = role.permissions.map((permission) => ({ ...permission }));
+    this.syncSelectAllState();
+  }
+
+  private persistSelectedRolePermissions(): void {
+    if (!this.selectedRole) {
+      return;
+    }
+
+    this.selectedRole.permissions = this.permissionRows.map((row) => ({ ...row }));
   }
 }

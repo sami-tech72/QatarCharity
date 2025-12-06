@@ -21,7 +21,12 @@
     </div>
 
     <div class="roles-grid">
-      <article class="card role-card" *ngFor="let role of roles; trackBy: trackByRole">
+      <article
+        class="card role-card"
+        [class.role-card--active]="role === selectedRole"
+        *ngFor="let role of roles; trackBy: trackByRole"
+        (click)="selectRole(role)"
+      >
         <div class="role-card__meta">
           <p class="muted">Total {{ role.users }} users</p>
           <span class="pill" *ngIf="role.badge">{{ role.badge }}</span>
@@ -32,7 +37,7 @@
           <span class="avatar avatar--extra" *ngIf="role.extraUsers">+{{ role.extraUsers }}</span>
         </div>
         <div class="role-card__actions">
-          <a class="link" href="javascript:void(0)" (click)="openModal()">Edit Role</a>
+          <a class="link" href="javascript:void(0)" (click)="openModal(); $event.stopPropagation()">Edit Role</a>
           <button type="button" class="icon-button" aria-label="Copy role">
             <span class="icon-button__square"></span>
           </button>
@@ -74,6 +79,7 @@
       </label>
 
       <div class="permissions">
+        <div class="permissions__title">Permissions for {{ selectedRole?.name || mainRole }}</div>
         <div class="permissions__controls">
           <label class="checkbox">
             <input

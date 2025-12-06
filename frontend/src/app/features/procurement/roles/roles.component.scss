@@ -95,13 +95,18 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  cursor: default;
+  cursor: pointer;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .role-card:hover {
   box-shadow: 0 20px 35px -26px rgba(15, 23, 42, 0.5);
   transform: translateY(-2px);
+}
+
+.role-card--active {
+  border-color: #3e97ff;
+  box-shadow: 0 16px 48px -28px rgba(62, 151, 255, 0.6);
 }
 
 .role-card--new {
@@ -312,6 +317,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.permissions__title {
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .permissions__controls {
