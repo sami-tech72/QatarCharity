@@ -97,7 +97,9 @@ export class RolesComponent {
 
   public openModal(): void {
     this.showAddRoleModal = true;
-    queueMicrotask(() => this.roleNameInput?.nativeElement.focus());
+    // Reset the form so repeated opens always start clean and ensure focus once the view renders.
+    this.resetForm();
+    setTimeout(() => this.roleNameInput?.nativeElement.focus());
   }
 
   public closeModal(): void {
