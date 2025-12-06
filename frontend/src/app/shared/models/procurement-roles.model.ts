@@ -11,6 +11,7 @@ export interface CreateProcurementRoleRequest {
 }
 
 export interface ProcurementSubRole {
+  id: number;
   name: string;
   description: string;
   totalUsers: number;

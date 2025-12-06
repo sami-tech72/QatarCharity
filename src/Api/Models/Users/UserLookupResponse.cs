@@ -1,7 +1,10 @@
+using Application.DTOs.Authentication;
+
 namespace Api.Models.Users;
 
 public record UserLookupResponse(
     string Id,
     string DisplayName,
     string Email,
-    string Role);
+    string Role,
+    ProcurementUserRoleDto? ProcurementRole);

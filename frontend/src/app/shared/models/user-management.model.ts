@@ -1,11 +1,12 @@
 import { PageRequest } from './pagination.model';
-import { UserRole } from './user.model';
+import { ProcurementUserRole, UserRole } from './user.model';
 
 export interface ManagedUser {
   id: string;
   displayName: string;
   email: string;
   role: UserRole;
+  procurementRole?: ProcurementUserRole | null;
 }
 
 export interface CreateUserRequest {
@@ -13,12 +14,14 @@ export interface CreateUserRequest {
   email: string;
   password: string;
   role: UserRole;
+  procurementRoleTemplateId?: number | null;
 }
 
 export interface UpdateUserRequest {
   displayName: string;
   email: string;
   role: UserRole;
+  procurementRoleTemplateId?: number | null;
 }
 
 export interface UserQueryRequest extends PageRequest {}

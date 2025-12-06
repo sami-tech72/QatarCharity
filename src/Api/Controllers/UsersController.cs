@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using Api.Models;
 using Api.Models.Users;
+using Application.DTOs.Authentication;
 using Domain.Entities;
+using Domain.Entities.Procurement;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Persistence.Context;
 
 namespace Api.Controllers;
 
@@ -19,10 +22,12 @@ namespace Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly AppDbContext _dbContext;
 
-    public UsersController(UserManager<ApplicationUser> userManager)
+    public UsersController(UserManager<ApplicationUser> userManager, AppDbContext dbContext)
     {
         _userManager = userManager;
+        _dbContext = dbContext;
     }
 
     [HttpGet]
@@ -52,17 +57,20 @@ public class UsersController : ControllerBase
             .Take(pageSize)
             .ToListAsync();
 
+        var procurementRoleLookup = await LoadProcurementRoleLookupAsync();
         var response = new List<UserResponse>(users.Count);
 
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
+            var procurementRole = MapProcurementRole(user, roles, procurementRoleLookup);
 
             response.Add(new UserResponse(
                 Id: user.Id,
                 DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier));
+                Role: roles.FirstOrDefault() ?? Roles.Supplier,
+                ProcurementRole: procurementRole));
         }
 
         var pagedResult = new PagedResult<UserResponse>(
@@ -94,17 +102,20 @@ public class UsersController : ControllerBase
             .Take(100)
             .ToListAsync();
 
+        var procurementRoleLookup = await LoadProcurementRoleLookupAsync();
         var responses = new List<UserLookupResponse>(users.Count);
 
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
+            var procurementRole = MapProcurementRole(user, roles, procurementRoleLookup);
 
             responses.Add(new UserLookupResponse(
                 Id: user.Id,
                 DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
-                Role: roles.FirstOrDefault() ?? Roles.Supplier));
+                Role: roles.FirstOrDefault() ?? Roles.Supplier,
+                ProcurementRole: procurementRole));
         }
 
         return Ok(ApiResponse<IEnumerable<UserLookupResponse>>.Ok(responses, "Users retrieved successfully."));
@@ -123,6 +134,30 @@ public class UsersController : ControllerBase
                 errorCode: "users_invalid_role"));
         }
 
+        ProcurementRoleTemplate? procurementRoleTemplate = null;
+
+        if (request.Role == Roles.Procurement)
+        {
+            if (request.ProcurementRoleTemplateId is null)
+            {
+                return BadRequest(ApiResponse<UserResponse>.Fail(
+                    "A procurement sub-role is required for procurement users.",
+                    errorCode: "users_missing_procurement_role"));
+            }
+
+            procurementRoleTemplate = await _dbContext.ProcurementRoleTemplates
+                .Include(template => template.Permissions)
+                .ThenInclude(permission => permission.ProcurementPermissionDefinition)
+                .FirstOrDefaultAsync(template => template.Id == request.ProcurementRoleTemplateId.Value);
+
+            if (procurementRoleTemplate is null)
+            {
+                return BadRequest(ApiResponse<UserResponse>.Fail(
+                    "The selected procurement sub-role could not be found.",
+                    errorCode: "users_invalid_procurement_role"));
+            }
+        }
+
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
 
         if (existingUser is not null)
@@ -138,6 +173,7 @@ public class UsersController : ControllerBase
             Email = request.Email,
             DisplayName = request.DisplayName,
             EmailConfirmed = true,
+            ProcurementRoleTemplateId = procurementRoleTemplate?.Id,
         };
 
         var createResult = await _userManager.CreateAsync(user, request.Password);
@@ -166,7 +202,11 @@ public class UsersController : ControllerBase
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Email: user.Email ?? string.Empty,
-            Role: request.Role);
+            Role: request.Role,
+            ProcurementRole: MapProcurementRole(user, new[] { request.Role },
+                procurementRoleTemplate is null
+                    ? new Dictionary<int, ProcurementRoleTemplate>()
+                    : new Dictionary<int, ProcurementRoleTemplate> { { procurementRoleTemplate.Id, procurementRoleTemplate } }));
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User created successfully."));
     }
@@ -203,9 +243,34 @@ public class UsersController : ControllerBase
                 errorCode: "users_duplicate_email"));
         }
 
+        ProcurementRoleTemplate? procurementRoleTemplate = null;
+
+        if (request.Role == Roles.Procurement)
+        {
+            if (request.ProcurementRoleTemplateId is null)
+            {
+                return BadRequest(ApiResponse<UserResponse>.Fail(
+                    "A procurement sub-role is required for procurement users.",
+                    errorCode: "users_missing_procurement_role"));
+            }
+
+            procurementRoleTemplate = await _dbContext.ProcurementRoleTemplates
+                .Include(template => template.Permissions)
+                .ThenInclude(permission => permission.ProcurementPermissionDefinition)
+                .FirstOrDefaultAsync(template => template.Id == request.ProcurementRoleTemplateId.Value);
+
+            if (procurementRoleTemplate is null)
+            {
+                return BadRequest(ApiResponse<UserResponse>.Fail(
+                    "The selected procurement sub-role could not be found.",
+                    errorCode: "users_invalid_procurement_role"));
+            }
+        }
+
         user.DisplayName = request.DisplayName;
         user.Email = request.Email;
         user.UserName = request.Email;
+        user.ProcurementRoleTemplateId = procurementRoleTemplate?.Id;
 
         var updateResult = await _userManager.UpdateAsync(user);
 
@@ -246,7 +311,11 @@ public class UsersController : ControllerBase
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Email: user.Email ?? string.Empty,
-            Role: request.Role);
+            Role: request.Role,
+            ProcurementRole: MapProcurementRole(user, new[] { request.Role },
+                procurementRoleTemplate is null
+                    ? new Dictionary<int, ProcurementRoleTemplate>()
+                    : new Dictionary<int, ProcurementRoleTemplate> { { procurementRoleTemplate.Id, procurementRoleTemplate } }));
 
         return Ok(ApiResponse<UserResponse>.Ok(response, "User updated successfully."));
     }
@@ -276,6 +345,42 @@ public class UsersController : ControllerBase
         }
 
         return Ok(ApiResponse<object>.Ok(null, "User deleted successfully."));
+    }
+
+    private Task<Dictionary<int, ProcurementRoleTemplate>> LoadProcurementRoleLookupAsync()
+    {
+        return _dbContext.ProcurementRoleTemplates
+            .Include(template => template.Permissions)
+            .ThenInclude(permission => permission.ProcurementPermissionDefinition)
+            .AsNoTracking()
+            .ToDictionaryAsync(template => template.Id);
+    }
+
+    private static ProcurementUserRoleDto? MapProcurementRole(
+        ApplicationUser user,
+        IList<string> roles,
+        IReadOnlyDictionary<int, ProcurementRoleTemplate> procurementRoleLookup)
+    {
+        if (user.ProcurementRoleTemplateId is null || !roles.Contains(Roles.Procurement))
+        {
+            return null;
+        }
+
+        if (!procurementRoleLookup.TryGetValue(user.ProcurementRoleTemplateId.Value, out var template))
+        {
+            return null;
+        }
+
+        var permissions = template.Permissions
+            .Select(permission => new ProcurementPermissionDto(
+                permission.ProcurementPermissionDefinition.Name,
+                new ProcurementPermissionActionsDto(
+                    permission.CanRead,
+                    permission.CanWrite,
+                    permission.CanCreate)))
+            .ToList();
+
+        return new ProcurementUserRoleDto(template.Id, template.Name, permissions);
     }
 
     private static Dictionary<string, object?> BuildErrorDetails(IdentityResult result)

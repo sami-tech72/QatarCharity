@@ -44,7 +44,8 @@ namespace Persistence.Migrations
                     TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                    AccessFailedCount = table.Column<int>(type: "int", nullable: false),
+                    ProcurementRoleTemplateId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -352,6 +353,11 @@ namespace Persistence.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_ProcurementRoleTemplateId",
+                table: "AspNetUsers",
+                column: "ProcurementRoleTemplateId");
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
@@ -409,11 +415,23 @@ namespace Persistence.Migrations
                 table: "WorkflowSteps",
                 columns: new[] { "WorkflowId", "Order" },
                 unique: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUsers_ProcurementRoleTemplates_ProcurementRoleTemplateId",
+                table: "AspNetUsers",
+                column: "ProcurementRoleTemplateId",
+                principalTable: "ProcurementRoleTemplates",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.SetNull);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_AspNetUsers_ProcurementRoleTemplates_ProcurementRoleTemplateId",
+                table: "AspNetUsers");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 

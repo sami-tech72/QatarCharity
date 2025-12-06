@@ -54,6 +54,7 @@ public class ProcurementRolesController : ControllerBase
 
         var subRoles = roleTemplates
             .Select(template => new ProcurementSubRole(
+                Id: template.Id,
                 Name: template.Name,
                 Description: template.Description,
                 TotalUsers: template.TotalUsers,
@@ -99,6 +100,7 @@ public class ProcurementRolesController : ControllerBase
         await _dbContext.SaveChangesAsync();
 
         var subRole = new ProcurementSubRole(
+            Id: template.Id,
             Name: template.Name,
             Description: template.Description,
             TotalUsers: template.TotalUsers,

@@ -6,6 +6,7 @@ public record ProcurementRolesResponse(
     IReadOnlyList<ProcurementPermission> DefaultPermissions);
 
 public record ProcurementSubRole(
+    int Id,
     string Name,
     string Description,
     int TotalUsers,

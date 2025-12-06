@@ -197,6 +197,22 @@
                           </div>
                           <!--end::Roles-->
                         </div>
+                        <div class="fv-row mb-7" *ngIf="userForm.controls.role.value === 'Procurement'">
+                          <label class="required fw-semibold fs-6 mb-2">Procurement sub-role</label>
+                          <select
+                            class="form-select form-select-solid"
+                            formControlName="procurementRoleTemplateId"
+                            [disabled]="isLoadingProcurementRoles"
+                          >
+                            <option [ngValue]="null">Select a sub-role</option>
+                            <option *ngFor="let role of procurementRoles" [ngValue]="role.id">
+                              {{ role.name }}
+                            </option>
+                          </select>
+                          <div class="text-muted mt-2" *ngIf="isLoadingProcurementRoles">
+                            Loading procurement roles...
+                          </div>
+                        </div>
                         <!--end::Input group-->
                       </div>
                       <!--end::Scroll-->
@@ -256,6 +272,7 @@
               >
                 <th class="min-w-125px">User</th>
                 <th class="min-w-125px">Role</th>
+                <th class="min-w-150px">Sub-role</th>
                 <th class="min-w-125px">Last login</th>
                 <th class="min-w-100px">Status</th>
                 <th class="text-end min-w-125px">Actions</th>
@@ -263,12 +280,12 @@
             </thead>
             <tbody class="text-gray-600 fw-semibold">
               <tr *ngIf="isLoading">
-                <td colspan="5" class="text-center py-10">
+                <td colspan="6" class="text-center py-10">
                   <span class="spinner-border text-primary" role="status" aria-hidden="true"></span>
                 </td>
               </tr>
               <tr *ngIf="!isLoading && !users.length">
-                <td colspan="5" class="text-center py-10 text-muted">
+                <td colspan="6" class="text-center py-10 text-muted">
                   No users found.
                 </td>
               </tr>
@@ -280,6 +297,7 @@
                   </div>
                 </td>
                 <td>{{ user.role }}</td>
+                <td>{{ user.role === 'Procurement' ? user.procurementRole?.name || '—' : '—' }}</td>
                 <td>
                   <span class="text-muted">—</span>
                 </td>
