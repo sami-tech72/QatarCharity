@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ProcurementRolesService } from '../../../core/services/procurement-roles.service';
 import { ProcurementPermission, ProcurementRolesResponse } from '../../../shared/models/procurement-roles.model';
+import { procurementSidebarMenu } from '../models/menu';
 
 interface RoleCard {
   name: string;
@@ -115,10 +116,23 @@ export class RolesPermissionsComponent implements OnInit {
           actionLabel: 'Add user',
         }));
 
-        this.defaultPermissions = response.defaultPermissions;
+        this.defaultPermissions = this.mergeMenuPermissions(response.defaultPermissions);
         this.permissions = this.createDefaultPermissions();
         this.updateSelectAllState();
       },
+    });
+  }
+
+  private mergeMenuPermissions(sourcePermissions: Permission[]): Permission[] {
+    const permissionsByName = new Map(sourcePermissions.map((permission) => [permission.name, permission.actions]));
+
+    return procurementSidebarMenu.map((menuItem) => {
+      const actions = permissionsByName.get(menuItem.title) ?? { read: false, write: false, create: false };
+
+      return {
+        name: menuItem.title,
+        actions: { ...actions },
+      };
     });
   }
 }
