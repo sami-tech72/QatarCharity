@@ -104,26 +104,35 @@ public class SupplierRfxController : ControllerBase
         }
 
         var requiredDocuments = DeserializeList(rfx.RequiredDocuments);
-        if (requiredDocuments.Any())
-        {
-            if (request.Documents is null || !request.Documents.Any())
+            if (requiredDocuments.Any())
             {
-                return BadRequest(ApiResponse<string>.Fail("All required documents must be provided.", "documents_missing"));
-            }
+                if (request.Documents is null || !request.Documents.Any())
+                {
+                    return BadRequest(ApiResponse<string>.Fail("All required documents must be provided.", "documents_missing"));
+                }
 
-            var missingDocs = requiredDocuments
-                .Where(doc => !request.Documents!.Any(submission =>
-                    string.Equals(submission.Name, doc, StringComparison.OrdinalIgnoreCase) &&
-                    !string.IsNullOrWhiteSpace(submission.Value)))
-                .ToList();
+                var missingDocs = requiredDocuments
+                    .Where(doc => !request.Documents!.Any(submission =>
+                        string.Equals(submission.Name, doc, StringComparison.OrdinalIgnoreCase) &&
+                        !string.IsNullOrWhiteSpace(submission.FileName) &&
+                        !string.IsNullOrWhiteSpace(submission.ContentBase64)))
+                    .ToList();
 
-            if (missingDocs.Any())
-            {
-                return BadRequest(ApiResponse<string>.Fail(
-                    $"Missing required document details: {string.Join(", ", missingDocs)}.",
-                    "documents_incomplete"));
+                if (missingDocs.Any())
+                {
+                    return BadRequest(ApiResponse<string>.Fail(
+                        $"Missing required document details: {string.Join(", ", missingDocs)}.",
+                        "documents_incomplete"));
+                }
+
+                var invalidDocument = request.Documents!.FirstOrDefault(doc => !IsBase64(doc.ContentBase64));
+                if (invalidDocument is not null)
+                {
+                    return BadRequest(ApiResponse<string>.Fail(
+                        $"The uploaded document for '{invalidDocument.Name}' is invalid or unreadable.",
+                        "documents_invalid"));
+                }
             }
-        }
 
         var requiredInputs = BuildRequiredInputs(rfx);
         if (requiredInputs.Any())
@@ -173,6 +182,24 @@ public class SupplierRfxController : ControllerBase
         var response = BuildPublishedRfxResponse(rfx);
 
         return Ok(ApiResponse<PublishedRfxResponse>.Ok(response, "Published RFx retrieved successfully."));
+    }
+
+    private static bool IsBase64(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        try
+        {
+            _ = Convert.FromBase64String(value);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static List<string> DeserializeList(string serialized)

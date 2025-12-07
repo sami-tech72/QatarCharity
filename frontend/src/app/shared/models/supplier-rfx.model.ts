@@ -38,7 +38,8 @@ export interface SupplierRfx {
 
 export interface BidDocumentSubmission {
   name: string;
-  value: string;
+  fileName: string;
+  contentBase64: string;
 }
 
 export interface BidInputSubmission {

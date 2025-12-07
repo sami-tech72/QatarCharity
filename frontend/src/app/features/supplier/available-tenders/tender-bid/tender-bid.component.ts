@@ -179,7 +179,7 @@ export class TenderBidComponent implements OnInit, OnDestroy {
 
   private createBidRequest(tender?: SupplierRfx): SupplierBidRequest {
     const documents: BidDocumentSubmission[] = tender
-      ? (tender.requiredDocuments || []).map((name) => ({ name, value: '' }))
+      ? (tender.requiredDocuments || []).map((name) => ({ name, fileName: '', contentBase64: '' }))
       : [];
 
     const inputs: BidInputSubmission[] = tender
@@ -195,5 +195,27 @@ export class TenderBidComponent implements OnInit, OnDestroy {
       documents,
       inputs,
     };
+  }
+
+  onDocumentSelected(event: Event, document: BidDocumentSubmission, form: NgForm): void {
+    const target = event.target as HTMLInputElement;
+    const file = target.files && target.files.length ? target.files[0] : undefined;
+
+    document.fileName = '';
+    document.contentBase64 = '';
+
+    if (!file) {
+      form?.control.markAsTouched();
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      document.fileName = file.name;
+      document.contentBase64 = typeof reader.result === 'string' ? reader.result.split(',').pop() ?? '' : '';
+      form?.control.markAsDirty();
+    };
+
+    reader.readAsDataURL(file);
   }
 }

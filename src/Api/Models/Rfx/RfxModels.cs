@@ -156,6 +156,6 @@ public record SubmitBidRequest
     public IReadOnlyCollection<BidInputSubmission> Inputs { get; init; } = Array.Empty<BidInputSubmission>();
 }
 
-public record BidDocumentSubmission(string Name, string Value);
+public record BidDocumentSubmission(string Name, string FileName, string ContentBase64);
 
 public record BidInputSubmission(string Name, string Value);

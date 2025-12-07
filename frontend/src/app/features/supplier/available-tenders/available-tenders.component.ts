@@ -163,7 +163,7 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
 
   private createBidRequest(tender?: SupplierRfx): SupplierBidRequest {
     const documents: BidDocumentSubmission[] = tender
-      ? (tender.requiredDocuments || []).map((name) => ({ name, value: '' }))
+      ? (tender.requiredDocuments || []).map((name) => ({ name, fileName: '', contentBase64: '' }))
       : [];
 
     const inputs: BidInputSubmission[] = tender
