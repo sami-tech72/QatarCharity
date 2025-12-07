@@ -18,7 +18,7 @@ namespace Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
-[Authorize(Roles = Roles.Admin)]
+[Authorize(Roles = Roles.Admin + "," + Roles.Procurement)]
 public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -31,6 +31,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<UserResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<PagedResult<UserResponse>>>> GetUsers([FromQuery] UserQueryParameters query)
     {
@@ -84,9 +85,45 @@ public class UsersController : ControllerBase
 
     [HttpGet("lookup")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<UserLookupResponse>>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<IEnumerable<UserLookupResponse>>>> GetUserLookup([FromQuery] string? search)
+    public async Task<ActionResult<ApiResponse<IEnumerable<UserLookupResponse>>>> GetUserLookup(
+        [FromQuery] string? search,
+        [FromQuery] string? role)
     {
         var usersQuery = _userManager.Users.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(role))
+        {
+            if (!Roles.All.Contains(role))
+            {
+                return BadRequest(ApiResponse<IEnumerable<UserLookupResponse>>.Fail(
+                    "Invalid role provided.",
+                    errorCode: "users_invalid_role"));
+            }
+
+            var normalizedRole = role.Trim();
+            var roleId = await _dbContext.Roles
+                .AsNoTracking()
+                .Where(dbRole => dbRole.Name == normalizedRole)
+                .Select(dbRole => dbRole.Id)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrWhiteSpace(roleId))
+            {
+                usersQuery = usersQuery.Where(user =>
+                    _dbContext.UserRoles.Any(userRole =>
+                        userRole.UserId == user.Id &&
+                        userRole.RoleId == roleId));
+
+                if (normalizedRole == Roles.Procurement)
+                {
+                    usersQuery = usersQuery.Where(user => user.ProcurementRoleTemplateId != null);
+                }
+            }
+            else
+            {
+                return Ok(ApiResponse<IEnumerable<UserLookupResponse>>.Ok(Array.Empty<UserLookupResponse>(), "Users retrieved successfully."));
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(search))
         {

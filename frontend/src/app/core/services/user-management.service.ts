@@ -47,9 +47,9 @@ export class UserManagementService {
     );
   }
 
-  getUserLookup(search?: string): Observable<ManagedUser[]> {
+  getUserLookup(search?: string, role?: string): Observable<ManagedUser[]> {
     return this.api
-      .get<ManagedUser[]>(`users/lookup`, { params: { search: search ?? '' } })
+      .get<ManagedUser[]>(`users/lookup`, { params: { search: search ?? '', role: role ?? '' } })
       .pipe(map((response) => this.unwrap(response)));
   }
 
