@@ -16,7 +16,16 @@ export const procurementPermissionGuard: CanMatchFn = (route) => {
 
   const session = authService.currentSession();
 
-  if (!session?.procurementRole) {
+  if (!session) {
+    router.navigate(['/login']);
+    return false;
+  }
+
+  if (session.role === 'Admin' || session.role === 'Procurement') {
+    return true;
+  }
+
+  if (!session.procurementRole) {
     router.navigate(['/login']);
     return false;
   }
