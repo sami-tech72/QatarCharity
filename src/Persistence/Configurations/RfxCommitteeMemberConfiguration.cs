@@ -19,6 +19,10 @@ public class RfxCommitteeMemberConfiguration : IEntityTypeConfiguration<RfxCommi
         builder.Property(member => member.UserId)
             .HasMaxLength(450);
 
+        builder.Property(member => member.IsApproved)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasOne(member => member.Rfx)
             .WithMany(rfx => rfx.CommitteeMembers)
             .HasForeignKey(member => member.RfxId)

@@ -85,6 +85,7 @@ public class RfxController : ControllerBase
             {
                 Entity = rfx,
                 CommitteeCount = rfx.CommitteeMembers.Count,
+                ApprovedCount = rfx.CommitteeMembers.Count(member => member.IsApproved),
                 CanApprove = rfx.CommitteeMembers.Any(member => member.UserId == currentUserId),
             })
             .ToListAsync();
@@ -99,7 +100,7 @@ public class RfxController : ControllerBase
                 entry.Entity.Status.Equals("Published", StringComparison.OrdinalIgnoreCase)
                     ? "Approved"
                     : entry.CommitteeCount > 0
-                        ? "Assigned"
+                        ? $"{entry.ApprovedCount}/{entry.CommitteeCount} Approved"
                         : "Pending",
                 entry.Entity.ClosingDate,
                 entry.Entity.EstimatedBudget,
@@ -267,8 +268,27 @@ public class RfxController : ControllerBase
                 errorCode: "rfx_invalid_status"));
         }
 
-        rfx.Status = "Published";
+        var committeeMember = rfx.CommitteeMembers.FirstOrDefault(member => member.UserId == currentUserId);
+
+        if (committeeMember is null)
+        {
+            return Forbid();
+        }
+
+        if (committeeMember.IsApproved)
+        {
+            return BadRequest(ApiResponse<RfxDetailResponse>.Fail(
+                "You have already approved this RFx.",
+                errorCode: "rfx_already_approved"));
+        }
+
+        committeeMember.IsApproved = true;
         rfx.LastModified = DateTime.UtcNow;
+
+        if (rfx.CommitteeMembers.All(member => member.IsApproved))
+        {
+            rfx.Status = "Published";
+        }
 
         await _dbContext.SaveChangesAsync();
 
@@ -473,7 +493,7 @@ public class RfxController : ControllerBase
             .ToList();
 
         var committee = rfx.CommitteeMembers
-            .Select(member => new RfxCommitteeMemberResponse(member.Id, member.DisplayName, member.UserId))
+            .Select(member => new RfxCommitteeMemberResponse(member.Id, member.DisplayName, member.UserId, member.IsApproved))
             .ToList();
 
         return new RfxDetailResponse(

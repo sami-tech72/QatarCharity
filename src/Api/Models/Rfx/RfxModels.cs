@@ -73,7 +73,7 @@ public record RfxEvaluationCriterionResponse(
     string Description,
     string Type);
 
-public record RfxCommitteeMemberResponse(Guid Id, string DisplayName, string? UserId);
+public record RfxCommitteeMemberResponse(Guid Id, string DisplayName, string? UserId, bool IsApproved);
 
 public record RfxDetailResponse(
     Guid Id,
