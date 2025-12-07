@@ -291,22 +291,29 @@
               <div class="col-12" *ngIf="bidRequest.documents?.length">
                 <div class="section-label d-flex align-items-center justify-content-between">
                   <span class="form-label mb-0">Required documents</span>
-                  <small class="text-muted">Provide links or references for each required item.</small>
+                  <small class="text-muted">Upload a file for each required item.</small>
                 </div>
                 <div class="requirement-doc-list">
                   <div class="requirement-doc" *ngFor="let doc of bidRequest.documents; let i = index">
                     <label class="form-label" [for]="'doc-' + i">{{ doc.name }}</label>
                     <input
                       class="form-control"
-                      type="text"
+                      type="file"
+                      accept="application/pdf,image/*,.doc,.docx,.xlsx,.xls,.zip"
                       required
                       [id]="'doc-' + i"
-                      [name]="'doc-' + i"
-                      placeholder="Provide reference, filename, or link"
-                      [(ngModel)]="doc.value"
+                      [name]="'doc-file-' + i"
+                      (change)="onDocumentSelected($event, doc, bidForm)"
                     />
-                    <div class="form-text text-danger" *ngIf="bidForm.submitted && bidForm.controls['doc-' + i]?.invalid">
-                      This document reference is required.
+                    <input
+                      type="hidden"
+                      [name]="'doc-content-' + i"
+                      required
+                      [(ngModel)]="doc.contentBase64"
+                    />
+                    <div class="form-text" *ngIf="doc.fileName">Selected: {{ doc.fileName }}</div>
+                    <div class="form-text text-danger" *ngIf="bidForm.submitted && !doc.contentBase64">
+                      A file is required for this document.
                     </div>
                   </div>
                 </div>

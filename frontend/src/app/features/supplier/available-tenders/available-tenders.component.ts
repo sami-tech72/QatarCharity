@@ -136,6 +136,28 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
     this.router.navigate(['/supplier/available-tenders', tender.id, 'bid']);
   }
 
+  onDocumentSelected(event: Event, document: BidDocumentSubmission, form: NgForm): void {
+    const target = event.target as HTMLInputElement;
+    const file = target.files && target.files.length ? target.files[0] : undefined;
+
+    document.fileName = '';
+    document.contentBase64 = '';
+
+    if (!file) {
+      form?.control.markAsTouched();
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      document.fileName = file.name;
+      document.contentBase64 = typeof reader.result === 'string' ? reader.result.split(',').pop() ?? '' : '';
+      form?.control.markAsDirty();
+    };
+
+    reader.readAsDataURL(file);
+  }
+
   private loadTenders(search: string = this.searchTerm): void {
     this.loading = true;
     this.error = undefined;
