@@ -12,7 +12,7 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251206104951_InitialCreate")]
+    [Migration("20251207052057_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -210,6 +210,201 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ProcurementRoleTemplates");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Rfx", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("ClosingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ContactEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ContactPerson")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ContactPhone")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Deliverables")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Department")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<decimal>("EstimatedBudget")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("EvaluationNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("HideBudget")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MinimumScore")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("PublicationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReferenceNumber")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("RequiredDocuments")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("RfxType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("SubmissionDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TechnicalSpecification")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<bool>("TenderBondRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Timeline")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<Guid?>("WorkflowId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReferenceNumber")
+                        .IsUnique();
+
+                    b.HasIndex("WorkflowId");
+
+                    b.ToTable("Rfxes", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.RfxCommitteeMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<Guid>("RfxId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RfxId");
+
+                    b.ToTable("RfxCommitteeMembers", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.RfxEvaluationCriterion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("RfxId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RfxId");
+
+                    b.ToTable("RfxEvaluationCriteria", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
@@ -559,6 +754,38 @@ namespace Persistence.Migrations
                     b.Navigation("ProcurementRoleTemplate");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Rfx", b =>
+                {
+                    b.HasOne("Domain.Entities.Workflow", "Workflow")
+                        .WithMany()
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Workflow");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RfxCommitteeMember", b =>
+                {
+                    b.HasOne("Domain.Entities.Rfx", "Rfx")
+                        .WithMany("CommitteeMembers")
+                        .HasForeignKey("RfxId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rfx");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RfxEvaluationCriterion", b =>
+                {
+                    b.HasOne("Domain.Entities.Rfx", "Rfx")
+                        .WithMany("EvaluationCriteria")
+                        .HasForeignKey("RfxId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rfx");
+                });
+
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
                 {
                     b.HasOne("Domain.Entities.ApplicationUser", null)
@@ -646,6 +873,13 @@ namespace Persistence.Migrations
                     b.Navigation("Avatars");
 
                     b.Navigation("Permissions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Rfx", b =>
+                {
+                    b.Navigation("CommitteeMembers");
+
+                    b.Navigation("EvaluationCriteria");
                 });
 
             modelBuilder.Entity("Domain.Entities.Workflow", b =>
