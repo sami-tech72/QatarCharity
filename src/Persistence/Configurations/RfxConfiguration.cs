@@ -36,6 +36,9 @@ public class RfxConfiguration : IEntityTypeConfiguration<Rfx>
             .IsRequired()
             .HasMaxLength(2000);
 
+        builder.Property(rfx => rfx.EstimatedBudget)
+            .HasPrecision(18, 2);
+
         builder.Property(rfx => rfx.Currency)
             .IsRequired()
             .HasMaxLength(16);
