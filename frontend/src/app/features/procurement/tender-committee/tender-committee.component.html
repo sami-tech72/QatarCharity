@@ -1,3 +1,22 @@
 <div class="page-placeholder">
   <h1 class="page-placeholder__title">Tender Committee</h1>
+  <div class="page-placeholder__content">
+    <p class="mb-4">
+      The Tender Committee assigned in RFx Management under <strong>Workflow &amp; Committee</strong> owns approval before
+      publication. Every member must approve; only then does the backend workflow release the RFx for publication and the
+      frontend shows it as published.
+    </p>
+
+    <div class="approval-flow">
+      <div class="approval-flow__step" *ngFor="let step of approvalSteps">
+        <div class="approval-flow__icon">
+          <i class="{{ step.icon }}"></i>
+        </div>
+        <div class="approval-flow__text">
+          <div class="fw-semibold text-gray-800">{{ step.title }}</div>
+          <div class="text-muted">{{ step.description }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
