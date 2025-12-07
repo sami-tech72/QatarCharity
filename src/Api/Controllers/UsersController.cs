@@ -18,7 +18,7 @@ namespace Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
-[Authorize(Roles = Roles.Admin)]
+[Authorize(Roles = Roles.Admin + "," + Roles.Procurement)]
 public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -31,6 +31,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<UserResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<PagedResult<UserResponse>>>> GetUsers([FromQuery] UserQueryParameters query)
     {

@@ -16,7 +16,7 @@ namespace Api.Controllers;
 
 [ApiController]
 [Route("api/workflows")]
-[Authorize(Roles = Roles.Admin)]
+[Authorize(Roles = Roles.Admin + "," + Roles.Procurement)]
 public class WorkflowsController : ControllerBase
 {
     private static readonly Dictionary<string, string> AllowedStatuses = new(StringComparer.OrdinalIgnoreCase)
@@ -106,6 +106,7 @@ public class WorkflowsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(typeof(ApiResponse<WorkflowDetailResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<WorkflowDetailResponse>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<WorkflowDetailResponse>), StatusCodes.Status409Conflict)]
@@ -158,6 +159,7 @@ public class WorkflowsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(typeof(ApiResponse<WorkflowDetailResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<WorkflowDetailResponse>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<WorkflowDetailResponse>), StatusCodes.Status404NotFound)]
@@ -216,6 +218,7 @@ public class WorkflowsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<object>>> DeleteWorkflow(Guid id)
