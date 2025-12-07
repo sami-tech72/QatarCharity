@@ -1,20 +1,112 @@
-<div class="page-placeholder">
-  <h1 class="page-placeholder__title">Tender Committee</h1>
-  <div class="page-placeholder__content">
-    <p class="mb-4">
-      The Tender Committee assigned in RFx Management under <strong>Workflow &amp; Committee</strong> owns approval before
-      publication. Every member must approve; only then does the backend workflow release the RFx for publication and the
-      frontend shows it as published.
-    </p>
-
-    <div class="approval-flow">
-      <div class="approval-flow__step" *ngFor="let step of approvalSteps">
-        <div class="approval-flow__icon">
-          <i class="{{ step.icon }}"></i>
+<div class="d-flex flex-column flex-column-fluid">
+  <div id="kt_app_content" class="app-content flex-column-fluid">
+    <div id="kt_app_content_container" class="app-container container-xxl">
+      <div class="card">
+        <div class="card-header border-0 pt-6">
+          <div class="card-title">
+            <div class="d-flex align-items-center position-relative my-1">
+              <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
+                <span class="path1"></span>
+                <span class="path2"></span>
+              </i>
+              <input
+                type="text"
+                class="form-control form-control-solid w-250px ps-13"
+                placeholder="Search committee items"
+                [formControl]="searchControl"
+              />
+              <button
+                type="button"
+                class="btn btn-light ms-3"
+                (click)="searchControl.setValue('')"
+                [disabled]="!searchControl.value"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+          <div class="card-toolbar">
+            <div class="d-flex flex-column align-items-end text-end">
+              <span class="badge badge-light-primary fw-semibold mb-2">
+                {{ awaitingPublicationCount }} awaiting approval to publish
+              </span>
+              <span class="text-muted small">
+                Committee members added in RFx Management &gt; Workflow &amp; Committee approve before publication.
+              </span>
+            </div>
+          </div>
         </div>
-        <div class="approval-flow__text">
-          <div class="fw-semibold text-gray-800">{{ step.title }}</div>
-          <div class="text-muted">{{ step.description }}</div>
+
+        <div class="card-body py-5">
+          <div class="alert alert-info d-flex align-items-center mb-5" role="alert">
+            <i class="ki-duotone ki-information-4 fs-2 text-info me-3"></i>
+            <div class="d-flex flex-column">
+              <span class="fw-semibold text-gray-800">Tender Committee approval is required before publishing.</span>
+              <span class="text-gray-600">
+                Each RFx stays on hold until every assigned committee member approves. Use this page to record your decision;
+                once all approvals are captured, the system will publish automatically.
+              </span>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table align-middle table-row-dashed fs-6 gy-5">
+              <thead>
+                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                  <th class="min-w-125px">Reference</th>
+                  <th class="min-w-250px">Title</th>
+                  <th class="min-w-125px">Category</th>
+                  <th class="min-w-125px">Workflow</th>
+                  <th class="min-w-125px">Publication</th>
+                  <th class="min-w-150px">Committee Status</th>
+                  <th class="min-w-150px text-end">My Approval</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-700 fw-semibold">
+                <tr *ngIf="loading">
+                  <td colspan="7" class="text-center py-10 text-muted">
+                    <span class="spinner-border spinner-border-sm align-middle me-2"></span>
+                    Loading committee assignments...
+                  </td>
+                </tr>
+                <tr *ngIf="!loading && !filteredQueue.length">
+                  <td colspan="7" class="text-center py-10 text-muted">{{ emptyStateMessage }}</td>
+                </tr>
+                <tr *ngFor="let item of filteredQueue; trackBy: trackById" class="align-middle">
+                  <td class="fw-bold text-gray-800">{{ item.referenceNumber }}</td>
+                  <td>
+                    <div class="text-gray-800 fw-semibold mb-1">{{ item.title }}</div>
+                    <div class="text-muted">{{ item.category }}</div>
+                  </td>
+                  <td>{{ item.category }}</td>
+                  <td>{{ item.workflowName || '—' }}</td>
+                  <td>
+                    <div class="badge fw-bold" [ngClass]="item.status === 'Published' ? 'badge-light-success' : 'badge-light-warning'">
+                      {{ item.status === 'Published' ? 'Ready to publish' : 'Waiting on approval' }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="badge fw-bold" [ngClass]="item.committeeStatus === 'Approved' ? 'badge-light-success' : 'badge-light-info'">
+                      {{ item.committeeStatus }}
+                    </div>
+                  </td>
+                  <td class="text-end">
+                    <button
+                      class="btn btn-sm"
+                      [ngClass]="{
+                        'btn-light-success': myApprovalStatus(item) === 'approved',
+                        'btn-light-primary': myApprovalStatus(item) === 'pending'
+                      }"
+                      (click)="approve(item)"
+                    >
+                      <i class="ki-duotone" [ngClass]="myApprovalStatus(item) === 'approved' ? 'ki-check' : 'ki-shield-tick'"></i>
+                      <span class="ms-2">{{ myApprovalStatus(item) === 'approved' ? 'Approved' : 'Approve' }}</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
