@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 
@@ -17,7 +18,8 @@ public class ProcurementPermissionHandler : AuthorizationHandler<ProcurementPerm
         AuthorizationHandlerContext context,
         ProcurementPermissionRequirement requirement)
     {
-        if (context.User.IsInRole(Domain.Enums.Roles.Admin))
+        if (context.User.IsInRole(Domain.Enums.Roles.Admin) ||
+            context.User.IsInRole(Domain.Enums.Roles.Procurement))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;
