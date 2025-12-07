@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subject, debounceTime, finalize, takeUntil } from 'rxjs';
 
 import { RfxService } from '../../../core/services/rfx.service';
@@ -23,12 +23,14 @@ export class RfxManagementComponent implements OnInit, OnDestroy {
   loading = false;
   total = 0;
   approvingId: string | null = null;
+  closingId: string | null = null;
 
   private readonly destroy$ = new Subject<void>();
 
   constructor(
     private readonly rfxService: RfxService,
     private readonly notification: NotificationService,
+    private readonly router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -88,6 +90,10 @@ export class RfxManagementComponent implements OnInit, OnDestroy {
     return this.approvingId === record.id;
   }
 
+  isClosing(record: RfxSummary): boolean {
+    return this.closingId === record.id;
+  }
+
   approve(record: RfxSummary): void {
     if (!record.canApprove || record.status !== 'Draft') {
       return;
@@ -112,6 +118,35 @@ export class RfxManagementComponent implements OnInit, OnDestroy {
           this.notification.error(error.message || 'Unable to approve RFx.');
         },
       });
+  }
+
+  close(record: RfxSummary): void {
+    if (record.status === 'Closed') {
+      return;
+    }
+
+    this.closingId = record.id;
+
+    this.rfxService
+      .closeRfx(record.id)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => (this.closingId = null)),
+      )
+      .subscribe({
+        next: (updated: RfxDetail) => {
+          record.status = updated.status;
+          record.canApprove = false;
+          this.notification.success('RFx closed successfully.');
+        },
+        error: (error) => {
+          this.notification.error(error.message || 'Unable to close RFx.');
+        },
+      });
+  }
+
+  viewDetails(record: RfxSummary): void {
+    this.router.navigate(['/procurement/rfx-management', record.id]);
   }
 
   private loadRfx(search?: string): void {

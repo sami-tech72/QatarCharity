@@ -29,6 +29,14 @@ export const procurementRoutes: Routes = [
           import('./rfx-management/create-rfx.component').then((m) => m.CreateRfxComponent),
       },
       {
+        path: 'rfx-management/:id',
+        title: 'RFx Details',
+        canMatch: [procurementPermissionGuard],
+        data: { permission: 'RFx Management', permissionAction: 'read' },
+        loadComponent: () =>
+          import('./rfx-management/rfx-detail.component').then((m) => m.RfxDetailComponent),
+      },
+      {
         path: 'bid-evaluation',
         title: 'Bid Evaluation',
         canMatch: [procurementPermissionGuard],

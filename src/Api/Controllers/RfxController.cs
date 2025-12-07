@@ -187,6 +187,45 @@ public class RfxController : ControllerBase
         return Ok(ApiResponse<RfxDetailResponse>.Ok(response, "RFx created successfully."));
     }
 
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<RfxDetailResponse>>> GetRfxById(Guid id)
+    {
+        var currentUserId = GetCurrentUserId();
+
+        if (string.IsNullOrWhiteSpace(currentUserId))
+        {
+            return Unauthorized(ApiResponse<RfxDetailResponse>.Fail(
+                "Invalid or expired token.",
+                errorCode: "auth_invalid_token"));
+        }
+
+        if (id == Guid.Empty)
+        {
+            return BadRequest(ApiResponse<RfxDetailResponse>.Fail(
+                "A valid RFx identifier is required.",
+                errorCode: "rfx_invalid_id"));
+        }
+
+        var rfx = await _dbContext.Rfxes
+            .Include(entity => entity.Workflow)
+            .Include(entity => entity.EvaluationCriteria)
+            .Include(entity => entity.CommitteeMembers)
+            .FirstOrDefaultAsync(entity => entity.Id == id);
+
+        if (rfx is null)
+        {
+            return NotFound(ApiResponse<RfxDetailResponse>.Fail("RFx not found.", errorCode: "rfx_not_found"));
+        }
+
+        var response = MapToDetailResponse(rfx, rfx.Workflow?.Name);
+
+        return Ok(ApiResponse<RfxDetailResponse>.Ok(response, "RFx details retrieved successfully."));
+    }
+
     [HttpPost("{id:guid}/approve")]
     [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status400BadRequest)]
@@ -236,6 +275,58 @@ public class RfxController : ControllerBase
         var response = MapToDetailResponse(rfx, rfx.Workflow?.Name);
 
         return Ok(ApiResponse<RfxDetailResponse>.Ok(response, "RFx approved and published."));
+    }
+
+    [HttpPost("{id:guid}/close")]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<RfxDetailResponse>>> CloseRfx(Guid id)
+    {
+        var currentUserId = GetCurrentUserId();
+        var isAdmin = User.IsInRole(Roles.Admin);
+
+        if (string.IsNullOrWhiteSpace(currentUserId))
+        {
+            return Unauthorized(ApiResponse<RfxDetailResponse>.Fail(
+                "Invalid or expired token.",
+                errorCode: "auth_invalid_token"));
+        }
+
+        var rfx = await _dbContext.Rfxes
+            .Include(entity => entity.CommitteeMembers)
+            .Include(entity => entity.Workflow)
+            .FirstOrDefaultAsync(entity => entity.Id == id);
+
+        if (rfx is null)
+        {
+            return NotFound(ApiResponse<RfxDetailResponse>.Fail("RFx not found.", errorCode: "rfx_not_found"));
+        }
+
+        var isAssignee = rfx.CommitteeMembers.Any(member => member.UserId == currentUserId);
+
+        if (!isAdmin && !isAssignee)
+        {
+            return Forbid();
+        }
+
+        if (rfx.Status.Equals("Closed", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(ApiResponse<RfxDetailResponse>.Fail(
+                "This RFx is already closed.",
+                errorCode: "rfx_already_closed"));
+        }
+
+        rfx.Status = "Closed";
+        rfx.LastModified = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        var response = MapToDetailResponse(rfx, rfx.Workflow?.Name);
+
+        return Ok(ApiResponse<RfxDetailResponse>.Ok(response, "RFx has been closed."));
     }
 
     private async Task<ActionResult<ApiResponse<RfxDetailResponse>>?> ValidateRequestAsync(CreateRfxRequest request)
