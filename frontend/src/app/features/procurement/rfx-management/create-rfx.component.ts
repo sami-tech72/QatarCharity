@@ -317,12 +317,9 @@ export class CreateRfxComponent implements OnInit, OnDestroy {
       .filter(([, selected]) => selected)
       .map(([key]) => this.requiredDocLabels[key] ?? key);
 
-    const evaluationCriteria: RfxCriterion[] = this.criteriaArray.controls.map((control) => ({
-      title: control.value.title,
-      weight: Number(control.value.weight),
-      description: control.value.description,
-      type: control.value.type,
-    }));
+    const evaluationCriteria: RfxCriterion[] = this.criteriaArray.controls.map((control) => (
+      control.getRawValue()
+    ));
 
     return {
       rfxType: this.basicInfoForm.value.rfxType,
