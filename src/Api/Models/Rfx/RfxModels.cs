@@ -8,6 +8,7 @@ public record RfxQueryParameters
     public int PageNumber { get; init; }
     public int PageSize { get; init; }
     public string? Search { get; init; }
+    public bool AssignedOnly { get; init; }
 }
 
 public record CreateRfxRequest
@@ -62,7 +63,8 @@ public record RfxSummaryResponse(
     DateTime ClosingDate,
     decimal EstimatedBudget,
     string Currency,
-    string? WorkflowName);
+    string? WorkflowName,
+    bool CanApprove);
 
 public record RfxEvaluationCriterionResponse(
     Guid Id,

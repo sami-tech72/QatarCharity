@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { Subject, debounceTime, takeUntil } from 'rxjs';
+import { Subject, debounceTime, finalize, takeUntil } from 'rxjs';
 
 import { RfxService } from '../../../core/services/rfx.service';
 import { PagedResult } from '../../../shared/models/pagination.model';
-import { RfxSummary } from '../../../shared/models/rfx.model';
+import { RfxDetail, RfxSummary } from '../../../shared/models/rfx.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-rfx-management',
@@ -21,10 +22,14 @@ export class RfxManagementComponent implements OnInit, OnDestroy {
   rfxRecords: RfxSummary[] = [];
   loading = false;
   total = 0;
+  approvingId: string | null = null;
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly rfxService: RfxService) {}
+  constructor(
+    private readonly rfxService: RfxService,
+    private readonly notification: NotificationService,
+  ) {}
 
   ngOnInit(): void {
     this.loadRfx();
@@ -77,6 +82,36 @@ export class RfxManagementComponent implements OnInit, OnDestroy {
       default:
         return 'badge-light-warning';
     }
+  }
+
+  isApproving(record: RfxSummary): boolean {
+    return this.approvingId === record.id;
+  }
+
+  approve(record: RfxSummary): void {
+    if (!record.canApprove || record.status !== 'Draft') {
+      return;
+    }
+
+    this.approvingId = record.id;
+
+    this.rfxService
+      .approveRfx(record.id)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => (this.approvingId = null)),
+      )
+      .subscribe({
+        next: (updated: RfxDetail) => {
+          record.status = updated.status;
+          record.committeeStatus = 'Approved';
+          record.canApprove = false;
+          this.notification.success('RFx approved and published.');
+        },
+        error: (error) => {
+          this.notification.error(error.message || 'Unable to approve RFx.');
+        },
+      });
   }
 
   private loadRfx(search?: string): void {

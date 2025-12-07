@@ -1,6 +1,7 @@
 namespace Application.DTOs.Authentication;
 
 public record LoginResponse(
+    string UserId,
     string Email,
     string DisplayName,
     string Role,

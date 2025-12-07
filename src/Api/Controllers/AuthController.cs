@@ -104,6 +104,7 @@ public class AuthController : ControllerBase
             BuildProcurementClaims(procurementRole));
 
         return new LoginResponse(
+            UserId: user.Id,
             Email: user.Email ?? string.Empty,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
             Role: roles.FirstOrDefault() ?? Roles.Supplier,

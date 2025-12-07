@@ -17,6 +17,7 @@ export class RfxService {
           pageNumber: query.pageNumber,
           pageSize: query.pageSize,
           search: query.search ?? '',
+          assignedOnly: query.assignedOnly ?? false,
         },
       })
       .pipe(map((response) => this.unwrap(response)));
@@ -24,6 +25,10 @@ export class RfxService {
 
   createRfx(request: CreateRfxRequest): Observable<RfxDetail> {
     return this.api.post<RfxDetail>('rfx', request).pipe(map((response) => this.unwrap(response)));
+  }
+
+  approveRfx(id: string): Observable<RfxDetail> {
+    return this.api.post<RfxDetail>(`rfx/${id}/approve`, {}).pipe(map((response) => this.unwrap(response)));
   }
 
   private unwrap<T>(response: ApiResponse<T>): T {

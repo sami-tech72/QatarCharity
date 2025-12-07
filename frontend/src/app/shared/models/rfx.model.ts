@@ -2,6 +2,7 @@ export interface RfxQueryRequest {
   pageNumber: number;
   pageSize: number;
   search?: string;
+  assignedOnly?: boolean;
 }
 
 export interface RfxSummary {
@@ -11,6 +12,7 @@ export interface RfxSummary {
   category: string;
   status: string;
   committeeStatus: string;
+  canApprove: boolean;
   closingDate: string;
   estimatedBudget: number;
   currency: string;
