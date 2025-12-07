@@ -43,6 +43,19 @@
   margin-bottom: 1.25rem;
 }
 
+.empty-state {
+  border: 1px dashed #dfe3f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  background-color: #f9fafc;
+  margin-bottom: 1rem;
+}
+
+.empty-title {
+  font-weight: 700;
+  color: #1b1b28;
+}
+
 .tenders-list {
   display: flex;
   flex-direction: column;

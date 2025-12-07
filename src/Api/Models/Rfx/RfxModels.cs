@@ -11,6 +11,13 @@ public record RfxQueryParameters
     public bool AssignedOnly { get; init; }
 }
 
+public record SupplierRfxQueryParameters
+{
+    public int PageNumber { get; init; }
+    public int PageSize { get; init; }
+    public string? Search { get; init; }
+}
+
 public record CreateRfxRequest
 {
     public string RfxType { get; init; } = string.Empty;
@@ -74,6 +81,20 @@ public record RfxEvaluationCriterionResponse(
     string Type);
 
 public record RfxCommitteeMemberResponse(Guid Id, string DisplayName, string? UserId, bool IsApproved);
+
+public record PublishedRfxResponse(
+    Guid Id,
+    string ReferenceNumber,
+    string RfxType,
+    string Title,
+    string Category,
+    string Description,
+    DateTime PublicationDate,
+    DateTime SubmissionDeadline,
+    DateTime ClosingDate,
+    decimal EstimatedBudget,
+    string Currency,
+    bool HideBudget);
 
 public record RfxDetailResponse(
     Guid Id,

@@ -23,28 +23,42 @@
           placeholder="Search tenders by title, number, or category"
           aria-label="Search tenders by title, number, or category"
           [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearch($event)"
+          (keyup.enter)="refreshTenders()"
         />
       </div>
-      <button type="button" class="btn btn-light">Filter</button>
+      <button type="button" class="btn btn-light" (click)="refreshTenders()">Filter</button>
     </div>
   </div>
 
-  <div class="tenders-meta text-muted">Showing {{ filteredTenders.length }} published tenders</div>
+  <div class="tenders-meta text-muted" *ngIf="!loading; else loadingMeta">
+    Showing {{ tenders.length }} published tenders
+  </div>
+  <ng-template #loadingMeta>
+    <div class="tenders-meta text-muted">Loading published tenders...</div>
+  </ng-template>
 
-  <div class="tenders-list">
-    <div class="tender-card" *ngFor="let tender of filteredTenders">
+  <div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
+
+  <div *ngIf="!loading && !error && tenders.length === 0" class="empty-state">
+    <div class="empty-title">No published tenders found</div>
+    <p class="text-muted mb-0">Try adjusting your search or check back later for new opportunities.</p>
+  </div>
+
+  <div class="tenders-list" *ngIf="tenders.length > 0">
+    <div class="tender-card" *ngFor="let tender of tenders">
       <div class="tender-content">
         <div class="tender-left">
           <div class="badge-row">
-            <span class="badge badge-soft-primary">{{ tender.type }}</span>
-            <span class="badge badge-soft-success">{{ tender.remainingDays }} days left</span>
+            <span class="badge badge-soft-primary">{{ tender.rfxType }}</span>
+            <span class="badge badge-soft-success">{{ getRemainingDays(tender.submissionDeadline) }} days left</span>
           </div>
           <div class="title-row">
             <h2 class="tender-title mb-0">{{ tender.title }}</h2>
             <span class="badge badge-soft-info">{{ tender.category }}</span>
           </div>
-          <p class="tender-summary mb-2">{{ tender.summary }}</p>
-          <div class="tender-reference text-muted fw-semibold">{{ tender.reference }}</div>
+          <p class="tender-summary mb-2">{{ tender.description }}</p>
+          <div class="tender-reference text-muted fw-semibold">Reference {{ tender.referenceNumber }}</div>
         </div>
 
         <div class="tender-right">
@@ -60,16 +74,16 @@
                   d="M7 4V3m10 1V3m-9 8h8m-7 4h3m-2 4h4M3 8.5C3 7.12 4.12 6 5.5 6h13A1.5 1.5 0 0 1 20 7.5v13A1.5 1.5 0 0 1 18.5 22h-13A1.5 1.5 0 0 1 4 20.5V7.5"
                 />
               </svg>
-              <span>{{ tender.submissionDeadline }}</span>
+              <span>{{ tender.submissionDeadline | date: 'MM/dd/yyyy' }}</span>
             </div>
           </div>
           <div class="detail-item">
             <div class="detail-label">Budget Range</div>
-            <div class="detail-value">{{ tender.budgetRange }}</div>
+            <div class="detail-value">{{ formatBudget(tender) }}</div>
           </div>
           <div class="detail-item">
             <div class="detail-label">Published</div>
-            <div class="detail-value">{{ tender.publishedDate }}</div>
+            <div class="detail-value">{{ tender.publicationDate | date: 'MM/dd/yyyy' }}</div>
           </div>
           <div class="action-row">
             <button type="button" class="btn btn-outline-secondary">View Details</button>
