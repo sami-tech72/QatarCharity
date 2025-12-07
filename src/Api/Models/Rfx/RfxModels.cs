@@ -62,7 +62,8 @@ public record RfxSummaryResponse(
     DateTime ClosingDate,
     decimal EstimatedBudget,
     string Currency,
-    string? WorkflowName);
+    string? WorkflowName,
+    bool CanApprove);
 
 public record RfxEvaluationCriterionResponse(
     Guid Id,

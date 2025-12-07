@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Api.Models;
@@ -41,6 +43,15 @@ public class RfxController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<PagedResult<RfxSummaryResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<PagedResult<RfxSummaryResponse>>>> GetRfxList([FromQuery] RfxQueryParameters query)
     {
+        var currentUserId = GetCurrentUserId();
+
+        if (string.IsNullOrWhiteSpace(currentUserId))
+        {
+            return Unauthorized(ApiResponse<PagedResult<RfxSummaryResponse>>.Fail(
+                "Invalid or expired token.",
+                errorCode: "auth_invalid_token"));
+        }
+
         var pageSize = Math.Clamp(query.PageSize, 1, 100);
         var pageNumber = query.PageNumber <= 0 ? 1 : query.PageNumber;
         var search = query.Search?.Trim().ToLowerInvariant();
@@ -48,6 +59,7 @@ public class RfxController : ControllerBase
         var rfxQuery = _dbContext.Rfxes
             .AsNoTracking()
             .Include(rfx => rfx.Workflow)
+            .Include(rfx => rfx.CommitteeMembers)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -68,6 +80,7 @@ public class RfxController : ControllerBase
             {
                 Entity = rfx,
                 CommitteeCount = rfx.CommitteeMembers.Count,
+                CanApprove = rfx.CommitteeMembers.Any(member => member.UserId == currentUserId),
             })
             .ToListAsync();
 
@@ -78,11 +91,16 @@ public class RfxController : ControllerBase
                 entry.Entity.Title,
                 entry.Entity.Category,
                 entry.Entity.Status,
-                entry.CommitteeCount > 0 ? "Assigned" : "Pending",
+                entry.Entity.Status.Equals("Published", StringComparison.OrdinalIgnoreCase)
+                    ? "Approved"
+                    : entry.CommitteeCount > 0
+                        ? "Assigned"
+                        : "Pending",
                 entry.Entity.ClosingDate,
                 entry.Entity.EstimatedBudget,
                 entry.Entity.Currency,
-                entry.Entity.Workflow?.Name))
+                entry.Entity.Workflow?.Name,
+                entry.CanApprove))
             .ToList();
 
         var pagedResult = new PagedResult<RfxSummaryResponse>(summaries, totalCount, pageNumber, pageSize);
@@ -162,6 +180,57 @@ public class RfxController : ControllerBase
         var response = MapToDetailResponse(rfx, workflow?.Name);
 
         return Ok(ApiResponse<RfxDetailResponse>.Ok(response, "RFx created successfully."));
+    }
+
+    [HttpPost("{id:guid}/approve")]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<RfxDetailResponse>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<RfxDetailResponse>>> ApproveRfx(Guid id)
+    {
+        var currentUserId = GetCurrentUserId();
+
+        if (string.IsNullOrWhiteSpace(currentUserId))
+        {
+            return Unauthorized(ApiResponse<RfxDetailResponse>.Fail(
+                "Invalid or expired token.",
+                errorCode: "auth_invalid_token"));
+        }
+
+        var rfx = await _dbContext.Rfxes
+            .Include(entity => entity.CommitteeMembers)
+            .Include(entity => entity.Workflow)
+            .FirstOrDefaultAsync(entity => entity.Id == id);
+
+        if (rfx is null)
+        {
+            return NotFound(ApiResponse<RfxDetailResponse>.Fail("RFx not found.", errorCode: "rfx_not_found"));
+        }
+
+        var isAssignee = rfx.CommitteeMembers.Any(member => member.UserId == currentUserId);
+
+        if (!isAssignee)
+        {
+            return Forbid();
+        }
+
+        if (!rfx.Status.Equals("Draft", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(ApiResponse<RfxDetailResponse>.Fail(
+                "Only RFx records in Draft status can be approved.",
+                errorCode: "rfx_invalid_status"));
+        }
+
+        rfx.Status = "Published";
+        rfx.LastModified = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        var response = MapToDetailResponse(rfx, rfx.Workflow?.Name);
+
+        return Ok(ApiResponse<RfxDetailResponse>.Ok(response, "RFx approved and published."));
     }
 
     private async Task<ActionResult<ApiResponse<RfxDetailResponse>>?> ValidateRequestAsync(CreateRfxRequest request)
@@ -349,6 +418,12 @@ public class RfxController : ControllerBase
     private static string NormalizeStatus(string status)
     {
         return AllowedStatuses.First(value => value.Equals(status, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private string? GetCurrentUserId()
+    {
+        return User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
     }
 
     private static string SerializeList(IEnumerable<string> values)

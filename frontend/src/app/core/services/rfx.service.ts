@@ -26,6 +26,10 @@ export class RfxService {
     return this.api.post<RfxDetail>('rfx', request).pipe(map((response) => this.unwrap(response)));
   }
 
+  approveRfx(id: string): Observable<RfxDetail> {
+    return this.api.post<RfxDetail>(`rfx/${id}/approve`, {}).pipe(map((response) => this.unwrap(response)));
+  }
+
   private unwrap<T>(response: ApiResponse<T>): T {
     if (!response.success || response.data === undefined || response.data === null) {
       throw new Error(response.message || 'Request failed.');
