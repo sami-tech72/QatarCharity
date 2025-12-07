@@ -96,9 +96,7 @@ public class AuthController : ControllerBase
 
     private async Task<LoginResponse> CreateLoginResponseAsync(ApplicationUser user, IList<string> roles)
     {
-        var procurementRole = roles.Contains(Roles.Procurement)
-            ? await BuildProcurementRoleAsync(user)
-            : null;
+        var procurementRole = await BuildProcurementRoleAsync(user, roles);
 
         var tokenResult = _tokenService.CreateToken(
             user,
@@ -138,20 +136,16 @@ public class AuthController : ControllerBase
         return claims;
     }
 
-    private async Task<ProcurementUserRoleDto?> BuildProcurementRoleAsync(ApplicationUser user)
+    private async Task<ProcurementUserRoleDto?> BuildProcurementRoleAsync(ApplicationUser user, IList<string> roles)
     {
-        if (user.ProcurementRoleTemplateId is null)
+        if (user.ProcurementRoleTemplateId is null || !roles.Contains(Roles.Procurement))
         {
             return null;
         }
 
-        var template = await _dbContext.ProcurementRoleTemplates
-            .Include(t => t.Permissions)
-            .ThenInclude(p => p.ProcurementPermissionDefinition)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.Id == user.ProcurementRoleTemplateId.Value);
+        var procurementRoleLookup = await LoadProcurementRoleLookupAsync();
 
-        if (template is null)
+        if (!procurementRoleLookup.TryGetValue(user.ProcurementRoleTemplateId.Value, out var template))
         {
             return null;
         }
@@ -163,5 +157,14 @@ public class AuthController : ControllerBase
             .ToList();
 
         return new ProcurementUserRoleDto(template.Id, template.Name, permissions);
+    }
+
+    private Task<Dictionary<int, Domain.Entities.Procurement.ProcurementRoleTemplate>> LoadProcurementRoleLookupAsync()
+    {
+        return _dbContext.ProcurementRoleTemplates
+            .Include(template => template.Permissions)
+            .ThenInclude(permission => permission.ProcurementPermissionDefinition)
+            .AsNoTracking()
+            .ToDictionaryAsync(template => template.Id);
     }
 }
