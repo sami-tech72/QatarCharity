@@ -110,9 +110,27 @@
                           Approve &amp; Publish
                         </button>
                       </li>
-                      <li><a class="dropdown-item" href="#">View Details</a></li>
-                      <li><a class="dropdown-item" href="#">Manage Committee</a></li>
-                      <li><a class="dropdown-item" href="#">Close RFx</a></li>
+                      <li>
+                        <button class="dropdown-item" type="button" (click)="viewDetails(record)">
+                          View Details
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          class="dropdown-item"
+                          type="button"
+                          (click)="close(record)"
+                          [disabled]="isClosing(record) || record.status === 'Closed'"
+                        >
+                          <span
+                            *ngIf="isClosing(record)"
+                            class="spinner-border spinner-border-sm align-middle me-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          Close RFx
+                        </button>
+                      </li>
                     </ul>
                   </div>
                 </td>
