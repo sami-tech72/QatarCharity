@@ -18,11 +18,20 @@ public class ProcurementPermissionHandler : AuthorizationHandler<ProcurementPerm
         AuthorizationHandlerContext context,
         ProcurementPermissionRequirement requirement)
     {
-        if (context.User.IsInRole(Domain.Enums.Roles.Admin) ||
-            context.User.IsInRole(Domain.Enums.Roles.Procurement))
+        if (context.User.IsInRole(Domain.Enums.Roles.Admin))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;
+        }
+
+        if (context.User.IsInRole(Domain.Enums.Roles.Procurement))
+        {
+            // If a procurement user has no sub-role claim, treat them as fully privileged.
+            if (!context.User.HasClaim(claim => string.Equals(claim.Type, "procurement_role_id", StringComparison.OrdinalIgnoreCase)))
+            {
+                context.Succeed(requirement);
+                return Task.CompletedTask;
+            }
         }
 
         var claimType = $"procurement_permission:{requirement.Permission}";

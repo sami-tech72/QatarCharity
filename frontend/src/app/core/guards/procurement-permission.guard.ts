@@ -21,7 +21,11 @@ export const procurementPermissionGuard: CanMatchFn = (route) => {
     return false;
   }
 
-  if (session.role === 'Admin' || session.role === 'Procurement') {
+  if (session.role === 'Admin') {
+    return true;
+  }
+
+  if (session.role === 'Procurement' && !session.procurementRole) {
     return true;
   }
 
