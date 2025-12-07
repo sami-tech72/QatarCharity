@@ -4,6 +4,14 @@ export interface SupplierRfxQueryRequest {
   search?: string;
 }
 
+export interface SupplierBidRequest {
+  bidAmount: number | null;
+  currency: string;
+  expectedDeliveryDate?: string;
+  proposalSummary: string;
+  notes?: string;
+}
+
 export interface SupplierRfx {
   id: string;
   referenceNumber: string;

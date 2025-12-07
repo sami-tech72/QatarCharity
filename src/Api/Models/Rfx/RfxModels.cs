@@ -129,3 +129,18 @@ public record RfxDetailResponse(
     DateTime CreatedAt,
     DateTime LastModified,
     string? WorkflowName);
+
+public record SubmitBidRequest
+{
+    public decimal BidAmount { get; init; }
+
+    public string Currency { get; init; } = string.Empty;
+
+    public DateTime? ExpectedDeliveryDate { get; init; }
+        = null;
+
+    public string ProposalSummary { get; init; } = string.Empty;
+
+    public string? Notes { get; init; }
+        = null;
+}

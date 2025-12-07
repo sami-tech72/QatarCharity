@@ -1,10 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, finalize, Subject, takeUntil } from 'rxjs';
 
 import { SupplierRfxService } from '../../../core/services/supplier-rfx.service';
-import { SupplierRfx } from '../../../shared/models/supplier-rfx.model';
+import {
+  SupplierBidRequest,
+  SupplierRfx,
+} from '../../../shared/models/supplier-rfx.model';
 
 @Component({
   selector: 'app-available-tenders',
@@ -18,6 +21,11 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
   tenders: SupplierRfx[] = [];
   loading = false;
   error?: string;
+  selectedTender?: SupplierRfx;
+  bidSubmitting = false;
+  bidSuccess?: string;
+  bidError?: string;
+  bidRequest: SupplierBidRequest = this.createBidRequest();
 
   private readonly destroy$ = new Subject<void>();
   private readonly search$ = new Subject<string>();
@@ -45,6 +53,17 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
     this.loadTenders(this.searchTerm);
   }
 
+  viewDetails(tender: SupplierRfx): void {
+    this.selectedTender = tender;
+    this.bidSuccess = undefined;
+    this.bidError = undefined;
+  }
+
+  startBid(tender: SupplierRfx): void {
+    this.viewDetails(tender);
+    this.bidRequest = this.createBidRequest();
+  }
+
   getRemainingDays(deadline: string): number {
     const date = new Date(deadline);
     const diff = date.getTime() - Date.now();
@@ -70,6 +89,39 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
     }).format(tender.estimatedBudget);
   }
 
+  submitBid(form: NgForm): void {
+    if (!this.selectedTender || form.invalid) {
+      return;
+    }
+
+    this.bidSubmitting = true;
+    this.bidError = undefined;
+    this.bidSuccess = undefined;
+
+    this.supplierRfxService
+      .submitBid(this.selectedTender.id, this.bidRequest)
+      .pipe(
+        finalize(() => {
+          this.bidSubmitting = false;
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (message) => {
+          this.bidSuccess = message || 'Bid submitted successfully.';
+          this.bidRequest = this.createBidRequest();
+          form.resetForm(this.bidRequest);
+        },
+        error: (err) => {
+          this.bidError = err?.message ?? 'Unable to submit your bid right now.';
+        },
+      });
+  }
+
+  trackByTenderId(_: number, tender: SupplierRfx): string {
+    return tender.id;
+  }
+
   private loadTenders(search: string = this.searchTerm): void {
     this.loading = true;
     this.error = undefined;
@@ -84,11 +136,24 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
         next: (result) => {
           this.searchTerm = search;
           this.tenders = result.items;
+          this.selectedTender =
+            this.selectedTender &&
+            result.items.find((tender) => tender.id === this.selectedTender?.id);
         },
         error: (err) => {
           this.tenders = [];
           this.error = err?.message ?? 'Unable to load available tenders.';
         },
       });
+  }
+
+  private createBidRequest(): SupplierBidRequest {
+    return {
+      bidAmount: null,
+      currency: 'USD',
+      expectedDeliveryDate: '',
+      proposalSummary: '',
+      notes: '',
+    };
   }
 }

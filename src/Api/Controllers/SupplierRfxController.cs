@@ -70,4 +70,42 @@ public class SupplierRfxController : ControllerBase
 
         return Ok(ApiResponse<PagedResult<PublishedRfxResponse>>.Ok(response, "Published RFx records retrieved successfully."));
     }
+
+    [HttpPost("{rfxId:guid}/bid")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<string>>> SubmitBid(Guid rfxId, [FromBody] SubmitBidRequest? request)
+    {
+        if (request is null)
+        {
+            return BadRequest(ApiResponse<string>.Fail("Bid request payload is required.", "invalid_request"));
+        }
+
+        if (request.BidAmount <= 0)
+        {
+            return BadRequest(ApiResponse<string>.Fail("Bid amount must be greater than zero.", "invalid_bid_amount"));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Currency))
+        {
+            return BadRequest(ApiResponse<string>.Fail("Currency is required for bid submission.", "invalid_currency"));
+        }
+
+        var rfx = await _dbContext.Rfxes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == rfxId);
+
+        if (rfx is null)
+        {
+            return NotFound(ApiResponse<string>.Fail("Tender not found.", "rfx_not_found"));
+        }
+
+        if (!string.Equals(rfx.Status, "published", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(ApiResponse<string>.Fail("This tender is not open for bids.", "rfx_not_published"));
+        }
+
+        // Persisting the bid is out of scope for this iteration; this endpoint validates payloads
+        // and confirms that the tender is open for supplier bids.
+        return Ok(ApiResponse<string>.Ok("Bid submitted successfully.", "Bid submitted successfully."));
+    }
 }

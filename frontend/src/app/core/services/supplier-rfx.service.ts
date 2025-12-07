@@ -3,7 +3,11 @@ import { map, Observable } from 'rxjs';
 
 import { ApiResponse } from '../../shared/models/api-response.model';
 import { PagedResult } from '../../shared/models/pagination.model';
-import { SupplierRfx, SupplierRfxQueryRequest } from '../../shared/models/supplier-rfx.model';
+import {
+  SupplierBidRequest,
+  SupplierRfx,
+  SupplierRfxQueryRequest,
+} from '../../shared/models/supplier-rfx.model';
 import { ApiService } from './api.service';
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +23,12 @@ export class SupplierRfxService {
           search: query.search ?? '',
         },
       })
+      .pipe(map((response) => this.unwrap(response)));
+  }
+
+  submitBid(rfxId: string, payload: SupplierBidRequest): Observable<string> {
+    return this.api
+      .post<string>(`supplier/rfx/${rfxId}/bid`, payload)
       .pipe(map((response) => this.unwrap(response)));
   }
 

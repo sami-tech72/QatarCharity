@@ -45,52 +45,187 @@
     <p class="text-muted mb-0">Try adjusting your search or check back later for new opportunities.</p>
   </div>
 
-  <div class="tenders-list" *ngIf="tenders.length > 0">
-    <div class="tender-card" *ngFor="let tender of tenders">
-      <div class="tender-content">
-        <div class="tender-left">
-          <div class="badge-row">
-            <span class="badge badge-soft-primary">{{ tender.rfxType }}</span>
-            <span class="badge badge-soft-success">{{ getRemainingDays(tender.submissionDeadline) }} days left</span>
-          </div>
-          <div class="title-row">
-            <h2 class="tender-title mb-0">{{ tender.title }}</h2>
-            <span class="badge badge-soft-info">{{ tender.category }}</span>
-          </div>
-          <p class="tender-summary mb-2">{{ tender.description }}</p>
-          <div class="tender-reference text-muted fw-semibold">Reference {{ tender.referenceNumber }}</div>
-        </div>
-
-        <div class="tender-right">
-          <div class="detail-item">
-            <div class="detail-label">Submission Deadline</div>
-            <div class="detail-value">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M7 4V3m10 1V3m-9 8h8m-7 4h3m-2 4h4M3 8.5C3 7.12 4.12 6 5.5 6h13A1.5 1.5 0 0 1 20 7.5v13A1.5 1.5 0 0 1 18.5 22h-13A1.5 1.5 0 0 1 4 20.5V7.5"
-                />
-              </svg>
-              <span>{{ tender.submissionDeadline | date: 'MM/dd/yyyy' }}</span>
+  <div class="tenders-layout" *ngIf="tenders.length > 0">
+    <div class="tenders-list">
+      <div class="tender-card" *ngFor="let tender of tenders; trackBy: trackByTenderId">
+        <div class="tender-content">
+          <div class="tender-left">
+            <div class="badge-row">
+              <span class="badge badge-soft-primary">{{ tender.rfxType }}</span>
+              <span class="badge badge-soft-success">{{ getRemainingDays(tender.submissionDeadline) }} days left</span>
             </div>
+            <div class="title-row">
+              <h2 class="tender-title mb-0">{{ tender.title }}</h2>
+              <span class="badge badge-soft-info">{{ tender.category }}</span>
+            </div>
+            <p class="tender-summary mb-2">{{ tender.description }}</p>
+            <div class="tender-reference text-muted fw-semibold">Reference {{ tender.referenceNumber }}</div>
           </div>
-          <div class="detail-item">
-            <div class="detail-label">Budget Range</div>
-            <div class="detail-value">{{ formatBudget(tender) }}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Published</div>
-            <div class="detail-value">{{ tender.publicationDate | date: 'MM/dd/yyyy' }}</div>
-          </div>
-          <div class="action-row">
-            <button type="button" class="btn btn-outline-secondary">View Details</button>
-            <button type="button" class="btn btn-success">Submit Bid</button>
+
+          <div class="tender-right">
+            <div class="detail-item">
+              <div class="detail-label">Submission Deadline</div>
+              <div class="detail-value">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M7 4V3m10 1V3m-9 8h8m-7 4h3m-2 4h4M3 8.5C3 7.12 4.12 6 5.5 6h13A1.5 1.5 0 0 1 20 7.5v13A1.5 1.5 0 0 1 18.5 22h-13A1.5 1.5 0 0 1 4 20.5V7.5"
+                  />
+                </svg>
+                <span>{{ tender.submissionDeadline | date: 'MM/dd/yyyy' }}</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Budget Range</div>
+              <div class="detail-value">{{ formatBudget(tender) }}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Published</div>
+              <div class="detail-value">{{ tender.publicationDate | date: 'MM/dd/yyyy' }}</div>
+            </div>
+            <div class="action-row">
+              <button type="button" class="btn btn-outline-secondary" (click)="viewDetails(tender)">View Details</button>
+              <button type="button" class="btn btn-success" (click)="startBid(tender)">Submit Bid</button>
+            </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="tender-details" [class.has-selection]="selectedTender">
+      <div *ngIf="selectedTender; else noSelection" class="tender-details__content">
+        <div class="detail-header">
+          <div>
+            <p class="detail-label mb-1">Reference {{ selectedTender.referenceNumber }}</p>
+            <h3 class="detail-title mb-1">{{ selectedTender.title }}</h3>
+            <p class="text-muted mb-0">{{ selectedTender.description }}</p>
+          </div>
+          <div class="detail-badges text-end">
+            <span class="badge badge-soft-primary me-2">{{ selectedTender.rfxType }}</span>
+            <span class="badge badge-soft-info">{{ selectedTender.category }}</span>
+          </div>
+        </div>
+
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label mb-1">Submission deadline</p>
+            <p class="detail-value">{{ selectedTender.submissionDeadline | date: 'fullDate' }}</p>
+          </div>
+          <div>
+            <p class="detail-label mb-1">Closing date</p>
+            <p class="detail-value">{{ selectedTender.closingDate | date: 'fullDate' }}</p>
+          </div>
+          <div>
+            <p class="detail-label mb-1">Budget</p>
+            <p class="detail-value">{{ formatBudget(selectedTender) }}</p>
+          </div>
+        </div>
+
+        <div class="bid-panel">
+          <div class="bid-panel__header">
+            <div>
+              <p class="detail-label mb-1">Submit your bid</p>
+              <h4 class="bid-panel__title mb-0">Provide commercial and delivery details</h4>
+            </div>
+            <div class="badge badge-soft-success">{{ getRemainingDays(selectedTender.submissionDeadline) }} days left</div>
+          </div>
+
+          <form #bidForm="ngForm" novalidate (ngSubmit)="submitBid(bidForm)">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label" for="bidAmount">Bid amount</label>
+                <div class="input-group">
+                  <span class="input-group-text">{{ bidRequest.currency }}</span>
+                  <input
+                    id="bidAmount"
+                    name="bidAmount"
+                    type="number"
+                    class="form-control"
+                    required
+                    min="0.01"
+                    step="0.01"
+                    [(ngModel)]="bidRequest.bidAmount"
+                  />
+                </div>
+                <div class="form-text text-danger" *ngIf="bidForm.submitted && bidForm.controls['bidAmount']?.invalid">
+                  Bid amount is required.
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label" for="expectedDeliveryDate">Expected delivery date</label>
+                <input
+                  id="expectedDeliveryDate"
+                  name="expectedDeliveryDate"
+                  type="date"
+                  class="form-control"
+                  required
+                  [(ngModel)]="bidRequest.expectedDeliveryDate"
+                />
+                <div
+                  class="form-text text-danger"
+                  *ngIf="bidForm.submitted && bidForm.controls['expectedDeliveryDate']?.invalid"
+                >
+                  Delivery date is required.
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label" for="proposalSummary">Technical &amp; commercial overview</label>
+                <textarea
+                  id="proposalSummary"
+                  name="proposalSummary"
+                  class="form-control"
+                  rows="4"
+                  required
+                  placeholder="Summarize your approach, delivery plan, and key commercial terms"
+                  [(ngModel)]="bidRequest.proposalSummary"
+                ></textarea>
+                <div class="form-text text-danger" *ngIf="bidForm.submitted && bidForm.controls['proposalSummary']?.invalid">
+                  A brief proposal summary is required.
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label" for="notes">Internal notes (optional)</label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  class="form-control"
+                  rows="2"
+                  placeholder="Share clarifications, assumptions, or attachment references"
+                  [(ngModel)]="bidRequest.notes"
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="bid-panel__footer" *ngIf="bidSuccess || bidError">
+              <div class="alert alert-success" *ngIf="bidSuccess">{{ bidSuccess }}</div>
+              <div class="alert alert-danger" *ngIf="bidError">{{ bidError }}</div>
+            </div>
+
+            <div class="bid-panel__actions">
+              <button type="submit" class="btn btn-success" [disabled]="bidSubmitting || bidForm.invalid">
+                <span *ngIf="bidSubmitting" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                Submit bid
+              </button>
+              <button type="button" class="btn btn-outline-secondary" (click)="bidForm.resetForm(bidRequest)" [disabled]="bidSubmitting">
+                Clear form
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <ng-template #noSelection>
+        <div class="tender-details__placeholder">
+          <h4 class="mb-2">Select a tender to review and submit your bid</h4>
+          <p class="text-muted mb-0">Choose a tender on the left to see requirements and share your proposal details.</p>
+        </div>
+      </ng-template>
     </div>
   </div>
 </div>
