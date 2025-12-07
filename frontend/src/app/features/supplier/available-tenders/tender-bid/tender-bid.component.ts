@@ -27,6 +27,9 @@ export class TenderBidComponent implements OnInit, OnDestroy {
   bidSubmitting = false;
   bidSuccess?: string;
   bidError?: string;
+  currentStep = 1;
+  requirementsReviewed = false;
+  submissionComplete = false;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -57,6 +60,8 @@ export class TenderBidComponent implements OnInit, OnDestroy {
   }
 
   submitBid(form: NgForm): void {
+    this.currentStep = Math.max(this.currentStep, 2);
+
     if (!this.tender || form.invalid) {
       return;
     }
@@ -76,9 +81,12 @@ export class TenderBidComponent implements OnInit, OnDestroy {
           this.bidSuccess = message || 'Bid submitted successfully.';
           this.bidRequest = this.createBidRequest(this.tender);
           form.resetForm(this.bidRequest);
+          this.submissionComplete = true;
+          this.currentStep = 3;
         },
         error: (err) => {
           this.bidError = err?.message ?? 'Unable to submit your bid right now.';
+          this.submissionComplete = false;
         },
       });
   }
@@ -122,11 +130,51 @@ export class TenderBidComponent implements OnInit, OnDestroy {
         next: (tender) => {
           this.tender = tender;
           this.bidRequest = this.createBidRequest(tender);
+          this.currentStep = 1;
+          this.requirementsReviewed = false;
+          this.submissionComplete = false;
         },
         error: (err) => {
           this.error = err?.message ?? 'Unable to load this tender.';
         },
       });
+  }
+
+  proceedToBid(): void {
+    this.requirementsReviewed = true;
+    this.currentStep = 2;
+    this.scrollToForm();
+  }
+
+  reopenForm(): void {
+    this.currentStep = 2;
+  }
+
+  resetFlow(): void {
+    this.bidRequest = this.createBidRequest(this.tender);
+    this.bidSuccess = undefined;
+    this.bidError = undefined;
+    this.submissionComplete = false;
+    this.currentStep = this.requirementsReviewed ? 2 : 1;
+  }
+
+  stepClass(step: number): string {
+    if (this.currentStep === step) {
+      return 'stepper__step stepper__step--active';
+    }
+
+    if (this.currentStep > step || (this.submissionComplete && step < 3)) {
+      return 'stepper__step stepper__step--done';
+    }
+
+    return 'stepper__step';
+  }
+
+  private scrollToForm(): void {
+    setTimeout(() => {
+      const element = document.getElementById('bid-form-anchor');
+      element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   private createBidRequest(tender?: SupplierRfx): SupplierBidRequest {

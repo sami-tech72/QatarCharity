@@ -9,6 +9,32 @@
   <div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
 
   <ng-container *ngIf="tender && !error">
+    <div class="stepper" aria-label="Bid submission steps">
+      <div [class]="stepClass(1)">
+        <div class="stepper__icon">1</div>
+        <div class="stepper__body">
+          <p class="stepper__label mb-0">Review requirements</p>
+          <small class="text-muted">Read the tender asks before you start.</small>
+        </div>
+      </div>
+      <div class="stepper__divider"></div>
+      <div [class]="stepClass(2)">
+        <div class="stepper__icon">2</div>
+        <div class="stepper__body">
+          <p class="stepper__label mb-0">Fill bid details</p>
+          <small class="text-muted">Provide pricing, delivery, and required inputs.</small>
+        </div>
+      </div>
+      <div class="stepper__divider"></div>
+      <div [class]="stepClass(3)">
+        <div class="stepper__icon">3</div>
+        <div class="stepper__body">
+          <p class="stepper__label mb-0">Review &amp; submit</p>
+          <small class="text-muted">Confirm everything is complete, then send.</small>
+        </div>
+      </div>
+    </div>
+
     <div class="page-header">
       <div>
         <p class="text-uppercase text-muted small mb-1">Reference {{ tender.referenceNumber }}</p>
@@ -81,6 +107,12 @@
           </ng-template>
         </div>
       </div>
+
+      <div class="d-flex justify-content-end mt-3">
+        <button type="button" class="btn btn-primary" (click)="proceedToBid()">
+          Proceed to bid
+        </button>
+      </div>
     </div>
 
     <div class="bid-shell">
@@ -139,7 +171,23 @@
           <div class="badge badge-soft-success">{{ getRemainingDays(tender.submissionDeadline) }} days left</div>
         </div>
 
-        <form #bidForm="ngForm" novalidate (ngSubmit)="submitBid(bidForm)">
+        <div class="step-hint" *ngIf="currentStep < 3">
+          <span class="step-badge">Step {{ currentStep === 1 ? '1 → 2' : '2' }}</span>
+          {{ currentStep === 1 ? 'Review requirements, then move to the form.' : 'Complete required fields to continue.' }}
+        </div>
+
+        <div class="step-hint step-hint--success" *ngIf="submissionComplete">
+          <div>
+            <span class="step-badge step-badge--success">Step 3</span>
+            Bid ready to submit again or adjust.
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" type="button" (click)="reopenForm()">Edit bid</button>
+            <button class="btn btn-link btn-sm px-2" type="button" (click)="goBack()">Back to tenders</button>
+          </div>
+        </div>
+
+        <form #bidForm="ngForm" novalidate (ngSubmit)="submitBid(bidForm)" id="bid-form-anchor">
           <div class="row g-3">
             <div class="col-12 col-md-6">
               <label class="form-label" for="bidAmount">Bid amount</label>

@@ -23,6 +23,78 @@
   color: #5f6b7a;
 }
 
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.stepper__step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+}
+
+.stepper__step--active {
+  border-color: #3b82f6;
+  background: #eef2ff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.stepper__step--done {
+  border-color: #22c55e;
+  background: #ecfdf3;
+}
+
+.stepper__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0e7ff;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.stepper__step--active .stepper__icon {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.stepper__step--done .stepper__icon {
+  background: #22c55e;
+  color: #fff;
+}
+
+.stepper__label {
+  font-weight: 700;
+  color: #111827;
+}
+
+.stepper__divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, #d1d5db 25%, #d1d5db 75%, rgba(0, 0, 0, 0) 100%);
+}
+
+@media (max-width: 768px) {
+  .stepper {
+    grid-template-columns: 1fr;
+  }
+
+  .stepper__divider {
+    display: none;
+  }
+}
+
 .deadline-chip {
   display: inline-flex;
   align-items: center;
@@ -158,6 +230,41 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.step-hint {
+  border: 1px solid #e0e7ff;
+  background: #f5f7ff;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #27303a;
+}
+
+.step-hint--success {
+  border-color: #bbf7d0;
+  background: #ecfdf3;
+}
+
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: #1d4ed8;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.step-badge--success {
+  background: #22c55e;
+  color: #fff;
 }
 
 .bid-panel__title {
