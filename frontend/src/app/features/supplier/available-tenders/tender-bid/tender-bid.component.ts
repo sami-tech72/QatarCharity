@@ -27,8 +27,7 @@ export class TenderBidComponent implements OnInit, OnDestroy {
   bidSubmitting = false;
   bidSuccess?: string;
   bidError?: string;
-  currentStep = 1;
-  requirementsReviewed = false;
+  currentStep = 2;
   submissionComplete = false;
 
   private readonly destroy$ = new Subject<void>();
@@ -130,20 +129,13 @@ export class TenderBidComponent implements OnInit, OnDestroy {
         next: (tender) => {
           this.tender = tender;
           this.bidRequest = this.createBidRequest(tender);
-          this.currentStep = 1;
-          this.requirementsReviewed = false;
+          this.currentStep = 2;
           this.submissionComplete = false;
         },
         error: (err) => {
           this.error = err?.message ?? 'Unable to load this tender.';
         },
       });
-  }
-
-  proceedToBid(): void {
-    this.requirementsReviewed = true;
-    this.currentStep = 2;
-    this.scrollToForm();
   }
 
   reopenForm(): void {
@@ -155,7 +147,7 @@ export class TenderBidComponent implements OnInit, OnDestroy {
     this.bidSuccess = undefined;
     this.bidError = undefined;
     this.submissionComplete = false;
-    this.currentStep = this.requirementsReviewed ? 2 : 1;
+    this.currentStep = 2;
   }
 
   stepClass(step: number): string {
@@ -168,13 +160,6 @@ export class TenderBidComponent implements OnInit, OnDestroy {
     }
 
     return 'stepper__step';
-  }
-
-  private scrollToForm(): void {
-    setTimeout(() => {
-      const element = document.getElementById('bid-form-anchor');
-      element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
   }
 
   private createBidRequest(tender?: SupplierRfx): SupplierBidRequest {
