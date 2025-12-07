@@ -265,7 +265,7 @@ export class CreateRfxComponent implements OnInit, OnDestroy {
     }
 
     const match = this.committeeOptions.find((member) => member.id === memberId);
-    return match?.displayName || 'Unassigned member';
+    return match ? `${match.displayName} (${match.email}) — ${this.formatCommitteeRole(match)}` : 'Unassigned member';
   }
 
   hasCommitteeSelection(): boolean {
@@ -300,6 +300,15 @@ export class CreateRfxComponent implements OnInit, OnDestroy {
         },
         error: () => (this.committeeOptions = []),
       });
+  }
+
+  formatCommitteeRole(user: ManagedUser): string {
+    if (user.role === 'Procurement') {
+      const subRole = user.procurementRole?.name;
+      return subRole ? `${user.role} — ${subRole}` : user.role;
+    }
+
+    return user.role;
   }
 
   private validateSteps(): boolean {
