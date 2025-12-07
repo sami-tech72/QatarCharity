@@ -12,7 +12,9 @@ import {
 import { adminSidebarMenu } from '../../features/admin/models/menu';
 import { procurementSidebarMenu } from '../../features/procurement/models/menu';
 import { supplierSidebarMenu } from '../../features/supplier/models/menu';
+import { ProcurementPermissionAction } from '../../shared/models/procurement-roles.model';
 import { UserRole, LoginRequest, LoginResponse, UserSession } from '../../shared/models/user.model';
+import { SidebarMenuItem } from '../layout/sidebar/sidebar.component';
 import { ApiService } from './api.service';
 import { ApiResponse } from '../../shared/models/api-response.model';
 
@@ -84,19 +86,58 @@ export class AuthService {
     return this.sessionSubject.value;
   }
 
-  defaultPathForRole(role: UserRole): string {
-    const map: Record<UserRole, string> = {
-      Admin: adminSidebarMenu[0].path,
-      Procurement: procurementSidebarMenu[0].path,
-      Supplier: supplierSidebarMenu[0].path,
+  sidebarMenuForRole(role: UserRole, session?: UserSession | null): SidebarMenuItem[] {
+    const menuMap: Record<UserRole, SidebarMenuItem[]> = {
+      Admin: adminSidebarMenu,
+      Procurement: procurementSidebarMenu,
+      Supplier: supplierSidebarMenu,
     };
 
-    return map[role];
+    const baseMenu = menuMap[role] ?? [];
+
+    if (role !== 'Procurement') {
+      return baseMenu;
+    }
+
+    return this.filterProcurementMenu(baseMenu, session ?? this.currentSession());
+  }
+
+  defaultPathForRole(role: UserRole, session?: UserSession | null): string {
+    const menu = this.sidebarMenuForRole(role, session ?? this.currentSession());
+
+    return menu[0]?.path ?? '/';
   }
 
   private persistSession(session: UserSession) {
     localStorage.setItem(this.storageKey, JSON.stringify(session));
     this.sessionSubject.next(session);
+  }
+
+  private filterProcurementMenu(menu: SidebarMenuItem[], session: UserSession | null): SidebarMenuItem[] {
+    if (!session?.procurementRole) {
+      return menu;
+    }
+
+    return menu.filter((item) => this.hasProcurementPermission(session, item));
+  }
+
+  private hasProcurementPermission(session: UserSession | null, item: SidebarMenuItem): boolean {
+    const requirement = item.permission;
+
+    if (!requirement) {
+      return true;
+    }
+
+    const procurementRole = session?.procurementRole;
+
+    if (!procurementRole) {
+      return false;
+    }
+
+    const action: ProcurementPermissionAction = requirement.action ?? 'read';
+    const permission = procurementRole.permissions.find((perm) => perm.name === requirement.name);
+
+    return !!permission?.actions?.[action];
   }
 
   private readSessionFromStorage(): UserSession | null {

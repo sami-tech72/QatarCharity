@@ -38,7 +38,7 @@ export const procurementPermissionGuard: CanMatchFn = (route) => {
   const allowed = permission?.actions?.[permissionAction];
 
   if (!allowed) {
-    router.navigateByUrl(authService.defaultPathForRole(session.role));
+    router.navigateByUrl(authService.defaultPathForRole(session.role, session));
     return false;
   }
 
