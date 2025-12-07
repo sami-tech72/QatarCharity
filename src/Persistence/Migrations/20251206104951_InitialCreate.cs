@@ -26,33 +26,6 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUsers",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    DisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "int", nullable: false),
-                    ProcurementRoleTemplateId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProcurementPermissionDefinitions",
                 columns: table => new
                 {
@@ -118,6 +91,88 @@ namespace Persistence.Migrations
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    DisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProcurementRoleTemplateId = table.Column<int>(type: "int", nullable: true),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_ProcurementRoleTemplates_ProcurementRoleTemplateId",
+                        column: x => x.ProcurementRoleTemplateId,
+                        principalTable: "ProcurementRoleTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProcurementRoleAvatars",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FileName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    ProcurementRoleTemplateId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProcurementRoleAvatars", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProcurementRoleAvatars_ProcurementRoleTemplates_ProcurementRoleTemplateId",
+                        column: x => x.ProcurementRoleTemplateId,
+                        principalTable: "ProcurementRoleTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProcurementRolePermissions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProcurementRoleTemplateId = table.Column<int>(type: "int", nullable: false),
+                    ProcurementPermissionDefinitionId = table.Column<int>(type: "int", nullable: false),
+                    CanRead = table.Column<bool>(type: "bit", nullable: false),
+                    CanWrite = table.Column<bool>(type: "bit", nullable: false),
+                    CanCreate = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProcurementRolePermissions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProcurementRolePermissions_ProcurementPermissionDefinitions_ProcurementPermissionDefinitionId",
+                        column: x => x.ProcurementPermissionDefinitionId,
+                        principalTable: "ProcurementPermissionDefinitions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProcurementRolePermissions_ProcurementRoleTemplates_ProcurementRoleTemplateId",
+                        column: x => x.ProcurementRoleTemplateId,
+                        principalTable: "ProcurementRoleTemplates",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -244,55 +299,6 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProcurementRoleAvatars",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FileName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    ProcurementRoleTemplateId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProcurementRoleAvatars", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ProcurementRoleAvatars_ProcurementRoleTemplates_ProcurementRoleTemplateId",
-                        column: x => x.ProcurementRoleTemplateId,
-                        principalTable: "ProcurementRoleTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ProcurementRolePermissions",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ProcurementRoleTemplateId = table.Column<int>(type: "int", nullable: false),
-                    ProcurementPermissionDefinitionId = table.Column<int>(type: "int", nullable: false),
-                    CanRead = table.Column<bool>(type: "bit", nullable: false),
-                    CanWrite = table.Column<bool>(type: "bit", nullable: false),
-                    CanCreate = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProcurementRolePermissions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ProcurementRolePermissions_ProcurementPermissionDefinitions_ProcurementPermissionDefinitionId",
-                        column: x => x.ProcurementPermissionDefinitionId,
-                        principalTable: "ProcurementPermissionDefinitions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ProcurementRolePermissions_ProcurementRoleTemplates_ProcurementRoleTemplateId",
-                        column: x => x.ProcurementRoleTemplateId,
-                        principalTable: "ProcurementRoleTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "WorkflowSteps",
                 columns: table => new
                 {
@@ -415,23 +421,11 @@ namespace Persistence.Migrations
                 table: "WorkflowSteps",
                 columns: new[] { "WorkflowId", "Order" },
                 unique: true);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_AspNetUsers_ProcurementRoleTemplates_ProcurementRoleTemplateId",
-                table: "AspNetUsers",
-                column: "ProcurementRoleTemplateId",
-                principalTable: "ProcurementRoleTemplates",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_AspNetUsers_ProcurementRoleTemplates_ProcurementRoleTemplateId",
-                table: "AspNetUsers");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -466,13 +460,13 @@ namespace Persistence.Migrations
                 name: "ProcurementPermissionDefinitions");
 
             migrationBuilder.DropTable(
-                name: "ProcurementRoleTemplates");
-
-            migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Workflows");
+
+            migrationBuilder.DropTable(
+                name: "ProcurementRoleTemplates");
         }
     }
 }

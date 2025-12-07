@@ -12,7 +12,7 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251206102117_InitialCreate")]
+    [Migration("20251206104951_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -521,10 +521,12 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.ApplicationUser", b =>
                 {
-                    b.HasOne("Domain.Entities.Procurement.ProcurementRoleTemplate", null)
+                    b.HasOne("Domain.Entities.Procurement.ProcurementRoleTemplate", "ProcurementRoleTemplate")
                         .WithMany()
                         .HasForeignKey("ProcurementRoleTemplateId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ProcurementRoleTemplate");
                 });
 
             modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRoleAvatar", b =>
