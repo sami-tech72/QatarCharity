@@ -29,6 +29,9 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
   bidSuccess?: string;
   bidError?: string;
   bidRequest: SupplierBidRequest = this.createBidRequest();
+  currentStep = 1;
+  requirementsReviewed = false;
+  submissionComplete = false;
 
   private readonly destroy$ = new Subject<void>();
   private readonly search$ = new Subject<string>();
@@ -64,6 +67,9 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
     this.selectedTender = tender;
     this.bidSuccess = undefined;
     this.bidError = undefined;
+    this.currentStep = 1;
+    this.requirementsReviewed = false;
+    this.submissionComplete = false;
 
     if (hasChanged) {
       this.bidRequest = this.createBidRequest(tender);
@@ -100,6 +106,8 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
   }
 
   submitBid(form: NgForm): void {
+    this.currentStep = Math.max(this.currentStep, 2);
+
     if (!this.selectedTender || form.invalid) {
       return;
     }
@@ -121,9 +129,12 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
           this.bidSuccess = message || 'Bid submitted successfully.';
           this.bidRequest = this.createBidRequest(this.selectedTender);
           form.resetForm(this.bidRequest);
+          this.submissionComplete = true;
+          this.currentStep = 3;
         },
         error: (err) => {
           this.bidError = err?.message ?? 'Unable to submit your bid right now.';
+          this.submissionComplete = false;
         },
       });
   }
@@ -156,6 +167,44 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
     };
 
     reader.readAsDataURL(file);
+  }
+
+  proceedToBid(): void {
+    this.requirementsReviewed = true;
+    this.currentStep = 2;
+    this.scrollToForm();
+  }
+
+  reopenForm(): void {
+    this.currentStep = 2;
+    this.submissionComplete = false;
+  }
+
+  resetFlow(): void {
+    this.bidRequest = this.createBidRequest(this.selectedTender);
+    this.bidSuccess = undefined;
+    this.bidError = undefined;
+    this.submissionComplete = false;
+    this.currentStep = this.requirementsReviewed ? 2 : 1;
+  }
+
+  stepClass(step: number): string {
+    if (this.currentStep === step) {
+      return 'stepper__step stepper__step--active';
+    }
+
+    if (this.currentStep > step || (this.submissionComplete && step < 3)) {
+      return 'stepper__step stepper__step--done';
+    }
+
+    return 'stepper__step';
+  }
+
+  private scrollToForm(): void {
+    setTimeout(() => {
+      const element = document.getElementById('inline-bid-form');
+      element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   private loadTenders(search: string = this.searchTerm): void {
