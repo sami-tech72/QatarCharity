@@ -292,7 +292,12 @@ export class CreateRfxComponent implements OnInit, OnDestroy {
       .getUserLookup()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (users) => (this.committeeOptions = users),
+        next: (users) => {
+          this.committeeOptions = users.filter(
+            (user) =>
+              user.role === 'Procurement' && user.procurementRole?.name === 'Committee Member',
+          );
+        },
         error: () => (this.committeeOptions = []),
       });
   }

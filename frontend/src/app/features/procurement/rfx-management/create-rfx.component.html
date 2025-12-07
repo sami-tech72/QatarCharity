@@ -400,7 +400,8 @@
                           <select class="form-select" [formControl]="member">
                             <option value="">Select member</option>
                             <option *ngFor="let option of committeeOptions" [value]="option.id">
-                              {{ option.displayName }} ({{ option.email }})
+                              {{ option.displayName }} ({{ option.email }}) —
+                              {{ option.procurementRole?.name || option.role }}
                             </option>
                           </select>
                           <button type="button" class="btn btn-icon btn-light-danger" (click)="removeCommitteeMember(i)">
