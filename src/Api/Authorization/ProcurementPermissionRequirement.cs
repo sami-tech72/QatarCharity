@@ -17,6 +17,12 @@ public class ProcurementPermissionHandler : AuthorizationHandler<ProcurementPerm
         AuthorizationHandlerContext context,
         ProcurementPermissionRequirement requirement)
     {
+        if (context.User.IsInRole(Domain.Enums.Roles.Admin))
+        {
+            context.Succeed(requirement);
+            return Task.CompletedTask;
+        }
+
         var claimType = $"procurement_permission:{requirement.Permission}";
         var claim = context.User.FindFirst(claimType);
 
