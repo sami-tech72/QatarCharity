@@ -25,10 +25,19 @@
 
 .stepper {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1rem;
+}
+
+.stepper__button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
 }
 
 .stepper__step {

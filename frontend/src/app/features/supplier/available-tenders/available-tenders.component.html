@@ -114,30 +114,17 @@
           </div>
         </div>
 
-        <div class="stepper" aria-label="Bid submission steps">
-          <div [class]="stepClass(1)">
-            <div class="stepper__icon">1</div>
-            <div class="stepper__body">
-              <p class="stepper__label mb-0">Review requirements</p>
-              <small class="text-muted">Read the tender asks before starting.</small>
-            </div>
-          </div>
-          <div class="stepper__divider"></div>
-          <div [class]="stepClass(2)">
-            <div class="stepper__icon">2</div>
-            <div class="stepper__body">
-              <p class="stepper__label mb-0">Fill bid details</p>
-              <small class="text-muted">Provide pricing, delivery, and inputs.</small>
-            </div>
-          </div>
-          <div class="stepper__divider"></div>
-          <div [class]="stepClass(3)">
-            <div class="stepper__icon">3</div>
-            <div class="stepper__body">
-              <p class="stepper__label mb-0">Review &amp; submit</p>
-              <small class="text-muted">Confirm everything is complete, then send.</small>
-            </div>
-          </div>
+        <div class="stepper" aria-label="Bid submission steps" *ngIf="stepperSteps.length">
+          <ng-container *ngFor="let step of stepperSteps; let i = index">
+            <button type="button" class="stepper__button" [class]="stepClass(i, step)" (click)="goToStep(i, step)">
+              <div class="stepper__icon">{{ i + 1 }}</div>
+              <div class="stepper__body">
+                <p class="stepper__label mb-0">{{ step.label }}</p>
+                <small class="text-muted">{{ step.hint }}</small>
+              </div>
+            </button>
+            <div class="stepper__divider" *ngIf="i < stepperSteps.length - 1"></div>
+          </ng-container>
         </div>
 
         <div class="detail-grid">
@@ -215,14 +202,14 @@
             <div class="badge badge-soft-success">{{ getRemainingDays(selectedTender.submissionDeadline) }} days left</div>
           </div>
 
-          <div class="step-hint" *ngIf="currentStep < 3">
-            <span class="step-badge">Step {{ currentStep === 1 ? '1 → 2' : '2' }}</span>
-            {{ currentStep === 1 ? 'Review requirements, then move to the form.' : 'Complete required fields to continue.' }}
+          <div class="step-hint" *ngIf="stepperSteps[currentStep - 1] && !submissionComplete">
+            <span class="step-badge">Step {{ currentStep }}</span>
+            {{ stepperSteps[currentStep - 1].label }} — {{ stepperSteps[currentStep - 1].hint }}
           </div>
 
           <div class="step-hint step-hint--success" *ngIf="submissionComplete">
             <div>
-              <span class="step-badge step-badge--success">Step 3</span>
+              <span class="step-badge step-badge--success">Step {{ stepperSteps.length }}</span>
               Bid ready to submit again or adjust.
             </div>
             <div class="d-flex gap-2">
@@ -279,7 +266,7 @@
           </div>
 
           <form #bidForm="ngForm" novalidate (ngSubmit)="submitBid(bidForm)" id="inline-bid-form">
-            <div class="row g-3">
+            <div class="row g-3" id="bid-basics">
               <div class="col-12 col-md-6">
                 <label class="form-label" for="bidAmount">Bid amount</label>
                 <div class="input-group">
@@ -333,8 +320,10 @@
                   A brief proposal summary is required.
                 </div>
               </div>
+            </div>
 
-              <div class="col-12" *ngIf="bidRequest.documents?.length">
+            <div class="row g-3 mt-2">
+              <div class="col-12" *ngIf="bidRequest.documents?.length" id="bid-documents">
                 <div class="section-label d-flex align-items-center justify-content-between">
                   <span class="form-label mb-0">Required documents</span>
                   <small class="text-muted">Upload a file for each required item.</small>
@@ -365,7 +354,7 @@
                 </div>
               </div>
 
-              <div class="col-12" *ngIf="bidRequest.inputs?.length">
+              <div class="col-12" *ngIf="bidRequest.inputs?.length" id="bid-inputs">
                 <div class="section-label d-flex align-items-center justify-content-between">
                   <span class="form-label mb-0">Required input data</span>
                   <small class="text-muted">Answer the tender-specific inputs before submitting.</small>
@@ -389,7 +378,7 @@
                 </div>
               </div>
 
-              <div class="col-12">
+              <div class="col-12" id="bid-submit">
                 <label class="form-label" for="notes">Internal notes (optional)</label>
                 <textarea
                   id="notes"

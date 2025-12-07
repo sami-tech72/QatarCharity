@@ -12,6 +12,15 @@ import {
   SupplierRfx,
 } from '../../../../shared/models/supplier-rfx.model';
 
+type BidStepKey = 'basics' | 'documents' | 'inputs' | 'review';
+
+interface BidStep {
+  key: BidStepKey;
+  label: string;
+  hint: string;
+  anchorId: string;
+}
+
 @Component({
   selector: 'app-tender-bid',
   standalone: true,
@@ -27,8 +36,9 @@ export class TenderBidComponent implements OnInit, OnDestroy {
   bidSubmitting = false;
   bidSuccess?: string;
   bidError?: string;
-  currentStep = 2;
+  currentStep = 1;
   submissionComplete = false;
+  stepperSteps: BidStep[] = [];
 
   private readonly destroy$ = new Subject<void>();
 
@@ -81,7 +91,7 @@ export class TenderBidComponent implements OnInit, OnDestroy {
           this.bidRequest = this.createBidRequest(this.tender);
           form.resetForm(this.bidRequest);
           this.submissionComplete = true;
-          this.currentStep = 3;
+          this.currentStep = this.stepperSteps.length;
         },
         error: (err) => {
           this.bidError = err?.message ?? 'Unable to submit your bid right now.';
@@ -129,7 +139,8 @@ export class TenderBidComponent implements OnInit, OnDestroy {
         next: (tender) => {
           this.tender = tender;
           this.bidRequest = this.createBidRequest(tender);
-          this.currentStep = 2;
+          this.buildStepper(tender);
+          this.currentStep = 1;
           this.submissionComplete = false;
         },
         error: (err) => {
@@ -139,7 +150,7 @@ export class TenderBidComponent implements OnInit, OnDestroy {
   }
 
   reopenForm(): void {
-    this.currentStep = 2;
+    this.currentStep = 1;
   }
 
   resetFlow(): void {
@@ -147,19 +158,28 @@ export class TenderBidComponent implements OnInit, OnDestroy {
     this.bidSuccess = undefined;
     this.bidError = undefined;
     this.submissionComplete = false;
-    this.currentStep = 2;
+    this.currentStep = 1;
+    this.buildStepper(this.tender);
   }
 
-  stepClass(step: number): string {
-    if (this.currentStep === step) {
+  stepClass(index: number, step: BidStep): string {
+    const stepNumber = index + 1;
+    const complete = this.isStepComplete(step.key);
+
+    if (this.currentStep === stepNumber) {
       return 'stepper__step stepper__step--active';
     }
 
-    if (this.currentStep > step || (this.submissionComplete && step < 3)) {
+    if (this.currentStep > stepNumber || complete) {
       return 'stepper__step stepper__step--done';
     }
 
     return 'stepper__step';
+  }
+
+  goToStep(index: number, step: BidStep): void {
+    this.currentStep = index + 1;
+    this.scrollToSection(step.anchorId);
   }
 
   private createBidRequest(tender?: SupplierRfx): SupplierBidRequest {
@@ -180,6 +200,73 @@ export class TenderBidComponent implements OnInit, OnDestroy {
       documents,
       inputs,
     };
+  }
+
+  private scrollToSection(anchorId: string): void {
+    setTimeout(() => {
+      const element = document.getElementById(anchorId);
+      element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  private buildStepper(tender?: SupplierRfx): void {
+    const hasDocuments = Boolean(tender?.requiredDocuments?.length);
+    const hasInputs = Boolean(tender?.requiredInputs?.length);
+
+    const steps: BidStep[] = [
+      {
+        key: 'basics',
+        label: 'Bid basics',
+        hint: 'Amount, delivery, and overview',
+        anchorId: 'bid-basics',
+      },
+    ];
+
+    if (hasDocuments) {
+      steps.push({
+        key: 'documents',
+        label: 'Required documents',
+        hint: 'Upload each requested file',
+        anchorId: 'bid-documents',
+      });
+    }
+
+    if (hasInputs) {
+      steps.push({
+        key: 'inputs',
+        label: 'Required inputs',
+        hint: 'Respond to tender prompts',
+        anchorId: 'bid-inputs',
+      });
+    }
+
+    steps.push({
+      key: 'review',
+      label: 'Review & submit',
+      hint: 'Confirm and send bid',
+      anchorId: 'bid-submit',
+    });
+
+    this.stepperSteps = steps;
+  }
+
+  private isStepComplete(step: BidStepKey): boolean {
+    switch (step) {
+      case 'basics':
+        return Boolean(
+          this.bidRequest.bidAmount &&
+            this.bidRequest.expectedDeliveryDate &&
+            (this.bidRequest.proposalSummary?.trim()?.length || 0) > 0
+        );
+      case 'documents':
+        return !this.bidRequest.documents?.length || this.bidRequest.documents.every((doc) => !!doc.contentBase64);
+      case 'inputs':
+        return !this.bidRequest.inputs?.length || this.bidRequest.inputs.every((input) => !!input.value?.trim());
+      case 'review':
+        return this.submissionComplete;
+      default:
+        return false;
+    }
   }
 
   onDocumentSelected(event: Event, document: BidDocumentSubmission, form: NgForm): void {
