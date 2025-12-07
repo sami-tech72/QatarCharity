@@ -62,6 +62,11 @@ public class RfxController : ControllerBase
             .Include(rfx => rfx.CommitteeMembers)
             .AsQueryable();
 
+        if (query.AssignedOnly)
+        {
+            rfxQuery = rfxQuery.Where(rfx => rfx.CommitteeMembers.Any(member => member.UserId == currentUserId));
+        }
+
         if (!string.IsNullOrWhiteSpace(search))
         {
             rfxQuery = rfxQuery.Where(rfx =>

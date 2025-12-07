@@ -2,6 +2,7 @@ export interface RfxQueryRequest {
   pageNumber: number;
   pageSize: number;
   search?: string;
+  assignedOnly?: boolean;
 }
 
 export interface RfxSummary {

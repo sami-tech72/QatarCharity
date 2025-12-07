@@ -17,6 +17,7 @@ export class RfxService {
           pageNumber: query.pageNumber,
           pageSize: query.pageSize,
           search: query.search ?? '',
+          assignedOnly: query.assignedOnly ?? false,
         },
       })
       .pipe(map((response) => this.unwrap(response)));

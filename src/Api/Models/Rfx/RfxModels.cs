@@ -8,6 +8,7 @@ public record RfxQueryParameters
     public int PageNumber { get; init; }
     public int PageSize { get; init; }
     public string? Search { get; init; }
+    public bool AssignedOnly { get; init; }
 }
 
 public record CreateRfxRequest
