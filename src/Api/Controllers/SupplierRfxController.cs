@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Models;
@@ -63,7 +64,12 @@ public class SupplierRfxController : ControllerBase
                 rfx.ClosingDate,
                 rfx.EstimatedBudget,
                 rfx.Currency,
-                rfx.HideBudget))
+                rfx.HideBudget,
+                rfx.Scope,
+                rfx.TechnicalSpecification,
+                rfx.Deliverables,
+                rfx.Timeline,
+                DeserializeList(rfx.RequiredDocuments)))
             .ToListAsync();
 
         var response = new PagedResult<PublishedRfxResponse>(tenders, totalCount, pageNumber, pageSize);
@@ -107,5 +113,23 @@ public class SupplierRfxController : ControllerBase
         // Persisting the bid is out of scope for this iteration; this endpoint validates payloads
         // and confirms that the tender is open for supplier bids.
         return Ok(ApiResponse<string>.Ok("Bid submitted successfully.", "Bid submitted successfully."));
+    }
+
+    private static List<string> DeserializeList(string serialized)
+    {
+        if (string.IsNullOrWhiteSpace(serialized))
+        {
+            return new List<string>();
+        }
+
+        try
+        {
+            var values = System.Text.Json.JsonSerializer.Deserialize<List<string>>(serialized);
+            return values ?? new List<string>();
+        }
+        catch
+        {
+            return new List<string>();
+        }
     }
 }

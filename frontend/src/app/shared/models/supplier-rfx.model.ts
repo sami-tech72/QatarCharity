@@ -25,4 +25,9 @@ export interface SupplierRfx {
   estimatedBudget: number;
   currency: string;
   hideBudget: boolean;
+  scope: string;
+  technicalSpecification: string;
+  deliverables: string;
+  timeline: string;
+  requiredDocuments: string[];
 }

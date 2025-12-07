@@ -94,7 +94,12 @@ public record PublishedRfxResponse(
     DateTime ClosingDate,
     decimal EstimatedBudget,
     string Currency,
-    bool HideBudget);
+    bool HideBudget,
+    string Scope,
+    string TechnicalSpecification,
+    string Deliverables,
+    string Timeline,
+    IReadOnlyCollection<string> RequiredDocuments);
 
 public record RfxDetailResponse(
     Guid Id,
