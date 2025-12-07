@@ -1,12 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ProcurementPermissionAction } from '../../../shared/models/procurement-roles.model';
 import { UserRole } from '../../../shared/models/user.model';
 
 export interface SidebarMenuItem {
   title: string;
   icon: string;
   path: string;
+  permission?: {
+    name: string;
+    action?: ProcurementPermissionAction;
+  };
 }
 
 @Component({

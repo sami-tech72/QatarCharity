@@ -4,10 +4,7 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { SidebarComponent, SidebarMenuItem } from './sidebar/sidebar.component';
-import { adminSidebarMenu } from '../../features/admin/models/menu';
-import { procurementSidebarMenu } from '../../features/procurement/models/menu';
-import { supplierSidebarMenu } from '../../features/supplier/models/menu';
+import { SidebarComponent } from './sidebar/sidebar.component';
 import { AuthService } from '../services/auth.service';
 import { UserRole, UserSession } from '../../shared/models/user.model';
 import { ThemeMode, ThemeService } from '../services/theme.service';
@@ -29,12 +26,6 @@ export class LayoutComponent implements AfterViewInit {
 
   activePageTitle = 'Dashboard';
 
-  readonly sidebarMenus: Record<UserRole, SidebarMenuItem[]> = {
-    Admin: adminSidebarMenu,
-    Procurement: procurementSidebarMenu,
-    Supplier: supplierSidebarMenu,
-  } as const;
-
   readonly themeModes: { label: string; icon: string; value: ThemeMode }[] = [
     { label: 'Light', icon: 'ki-duotone ki-night-day', value: 'light' },
     { label: 'Dark', icon: 'ki-duotone ki-moon', value: 'dark' },
@@ -52,7 +43,7 @@ export class LayoutComponent implements AfterViewInit {
   session: UserSession | null = null;
 
   get sidebarMenu() {
-    return this.sidebarMenus[this.currentRole];
+    return this.authService.sidebarMenuForRole(this.currentRole, this.session);
   }
 
   private layoutInitTimeout?: number;
@@ -93,7 +84,7 @@ export class LayoutComponent implements AfterViewInit {
       return;
     }
 
-    this.router.navigateByUrl(this.authService.defaultPathForRole(role));
+    this.router.navigateByUrl(this.authService.defaultPathForRole(role, this.session));
   }
 
   changeTheme(mode: ThemeMode) {
@@ -107,8 +98,15 @@ export class LayoutComponent implements AfterViewInit {
       return;
     }
 
-    const match = this.sidebarMenu.find((item) => url.startsWith(item.path));
-    this.activePageTitle = match?.title ?? this.sidebarMenu[0].title;
+    const sidebarMenu = this.sidebarMenu;
+
+    if (sidebarMenu.length === 0) {
+      this.activePageTitle = 'Dashboard';
+      return;
+    }
+
+    const match = sidebarMenu.find((item) => url.startsWith(item.path));
+    this.activePageTitle = match?.title ?? sidebarMenu[0].title;
   }
 
   private handleSessionChange(session: UserSession | null) {
@@ -124,7 +122,7 @@ export class LayoutComponent implements AfterViewInit {
     this.roles = [session.role];
     this.currentRole = session.role;
 
-    const defaultPath = this.authService.defaultPathForRole(session.role);
+    const defaultPath = this.authService.defaultPathForRole(session.role, session);
     const currentPath = this.router.url || window.location.pathname;
     const isLoginRoute = currentPath === '/' || currentPath.startsWith('/login');
 
