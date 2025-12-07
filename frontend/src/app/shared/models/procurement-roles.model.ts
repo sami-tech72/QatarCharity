@@ -31,3 +31,5 @@ export interface ProcurementPermissionActions {
   write: boolean;
   create: boolean;
 }
+
+export type ProcurementPermissionAction = keyof ProcurementPermissionActions;
