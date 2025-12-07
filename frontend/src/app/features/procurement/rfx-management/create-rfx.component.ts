@@ -289,18 +289,11 @@ export class CreateRfxComponent implements OnInit, OnDestroy {
 
   private loadCommitteeOptions(): void {
     this.userService
-      .getUserLookup()
+      .getUserLookup(undefined, 'Procurement')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (users) => {
-          this.committeeOptions = users.filter((user) => {
-            if (user.role !== 'Procurement') {
-              return false;
-            }
-
-            const subRole = user.procurementRole?.name?.trim().toLowerCase();
-            return !!subRole && subRole.includes('committee');
-          });
+          this.committeeOptions = users;
         },
         error: () => (this.committeeOptions = []),
       });
