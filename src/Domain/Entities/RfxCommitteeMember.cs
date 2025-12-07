@@ -13,6 +13,9 @@ public class RfxCommitteeMember
 
     public string DisplayName { get; set; } = string.Empty;
 
+    public bool IsApproved { get; set; }
+        = false;
+
     public Rfx? Rfx { get; set; }
         = null;
 }
