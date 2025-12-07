@@ -1,3 +1,5 @@
+import { ProcurementPermission } from './procurement-roles.model';
+
 export type UserRole = 'Admin' | 'Procurement' | 'Supplier';
 
 export interface LoginRequest {
@@ -11,6 +13,13 @@ export interface LoginResponse {
   role: UserRole;
   token: string;
   expiresAt: string;
+  procurementRole?: ProcurementUserRole | null;
 }
 
 export interface UserSession extends LoginResponse {}
+
+export interface ProcurementUserRole {
+  id: number;
+  name: string;
+  permissions: ProcurementPermission[];
+}

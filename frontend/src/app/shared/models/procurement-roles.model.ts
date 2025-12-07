@@ -11,6 +11,7 @@ export interface CreateProcurementRoleRequest {
 }
 
 export interface ProcurementSubRole {
+  id: number;
   name: string;
   description: string;
   totalUsers: number;
@@ -30,3 +31,5 @@ export interface ProcurementPermissionActions {
   write: boolean;
   create: boolean;
 }
+
+export type ProcurementPermissionAction = keyof ProcurementPermissionActions;

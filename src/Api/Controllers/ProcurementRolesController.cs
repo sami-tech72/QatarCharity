@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Api.Authorization;
 using Api.Models;
 using Api.Models.Procurement;
 using Domain.Entities.Procurement;
@@ -27,6 +28,7 @@ public class ProcurementRolesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = ProcurementPolicies.RolesPermissionsRead)]
     [ProducesResponseType(typeof(ApiResponse<ProcurementRolesResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<ProcurementRolesResponse>>> GetProcurementRoles()
     {
@@ -54,6 +56,7 @@ public class ProcurementRolesController : ControllerBase
 
         var subRoles = roleTemplates
             .Select(template => new ProcurementSubRole(
+                Id: template.Id,
                 Name: template.Name,
                 Description: template.Description,
                 TotalUsers: template.TotalUsers,
@@ -72,6 +75,7 @@ public class ProcurementRolesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = ProcurementPolicies.RolesPermissionsCreate)]
     [ProducesResponseType(typeof(ApiResponse<ProcurementSubRole>), StatusCodes.Status201Created)]
     public async Task<ActionResult<ApiResponse<ProcurementSubRole>>> CreateProcurementRole(
         [FromBody] CreateProcurementRoleRequest request)
@@ -99,6 +103,7 @@ public class ProcurementRolesController : ControllerBase
         await _dbContext.SaveChangesAsync();
 
         var subRole = new ProcurementSubRole(
+            Id: template.Id,
             Name: template.Name,
             Description: template.Description,
             TotalUsers: template.TotalUsers,

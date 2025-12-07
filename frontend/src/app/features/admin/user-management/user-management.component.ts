@@ -13,6 +13,8 @@ import {
   UserQueryRequest,
 } from '../../../shared/models/user-management.model';
 import { UserRole } from '../../../shared/models/user.model';
+import { ProcurementRolesService } from '../../../core/services/procurement-roles.service';
+import { ProcurementRolesResponse, ProcurementSubRole } from '../../../shared/models/procurement-roles.model';
 
 @Component({
   selector: 'app-user-management-page',
@@ -47,6 +49,8 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   editingUser: ManagedUser | null = null;
   readonly pageSizes = [5, 10, 20, 50];
   readonly searchControl = new FormControl('', { nonNullable: true });
+  procurementRoles: ProcurementSubRole[] = [];
+  isLoadingProcurementRoles = false;
   private readonly destroy$ = new Subject<void>();
 
   paginationState: UserQueryRequest = {
@@ -58,12 +62,14 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserManagementService);
   private readonly notifier = inject(NotificationService);
+  private readonly procurementRolesService = inject(ProcurementRolesService);
 
   readonly userForm = this.fb.nonNullable.group({
     displayName: ['', [Validators.required, Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     role: this.fb.nonNullable.control<UserRole>('Supplier'),
+    procurementRoleTemplateId: this.fb.control<number | null>(null),
   });
 
   ngOnInit(): void {
@@ -74,6 +80,12 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         this.loadUsers();
       });
 
+    this.userForm.controls.role.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((role) => this.updateProcurementRoleValidators(role));
+
+    this.updateProcurementRoleValidators(this.userForm.controls.role.value);
+    this.loadProcurementRoles();
     this.loadUsers();
   }
 
@@ -110,9 +122,11 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
     this.isSubmitting = true;
     if (this.editingUser) {
-      const { displayName, email, role } = this.userForm.getRawValue();
+      const { displayName, email, role, procurementRoleTemplateId } = this.userForm.getRawValue();
 
-      this.userService.updateUser(this.editingUser.id, { displayName, email, role }).subscribe({
+      this.userService
+        .updateUser(this.editingUser.id, { displayName, email, role, procurementRoleTemplateId })
+        .subscribe({
         next: (user) => {
           this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
           this.refreshFromServer();
@@ -172,6 +186,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.editingUser = null;
     this.enablePasswordValidators();
     this.resetForm();
+    this.updateProcurementRoleValidators(this.userForm.controls.role.value);
   }
 
   startEdit(user: ManagedUser): void {
@@ -182,7 +197,9 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: user.email,
       password: '',
       role: user.role,
+      procurementRoleTemplateId: user.procurementRole?.id ?? null,
     });
+    this.updateProcurementRoleValidators(user.role);
   }
 
   onCancel(): void {
@@ -252,6 +269,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       email: '',
       password: '',
       role: 'Supplier',
+      procurementRoleTemplateId: null,
     });
   }
 
@@ -286,6 +304,38 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     const control = this.userForm.controls.password;
     control.setValidators([Validators.required, Validators.minLength(6)]);
     control.updateValueAndValidity();
+  }
+
+  private updateProcurementRoleValidators(role: UserRole): void {
+    const control = this.userForm.controls.procurementRoleTemplateId;
+
+    if (role === 'Procurement') {
+      control.setValidators([Validators.required]);
+    } else {
+      control.clearValidators();
+      control.setValue(null, { emitEvent: false });
+    }
+
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private loadProcurementRoles(): void {
+    this.isLoadingProcurementRoles = true;
+
+    this.procurementRolesService
+      .loadRoles()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: ProcurementRolesResponse) => {
+          this.procurementRoles = response.subRoles;
+          this.isLoadingProcurementRoles = false;
+        },
+        error: () => {
+          this.procurementRoles = [];
+          this.isLoadingProcurementRoles = false;
+          this.notifier.error('Unable to load procurement sub-roles.');
+        },
+      });
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

@@ -5,4 +5,14 @@ public record LoginResponse(
     string DisplayName,
     string Role,
     string Token,
-    DateTime ExpiresAt);
+    DateTime ExpiresAt,
+    ProcurementUserRoleDto? ProcurementRole);
+
+public record ProcurementUserRoleDto(
+    int Id,
+    string Name,
+    IReadOnlyList<ProcurementPermissionDto> Permissions);
+
+public record ProcurementPermissionDto(string Name, ProcurementPermissionActionsDto Actions);
+
+public record ProcurementPermissionActionsDto(bool Read, bool Write, bool Create);

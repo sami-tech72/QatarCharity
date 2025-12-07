@@ -14,7 +14,10 @@ public class JwtTokenService(IOptions<JwtSettings> settings) : IJwtTokenService
 {
     private readonly JwtSettings _settings = settings.Value;
 
-    public JwtTokenResult CreateToken(ApplicationUser user, IEnumerable<string> roles)
+    public JwtTokenResult CreateToken(
+        ApplicationUser user,
+        IEnumerable<string> roles,
+        IEnumerable<Claim>? additionalClaims = null)
     {
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key)),
@@ -28,6 +31,11 @@ public class JwtTokenService(IOptions<JwtSettings> settings) : IJwtTokenService
         };
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+        if (additionalClaims is not null)
+        {
+            claims.AddRange(additionalClaims);
+        }
 
         var expires = DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes);
         var token = new JwtSecurityToken(

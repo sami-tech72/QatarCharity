@@ -6,4 +6,5 @@ public record CreateUserRequest(
     [Required] string DisplayName,
     [Required, EmailAddress] string Email,
     [Required] string Password,
-    [Required] string Role);
+    [Required] string Role,
+    int? ProcurementRoleTemplateId);

@@ -6,5 +6,8 @@ namespace Application.Interfaces.Authentication;
 
 public interface IJwtTokenService
 {
-    JwtTokenResult CreateToken(ApplicationUser user, IEnumerable<string> roles);
+    JwtTokenResult CreateToken(
+        ApplicationUser user,
+        IEnumerable<string> roles,
+        IEnumerable<System.Security.Claims.Claim>? additionalClaims = null);
 }

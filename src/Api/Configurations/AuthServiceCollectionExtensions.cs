@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using System.Text;
+using Api.Authorization;
 using Domain.Enums;
 using Infrastructure.Services.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -46,7 +48,15 @@ public static class AuthServiceCollectionExtensions
             {
                 options.AddPolicy(role, policy => policy.RequireRole(role));
             }
+
+            foreach (var (permission, action, policyName) in ProcurementPolicies.All)
+            {
+                options.AddPolicy(policyName, policy =>
+                    policy.Requirements.Add(new ProcurementPermissionRequirement(permission, action)));
+            }
         });
+
+        services.AddSingleton<IAuthorizationHandler, ProcurementPermissionHandler>();
 
         return services;
     }
