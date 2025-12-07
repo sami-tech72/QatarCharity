@@ -11,6 +11,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<Workflow> Workflows => Set<Workflow>();
     public DbSet<WorkflowStep> WorkflowSteps => Set<WorkflowStep>();
+    public DbSet<Rfx> Rfxes => Set<Rfx>();
+    public DbSet<RfxEvaluationCriterion> RfxEvaluationCriteria => Set<RfxEvaluationCriterion>();
+    public DbSet<RfxCommitteeMember> RfxCommitteeMembers => Set<RfxCommitteeMember>();
     public DbSet<ProcurementPermissionDefinition> ProcurementPermissionDefinitions => Set<ProcurementPermissionDefinition>();
     public DbSet<ProcurementRoleTemplate> ProcurementRoleTemplates => Set<ProcurementRoleTemplate>();
     public DbSet<ProcurementRoleAvatar> ProcurementRoleAvatars => Set<ProcurementRoleAvatar>();

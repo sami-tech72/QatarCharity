@@ -1,17 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Subject, debounceTime, takeUntil } from 'rxjs';
 
-interface RfxRecord {
-  tenderId: string;
-  title: string;
-  category: string;
-  status: 'Draft' | 'Published' | 'Closed';
-  committeeStatus: 'Pending' | 'In Review' | 'Approved';
-  submissionDeadline: string;
-  estimatedValue: string;
-}
+import { RfxService } from '../../../core/services/rfx.service';
+import { PagedResult } from '../../../shared/models/pagination.model';
+import { RfxSummary } from '../../../shared/models/rfx.model';
 
 @Component({
   selector: 'app-rfx-management',
@@ -20,79 +15,47 @@ interface RfxRecord {
   templateUrl: './rfx-management.component.html',
   styleUrl: './rfx-management.component.scss',
 })
-export class RfxManagementComponent {
+export class RfxManagementComponent implements OnInit, OnDestroy {
   readonly searchControl = new FormControl('', { nonNullable: true });
 
-  readonly rfxRecords: RfxRecord[] = [
-    {
-      tenderId: 'RFQ-2024-001',
-      title: 'Office Furniture Supply',
-      category: 'Furniture',
-      status: 'Published',
-      committeeStatus: 'In Review',
-      submissionDeadline: '2024-08-01',
-      estimatedValue: '$120,000',
-    },
-    {
-      tenderId: 'RFP-2024-014',
-      title: 'IT Infrastructure Upgrade',
-      category: 'Technology',
-      status: 'Draft',
-      committeeStatus: 'Pending',
-      submissionDeadline: '2024-08-15',
-      estimatedValue: '$450,000',
-    },
-    {
-      tenderId: 'RFQ-2024-009',
-      title: 'Vehicle Maintenance Services',
-      category: 'Automotive',
-      status: 'Published',
-      committeeStatus: 'Approved',
-      submissionDeadline: '2024-07-20',
-      estimatedValue: '$95,000',
-    },
-    {
-      tenderId: 'RFP-2024-020',
-      title: 'Training & Development Program',
-      category: 'Professional Services',
-      status: 'Closed',
-      committeeStatus: 'Approved',
-      submissionDeadline: '2024-06-30',
-      estimatedValue: '$60,000',
-    },
-  ];
+  rfxRecords: RfxSummary[] = [];
+  loading = false;
+  total = 0;
 
-  get filteredRecords(): RfxRecord[] {
-    const term = this.searchControl.value.trim().toLowerCase();
+  private readonly destroy$ = new Subject<void>();
 
-    if (!term) {
-      return this.rfxRecords;
-    }
+  constructor(private readonly rfxService: RfxService) {}
 
-    return this.rfxRecords.filter((record) =>
-      [
-        record.tenderId,
-        record.title,
-        record.category,
-        record.status,
-        record.committeeStatus,
-        record.submissionDeadline,
-        record.estimatedValue,
-      ]
-        .filter(Boolean)
-        .some((field) => field.toLowerCase().includes(term))
-    );
+  ngOnInit(): void {
+    this.loadRfx();
+
+    this.searchControl.valueChanges.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe((term) => {
+      this.loadRfx(term);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  get filteredRecords(): RfxSummary[] {
+    return this.rfxRecords;
   }
 
   get emptyStateMessage(): string {
+    if (this.loading) {
+      return 'Loading RFx records...';
+    }
+
     return this.searchControl.value ? 'No results match your search.' : 'No RFx records available yet.';
   }
 
-  trackByTenderId(_: number, record: RfxRecord): string {
-    return record.tenderId;
+  trackByTenderId(_: number, record: RfxSummary): string {
+    return record.referenceNumber;
   }
 
-  statusBadgeClass(status: RfxRecord['status']): string {
+  statusBadgeClass(status: RfxSummary['status']): string {
     switch (status) {
       case 'Published':
         return 'badge-light-success';
@@ -103,8 +66,10 @@ export class RfxManagementComponent {
     }
   }
 
-  committeeBadgeClass(status: RfxRecord['committeeStatus']): string {
+  committeeBadgeClass(status: RfxSummary['committeeStatus']): string {
     switch (status) {
+      case 'Assigned':
+        return 'badge-light-info';
       case 'Approved':
         return 'badge-light-success';
       case 'In Review':
@@ -112,5 +77,23 @@ export class RfxManagementComponent {
       default:
         return 'badge-light-warning';
     }
+  }
+
+  private loadRfx(search?: string): void {
+    this.loading = true;
+    this.rfxService
+      .loadRfx({ pageNumber: 1, pageSize: 50, search: search?.trim() })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result: PagedResult<RfxSummary>) => {
+          this.rfxRecords = result.items;
+          this.total = result.totalCount;
+          this.loading = false;
+        },
+        error: () => {
+          this.rfxRecords = [];
+          this.loading = false;
+        },
+      });
   }
 }

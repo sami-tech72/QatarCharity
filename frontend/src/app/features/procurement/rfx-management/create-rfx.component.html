@@ -75,7 +75,14 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label required">Estimated Budget (QAR)</label>
-                <input type="text" class="form-control" formControlName="estimatedBudget" placeholder="Enter estimated budget" />
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="form-control"
+                  formControlName="estimatedBudget"
+                  placeholder="Enter estimated budget"
+                />
                 <div class="form-check mt-2">
                   <input id="hideBudget" type="checkbox" class="form-check-input" formControlName="hideBudget" />
                   <label for="hideBudget" class="form-check-label">Hide budget from suppliers</label>
@@ -110,11 +117,11 @@
                 <label class="form-label required">Tender Bond Required?</label>
                 <div class="d-flex gap-4 mt-2">
                   <label class="form-check form-check-custom form-check-solid">
-                    <input class="form-check-input" type="radio" value="Yes" formControlName="tenderBondRequired" />
+                    <input class="form-check-input" type="radio" [value]="true" formControlName="tenderBondRequired" />
                     <span class="form-check-label">Yes</span>
                   </label>
                   <label class="form-check form-check-custom form-check-solid">
-                    <input class="form-check-input" type="radio" value="No" formControlName="tenderBondRequired" />
+                    <input class="form-check-input" type="radio" [value]="false" formControlName="tenderBondRequired" />
                     <span class="form-check-label">No</span>
                   </label>
                 </div>
@@ -364,18 +371,46 @@
               </div>
 
               <div class="col-12">
-                <label class="form-label">Evaluation Committee Members</label>
-                <div class="d-flex flex-column gap-3">
-                  <div class="d-flex gap-3 align-items-center" *ngFor="let member of committeeMembers.controls; index as i">
-                    <input type="text" class="form-control" [formControl]="member" placeholder="Committee member" />
-                    <button type="button" class="btn btn-icon btn-light-danger" (click)="removeCommitteeMember(i)">
-                      <i class="ki-duotone ki-trash fs-3"></i>
+                <div class="border rounded p-4 h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-3">
+                    <div>
+                      <h5 class="mb-1">Workflow &amp; Committee</h5>
+                      <div class="text-muted">Route this RFx through a workflow and assign the evaluation committee.</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light-primary" (click)="addCommitteeMember()">
+                      <i class="ki-duotone ki-plus fs-3"></i>
+                      Add Member
                     </button>
                   </div>
-                  <button type="button" class="btn btn-light-primary align-self-start" (click)="addCommitteeMember()">
-                    <i class="ki-duotone ki-plus fs-3"></i>
-                    Add Member
-                  </button>
+
+                  <div class="row g-4 align-items-end">
+                    <div class="col-md-6">
+                      <label class="form-label">Workflow</label>
+                      <select class="form-select" formControlName="workflowId">
+                        <option [ngValue]="null">Select workflow (optional)</option>
+                        <option *ngFor="let workflow of workflowOptions" [ngValue]="workflow.id">
+                          {{ workflow.name }} ({{ workflow.status }})
+                        </option>
+                      </select>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">Evaluation Committee Members</label>
+                      <div class="d-flex flex-column gap-3">
+                        <div class="d-flex gap-3 align-items-center" *ngFor="let member of committeeMembers.controls; index as i">
+                          <select class="form-select" [formControl]="member">
+                            <option value="">Select member</option>
+                            <option *ngFor="let option of committeeOptions" [value]="option.id">
+                              {{ option.displayName }} ({{ option.email }})
+                            </option>
+                          </select>
+                          <button type="button" class="btn btn-icon btn-light-danger" (click)="removeCommitteeMember(i)">
+                            <i class="ki-duotone ki-trash fs-3"></i>
+                          </button>
+                        </div>
+                        <div class="text-muted small" *ngIf="!hasCommitteeSelection()">No committee members added.</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -397,7 +432,9 @@
                     <dt class="col-5">Department</dt>
                     <dd class="col-7">{{ basicInfoForm.value.department || '—' }}</dd>
                     <dt class="col-5">Estimated Budget</dt>
-                    <dd class="col-7">{{ basicInfoForm.value.estimatedBudget || '—' }}</dd>
+                    <dd class="col-7">
+                      {{ basicInfoForm.value.estimatedBudget | currency: basicInfoForm.value.currency : 'symbol-narrow' : '1.0-0' }}
+                    </dd>
                     <dt class="col-5">Publication Date</dt>
                     <dd class="col-7">{{ basicInfoForm.value.publicationDate || '—' }}</dd>
                     <dt class="col-5">Closing Date</dt>
@@ -407,7 +444,7 @@
                     <dt class="col-5">Priority</dt>
                     <dd class="col-7">{{ basicInfoForm.value.priority || '—' }}</dd>
                     <dt class="col-5">Tender Bond</dt>
-                    <dd class="col-7">{{ basicInfoForm.value.tenderBondRequired || '—' }}</dd>
+                    <dd class="col-7">{{ basicInfoForm.value.tenderBondRequired ? 'Yes' : 'No' }}</dd>
                     <dt class="col-5">Contact Person</dt>
                     <dd class="col-7">{{ basicInfoForm.value.contactPerson || '—' }}</dd>
                     <dt class="col-5">Contact Email</dt>
@@ -471,10 +508,19 @@
                     <strong>Evaluation Notes:</strong>
                     <div class="text-muted">{{ evaluationForm.value.evaluationNotes || '—' }}</div>
                   </div>
+                  <div class="mb-3">
+                    <strong>Workflow:</strong>
+                    <div class="text-muted">
+                      {{ workflowNameById(evaluationForm.value.workflowId) || 'Not assigned' }}
+                    </div>
+                  </div>
                   <div>
                     <strong>Committee:</strong>
                     <ul class="mb-0">
-                      <li *ngFor="let member of committeeMembers.controls">{{ member.value }}</li>
+                      <li *ngFor="let member of committeeMembers.controls" [hidden]="!committeeMemberLabel(member.value)">
+                        {{ committeeMemberLabel(member.value) }}
+                      </li>
+                      <li *ngIf="!hasCommitteeSelection()" class="text-muted">No committee members assigned</li>
                     </ul>
                   </div>
                 </div>
@@ -517,7 +563,14 @@
               >
                 Continue
               </button>
-              <button *ngIf="currentStepIndex === steps.length - 1" type="button" class="btn btn-success" (click)="publish()">
+              <button
+                *ngIf="currentStepIndex === steps.length - 1"
+                type="button"
+                class="btn btn-success"
+                (click)="publish()"
+                [disabled]="isSubmitting"
+              >
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
                 Publish RFx
               </button>
             </div>

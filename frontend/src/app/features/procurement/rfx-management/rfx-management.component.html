@@ -46,22 +46,29 @@
           <table class="table align-middle table-row-dashed fs-6 gy-5">
             <thead>
               <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
-                <th class="min-w-125px">Tender ID</th>
+                <th class="min-w-125px">Reference</th>
                 <th class="min-w-200px">Title</th>
                 <th class="min-w-125px">Category</th>
+                <th class="min-w-125px">Workflow</th>
                 <th class="min-w-100px">Status</th>
                 <th class="min-w-150px">Committee Status</th>
-                <th class="min-w-150px">Submission Deadline</th>
+                <th class="min-w-150px">Closing Date</th>
                 <th class="min-w-150px">Estimated Value</th>
                 <th class="text-end min-w-125px">Actions</th>
               </tr>
             </thead>
             <tbody class="text-gray-600 fw-semibold">
-              <tr *ngIf="!filteredRecords.length">
-                <td colspan="8" class="text-center py-10 text-muted">{{ emptyStateMessage }}</td>
+              <tr *ngIf="loading">
+                <td colspan="9" class="text-center py-10 text-muted">
+                  <span class="spinner-border spinner-border-sm align-middle me-2"></span>
+                  Loading RFx records...
+                </td>
+              </tr>
+              <tr *ngIf="!loading && !filteredRecords.length">
+                <td colspan="9" class="text-center py-10 text-muted">{{ emptyStateMessage }}</td>
               </tr>
               <tr *ngFor="let record of filteredRecords; trackBy: trackByTenderId" class="align-middle">
-                <td class="fw-bold text-gray-800">{{ record.tenderId }}</td>
+                <td class="fw-bold text-gray-800">{{ record.referenceNumber }}</td>
                 <td>
                   <div class="text-gray-800 text-hover-primary mb-1 fw-semibold">
                     {{ record.title }}
@@ -69,6 +76,7 @@
                   <div class="text-muted">{{ record.category }}</div>
                 </td>
                 <td>{{ record.category }}</td>
+                <td>{{ record.workflowName || '—' }}</td>
                 <td>
                   <div class="badge fw-bold" [ngClass]="statusBadgeClass(record.status)">{{ record.status }}</div>
                 </td>
@@ -77,8 +85,10 @@
                     {{ record.committeeStatus }}
                   </div>
                 </td>
-                <td>{{ record.submissionDeadline | date: 'mediumDate' }}</td>
-                <td>{{ record.estimatedValue }}</td>
+                <td>{{ record.closingDate | date: 'mediumDate' }}</td>
+                <td>
+                  {{ record.estimatedBudget | currency: record.currency : 'symbol-narrow' : '1.0-0' }}
+                </td>
                 <td class="text-end">
                   <div class="dropdown">
                     <button
