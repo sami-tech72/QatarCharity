@@ -10,6 +10,8 @@ export interface SupplierBidRequest {
   expectedDeliveryDate?: string;
   proposalSummary: string;
   notes?: string;
+  documents: BidDocumentSubmission[];
+  inputs: BidInputSubmission[];
 }
 
 export interface SupplierRfx {
@@ -30,4 +32,16 @@ export interface SupplierRfx {
   deliverables: string;
   timeline: string;
   requiredDocuments: string[];
+  requiredDetails: string[];
+  requiredInputs: string[];
+}
+
+export interface BidDocumentSubmission {
+  name: string;
+  value: string;
+}
+
+export interface BidInputSubmission {
+  name: string;
+  value: string;
 }

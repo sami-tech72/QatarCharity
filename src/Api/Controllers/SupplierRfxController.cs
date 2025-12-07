@@ -69,7 +69,9 @@ public class SupplierRfxController : ControllerBase
                 rfx.TechnicalSpecification,
                 rfx.Deliverables,
                 rfx.Timeline,
-                DeserializeList(rfx.RequiredDocuments)))
+                DeserializeList(rfx.RequiredDocuments),
+                BuildRequirementDetails(rfx),
+                BuildRequiredInputs(rfx)))
             .ToListAsync();
 
         var response = new PagedResult<PublishedRfxResponse>(tenders, totalCount, pageNumber, pageSize);
@@ -96,6 +98,16 @@ public class SupplierRfxController : ControllerBase
             return BadRequest(ApiResponse<string>.Fail("Currency is required for bid submission.", "invalid_currency"));
         }
 
+        if (request.ExpectedDeliveryDate is null)
+        {
+            return BadRequest(ApiResponse<string>.Fail("Expected delivery date is required.", "invalid_delivery_date"));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ProposalSummary))
+        {
+            return BadRequest(ApiResponse<string>.Fail("Proposal summary is required.", "invalid_proposal_summary"));
+        }
+
         var rfx = await _dbContext.Rfxes
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == rfxId);
@@ -108,6 +120,50 @@ public class SupplierRfxController : ControllerBase
         if (!string.Equals(rfx.Status, "published", StringComparison.OrdinalIgnoreCase))
         {
             return BadRequest(ApiResponse<string>.Fail("This tender is not open for bids.", "rfx_not_published"));
+        }
+
+        var requiredDocuments = DeserializeList(rfx.RequiredDocuments);
+        if (requiredDocuments.Any())
+        {
+            if (request.Documents is null || !request.Documents.Any())
+            {
+                return BadRequest(ApiResponse<string>.Fail("All required documents must be provided.", "documents_missing"));
+            }
+
+            var missingDocs = requiredDocuments
+                .Where(doc => !request.Documents!.Any(submission =>
+                    string.Equals(submission.Name, doc, StringComparison.OrdinalIgnoreCase) &&
+                    !string.IsNullOrWhiteSpace(submission.Value)))
+                .ToList();
+
+            if (missingDocs.Any())
+            {
+                return BadRequest(ApiResponse<string>.Fail(
+                    $"Missing required document details: {string.Join(", ", missingDocs)}.",
+                    "documents_incomplete"));
+            }
+        }
+
+        var requiredInputs = BuildRequiredInputs(rfx);
+        if (requiredInputs.Any())
+        {
+            if (request.Inputs is null || !request.Inputs.Any())
+            {
+                return BadRequest(ApiResponse<string>.Fail("All required input data must be provided.", "inputs_missing"));
+            }
+
+            var missingInputs = requiredInputs
+                .Where(input => !request.Inputs!.Any(submission =>
+                    string.Equals(submission.Name, input, StringComparison.OrdinalIgnoreCase) &&
+                    !string.IsNullOrWhiteSpace(submission.Value)))
+                .ToList();
+
+            if (missingInputs.Any())
+            {
+                return BadRequest(ApiResponse<string>.Fail(
+                    $"Missing required input data: {string.Join(", ", missingInputs)}.",
+                    "inputs_incomplete"));
+            }
         }
 
         // Persisting the bid is out of scope for this iteration; this endpoint validates payloads
@@ -131,5 +187,54 @@ public class SupplierRfxController : ControllerBase
         {
             return new List<string>();
         }
+    }
+
+    private static IReadOnlyCollection<string> BuildRequirementDetails(Domain.Entities.Rfx rfx)
+    {
+        var details = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(rfx.Scope))
+        {
+            details.Add(rfx.Scope);
+        }
+
+        if (!string.IsNullOrWhiteSpace(rfx.TechnicalSpecification))
+        {
+            details.Add(rfx.TechnicalSpecification);
+        }
+
+        if (!string.IsNullOrWhiteSpace(rfx.Deliverables))
+        {
+            details.Add(rfx.Deliverables);
+        }
+
+        if (!string.IsNullOrWhiteSpace(rfx.Timeline))
+        {
+            details.Add(rfx.Timeline);
+        }
+
+        return details;
+    }
+
+    private static IReadOnlyCollection<string> BuildRequiredInputs(Domain.Entities.Rfx rfx)
+    {
+        var inputs = new List<string>
+        {
+            "Bid amount",
+            "Expected delivery date",
+            "Proposal summary"
+        };
+
+        if (!string.IsNullOrWhiteSpace(rfx.TechnicalSpecification))
+        {
+            inputs.Add("Technical compliance notes");
+        }
+
+        if (!string.IsNullOrWhiteSpace(rfx.Deliverables))
+        {
+            inputs.Add("Delivery approach for required deliverables");
+        }
+
+        return inputs;
     }
 }

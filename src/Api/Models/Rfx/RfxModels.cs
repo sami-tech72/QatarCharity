@@ -99,7 +99,9 @@ public record PublishedRfxResponse(
     string TechnicalSpecification,
     string Deliverables,
     string Timeline,
-    IReadOnlyCollection<string> RequiredDocuments);
+    IReadOnlyCollection<string> RequiredDocuments,
+    IReadOnlyCollection<string> RequiredDetails,
+    IReadOnlyCollection<string> RequiredInputs);
 
 public record RfxDetailResponse(
     Guid Id,
@@ -148,4 +150,12 @@ public record SubmitBidRequest
 
     public string? Notes { get; init; }
         = null;
+
+    public IReadOnlyCollection<BidDocumentSubmission> Documents { get; init; } = Array.Empty<BidDocumentSubmission>();
+
+    public IReadOnlyCollection<BidInputSubmission> Inputs { get; init; } = Array.Empty<BidInputSubmission>();
 }
+
+public record BidDocumentSubmission(string Name, string Value);
+
+public record BidInputSubmission(string Name, string Value);

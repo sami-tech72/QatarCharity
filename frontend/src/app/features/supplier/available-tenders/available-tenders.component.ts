@@ -5,6 +5,8 @@ import { debounceTime, distinctUntilChanged, finalize, Subject, takeUntil } from
 
 import { SupplierRfxService } from '../../../core/services/supplier-rfx.service';
 import {
+  BidDocumentSubmission,
+  BidInputSubmission,
   SupplierBidRequest,
   SupplierRfx,
 } from '../../../shared/models/supplier-rfx.model';
@@ -54,14 +56,19 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
   }
 
   viewDetails(tender: SupplierRfx): void {
+    const hasChanged = this.selectedTender?.id !== tender.id;
     this.selectedTender = tender;
     this.bidSuccess = undefined;
     this.bidError = undefined;
+
+    if (hasChanged) {
+      this.bidRequest = this.createBidRequest(tender);
+    }
   }
 
   startBid(tender: SupplierRfx): void {
     this.viewDetails(tender);
-    this.bidRequest = this.createBidRequest();
+    this.bidRequest = this.createBidRequest(tender);
   }
 
   getRemainingDays(deadline: string): number {
@@ -109,7 +116,7 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (message) => {
           this.bidSuccess = message || 'Bid submitted successfully.';
-          this.bidRequest = this.createBidRequest();
+          this.bidRequest = this.createBidRequest(this.selectedTender);
           form.resetForm(this.bidRequest);
         },
         error: (err) => {
@@ -147,13 +154,23 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
       });
   }
 
-  private createBidRequest(): SupplierBidRequest {
+  private createBidRequest(tender?: SupplierRfx): SupplierBidRequest {
+    const documents: BidDocumentSubmission[] = tender
+      ? (tender.requiredDocuments || []).map((name) => ({ name, value: '' }))
+      : [];
+
+    const inputs: BidInputSubmission[] = tender
+      ? (tender.requiredInputs || []).map((name) => ({ name, value: '' }))
+      : [];
+
     return {
       bidAmount: null,
-      currency: 'USD',
+      currency: tender?.currency || 'USD',
       expectedDeliveryDate: '',
       proposalSummary: '',
       notes: '',
+      documents,
+      inputs,
     };
   }
 }

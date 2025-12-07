@@ -314,6 +314,27 @@
   color: #4b5675;
 }
 
+.section-label {
+  margin-bottom: 0.35rem;
+  color: #1b1b28;
+  font-weight: 700;
+}
+
+.requirement-doc-list,
+.requirement-input-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.requirement-doc,
+.requirement-input {
+  border: 1px solid #eef1f7;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  background-color: #f9fafc;
+}
+
 .detail-value {
   color: #1b1b28;
   font-weight: 700;
