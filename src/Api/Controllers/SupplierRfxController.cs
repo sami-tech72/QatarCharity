@@ -34,14 +34,14 @@ public class SupplierRfxController : ControllerBase
 
         var rfxQuery = _dbContext.Rfxes
             .AsNoTracking()
-            .Where(rfx => rfx.Status.Equals("Published", StringComparison.OrdinalIgnoreCase));
+            .Where(rfx => rfx.Status != null && rfx.Status.ToLower() == "published");
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             rfxQuery = rfxQuery.Where(rfx =>
-                rfx.ReferenceNumber.ToLower().Contains(search) ||
-                rfx.Title.ToLower().Contains(search) ||
-                rfx.Category.ToLower().Contains(search));
+                (rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(search) ||
+                (rfx.Title ?? string.Empty).ToLower().Contains(search) ||
+                (rfx.Category ?? string.Empty).ToLower().Contains(search));
         }
 
         var totalCount = await rfxQuery.CountAsync();
