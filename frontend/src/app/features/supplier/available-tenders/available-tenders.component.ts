@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
+import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, finalize, Subject, takeUntil } from 'rxjs';
 
 import { SupplierRfxService } from '../../../core/services/supplier-rfx.service';
@@ -32,7 +33,10 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly search$ = new Subject<string>();
 
-  constructor(private readonly supplierRfxService: SupplierRfxService) {}
+  constructor(
+    private readonly supplierRfxService: SupplierRfxService,
+    private readonly router: Router
+  ) {}
 
   ngOnInit(): void {
     this.search$
@@ -67,8 +71,7 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
   }
 
   startBid(tender: SupplierRfx): void {
-    this.viewDetails(tender);
-    this.bidRequest = this.createBidRequest(tender);
+    this.goToBid(tender);
   }
 
   getRemainingDays(deadline: string): number {
@@ -127,6 +130,10 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
 
   trackByTenderId(_: number, tender: SupplierRfx): string {
     return tender.id;
+  }
+
+  goToBid(tender: SupplierRfx): void {
+    this.router.navigate(['/supplier/available-tenders', tender.id, 'bid']);
   }
 
   private loadTenders(search: string = this.searchTerm): void {

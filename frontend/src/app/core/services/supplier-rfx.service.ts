@@ -26,6 +26,12 @@ export class SupplierRfxService {
       .pipe(map((response) => this.unwrap(response)));
   }
 
+  getPublishedRfxById(rfxId: string): Observable<SupplierRfx> {
+    return this.api
+      .get<SupplierRfx>(`supplier/rfx/published/${rfxId}`)
+      .pipe(map((response) => this.unwrap(response)));
+  }
+
   submitBid(rfxId: string, payload: SupplierBidRequest): Observable<string> {
     return this.api
       .post<string>(`supplier/rfx/${rfxId}/bid`, payload)

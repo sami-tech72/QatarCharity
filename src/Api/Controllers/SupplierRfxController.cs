@@ -52,26 +52,7 @@ public class SupplierRfxController : ControllerBase
             .ThenBy(rfx => rfx.Title)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(rfx => new PublishedRfxResponse(
-                rfx.Id,
-                rfx.ReferenceNumber,
-                rfx.RfxType,
-                rfx.Title,
-                rfx.Category,
-                rfx.Description,
-                rfx.PublicationDate,
-                rfx.SubmissionDeadline,
-                rfx.ClosingDate,
-                rfx.EstimatedBudget,
-                rfx.Currency,
-                rfx.HideBudget,
-                rfx.Scope,
-                rfx.TechnicalSpecification,
-                rfx.Deliverables,
-                rfx.Timeline,
-                DeserializeList(rfx.RequiredDocuments),
-                BuildRequirementDetails(rfx),
-                BuildRequiredInputs(rfx)))
+            .Select(rfx => BuildPublishedRfxResponse(rfx))
             .ToListAsync();
 
         var response = new PagedResult<PublishedRfxResponse>(tenders, totalCount, pageNumber, pageSize);
@@ -171,6 +152,29 @@ public class SupplierRfxController : ControllerBase
         return Ok(ApiResponse<string>.Ok("Bid submitted successfully.", "Bid submitted successfully."));
     }
 
+    [HttpGet("published/{rfxId:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<PublishedRfxResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<PublishedRfxResponse>>> GetPublishedRfxById(Guid rfxId)
+    {
+        var rfx = await _dbContext.Rfxes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == rfxId);
+
+        if (rfx is null)
+        {
+            return NotFound(ApiResponse<PublishedRfxResponse>.Fail("Tender not found.", "rfx_not_found"));
+        }
+
+        if (!string.Equals(rfx.Status, "published", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(ApiResponse<PublishedRfxResponse>.Fail("This tender is not open for bids.", "rfx_not_published"));
+        }
+
+        var response = BuildPublishedRfxResponse(rfx);
+
+        return Ok(ApiResponse<PublishedRfxResponse>.Ok(response, "Published RFx retrieved successfully."));
+    }
+
     private static List<string> DeserializeList(string serialized)
     {
         if (string.IsNullOrWhiteSpace(serialized))
@@ -236,5 +240,29 @@ public class SupplierRfxController : ControllerBase
         }
 
         return inputs;
+    }
+
+    private static PublishedRfxResponse BuildPublishedRfxResponse(Domain.Entities.Rfx rfx)
+    {
+        return new PublishedRfxResponse(
+            rfx.Id,
+            rfx.ReferenceNumber,
+            rfx.RfxType,
+            rfx.Title,
+            rfx.Category,
+            rfx.Description,
+            rfx.PublicationDate,
+            rfx.SubmissionDeadline,
+            rfx.ClosingDate,
+            rfx.EstimatedBudget,
+            rfx.Currency,
+            rfx.HideBudget,
+            rfx.Scope,
+            rfx.TechnicalSpecification,
+            rfx.Deliverables,
+            rfx.Timeline,
+            DeserializeList(rfx.RequiredDocuments),
+            BuildRequirementDetails(rfx),
+            BuildRequiredInputs(rfx));
     }
 }
