@@ -293,10 +293,14 @@ export class CreateRfxComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (users) => {
-          this.committeeOptions = users.filter(
-            (user) =>
-              user.role === 'Procurement' && user.procurementRole?.name === 'Committee Member',
-          );
+          this.committeeOptions = users.filter((user) => {
+            if (user.role !== 'Procurement') {
+              return false;
+            }
+
+            const subRole = user.procurementRole?.name?.trim().toLowerCase();
+            return !!subRole && subRole.includes('committee');
+          });
         },
         error: () => (this.committeeOptions = []),
       });
@@ -305,7 +309,7 @@ export class CreateRfxComponent implements OnInit, OnDestroy {
   formatCommitteeRole(user: ManagedUser): string {
     if (user.role === 'Procurement') {
       const subRole = user.procurementRole?.name;
-      return subRole ? `${user.role} — ${subRole}` : user.role;
+      return subRole ? `${user.role} — ${subRole}` : `${user.role} — No sub-role`;
     }
 
     return user.role;
