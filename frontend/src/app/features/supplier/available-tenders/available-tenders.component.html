@@ -1,3 +1,82 @@
-<div class="page-placeholder">
-  <h1 class="page-placeholder__title">Available Tenders</h1>
+<div class="available-tenders container-xxl">
+  <div class="page-heading d-flex flex-column flex-lg-row align-items-lg-center gap-4">
+    <div>
+      <h1 class="page-title mb-2">Available Tenders</h1>
+      <p class="text-muted mb-0">Browse and bid on available procurement opportunities</p>
+    </div>
+    <div class="filter-toolbar d-flex flex-column flex-md-row align-items-md-center gap-3 ms-lg-auto">
+      <div class="input-group search-input">
+        <span class="input-group-text" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
+            <path
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="m21 21-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"
+            />
+          </svg>
+        </span>
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Search tenders by title, number, or category"
+          aria-label="Search tenders by title, number, or category"
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+      <button type="button" class="btn btn-light">Filter</button>
+    </div>
+  </div>
+
+  <div class="tenders-meta text-muted">Showing {{ filteredTenders.length }} published tenders</div>
+
+  <div class="tenders-list">
+    <div class="tender-card" *ngFor="let tender of filteredTenders">
+      <div class="tender-content">
+        <div class="tender-left">
+          <div class="badge-row">
+            <span class="badge badge-soft-primary">{{ tender.type }}</span>
+            <span class="badge badge-soft-success">{{ tender.remainingDays }} days left</span>
+          </div>
+          <div class="title-row">
+            <h2 class="tender-title mb-0">{{ tender.title }}</h2>
+            <span class="badge badge-soft-info">{{ tender.category }}</span>
+          </div>
+          <p class="tender-summary mb-2">{{ tender.summary }}</p>
+          <div class="tender-reference text-muted fw-semibold">{{ tender.reference }}</div>
+        </div>
+
+        <div class="tender-right">
+          <div class="detail-item">
+            <div class="detail-label">Submission Deadline</div>
+            <div class="detail-value">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 4V3m10 1V3m-9 8h8m-7 4h3m-2 4h4M3 8.5C3 7.12 4.12 6 5.5 6h13A1.5 1.5 0 0 1 20 7.5v13A1.5 1.5 0 0 1 18.5 22h-13A1.5 1.5 0 0 1 4 20.5V7.5"
+                />
+              </svg>
+              <span>{{ tender.submissionDeadline }}</span>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Budget Range</div>
+            <div class="detail-value">{{ tender.budgetRange }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Published</div>
+            <div class="detail-value">{{ tender.publishedDate }}</div>
+          </div>
+          <div class="action-row">
+            <button type="button" class="btn btn-outline-secondary">View Details</button>
+            <button type="button" class="btn btn-success">Submit Bid</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
