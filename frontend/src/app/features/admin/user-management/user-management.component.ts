@@ -292,6 +292,14 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
     const modal = Modal.getInstance(element) ?? new Modal(element);
     modal.hide();
+
+    this.removeStaleBackdrops();
+  }
+
+  private removeStaleBackdrops(): void {
+    document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('padding-right');
   }
 
   private disablePasswordValidators(): void {
