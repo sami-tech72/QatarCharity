@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api.Models;
 using Api.Models.Rfx;
+using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Context;
+using System.Text.Json;
 
 namespace Api.Controllers;
 
@@ -104,35 +106,35 @@ public class SupplierRfxController : ControllerBase
         }
 
         var requiredDocuments = DeserializeList(rfx.RequiredDocuments);
-            if (requiredDocuments.Any())
+        if (requiredDocuments.Any())
+        {
+            if (request.Documents is null || !request.Documents.Any())
             {
-                if (request.Documents is null || !request.Documents.Any())
-                {
-                    return BadRequest(ApiResponse<string>.Fail("All required documents must be provided.", "documents_missing"));
-                }
-
-                var missingDocs = requiredDocuments
-                    .Where(doc => !request.Documents!.Any(submission =>
-                        string.Equals(submission.Name, doc, StringComparison.OrdinalIgnoreCase) &&
-                        !string.IsNullOrWhiteSpace(submission.FileName) &&
-                        !string.IsNullOrWhiteSpace(submission.ContentBase64)))
-                    .ToList();
-
-                if (missingDocs.Any())
-                {
-                    return BadRequest(ApiResponse<string>.Fail(
-                        $"Missing required document details: {string.Join(", ", missingDocs)}.",
-                        "documents_incomplete"));
-                }
-
-                var invalidDocument = request.Documents!.FirstOrDefault(doc => !IsBase64(doc.ContentBase64));
-                if (invalidDocument is not null)
-                {
-                    return BadRequest(ApiResponse<string>.Fail(
-                        $"The uploaded document for '{invalidDocument.Name}' is invalid or unreadable.",
-                        "documents_invalid"));
-                }
+                return BadRequest(ApiResponse<string>.Fail("All required documents must be provided.", "documents_missing"));
             }
+
+            var missingDocs = requiredDocuments
+                .Where(doc => !request.Documents!.Any(submission =>
+                    string.Equals(submission.Name, doc, StringComparison.OrdinalIgnoreCase) &&
+                    !string.IsNullOrWhiteSpace(submission.FileName) &&
+                    !string.IsNullOrWhiteSpace(submission.ContentBase64)))
+                .ToList();
+
+            if (missingDocs.Any())
+            {
+                return BadRequest(ApiResponse<string>.Fail(
+                    $"Missing required document details: {string.Join(", ", missingDocs)}.",
+                    "documents_incomplete"));
+            }
+
+            var invalidDocument = request.Documents!.FirstOrDefault(doc => !IsBase64(doc.ContentBase64));
+            if (invalidDocument is not null)
+            {
+                return BadRequest(ApiResponse<string>.Fail(
+                    $"The uploaded document for '{invalidDocument.Name}' is invalid or unreadable.",
+                    "documents_invalid"));
+            }
+        }
 
         var requiredInputs = BuildRequiredInputs(rfx);
         if (requiredInputs.Any())
@@ -156,8 +158,24 @@ public class SupplierRfxController : ControllerBase
             }
         }
 
-        // Persisting the bid is out of scope for this iteration; this endpoint validates payloads
-        // and confirms that the tender is open for supplier bids.
+        var bidderId = User?.FindFirst("sub")?.Value ?? User?.Identity?.Name ?? "unknown";
+        var bid = new SupplierBid
+        {
+            RfxId = rfx.Id,
+            SubmittedByUserId = bidderId,
+            BidAmount = request.BidAmount,
+            Currency = request.Currency,
+            ExpectedDeliveryDate = request.ExpectedDeliveryDate,
+            ProposalSummary = request.ProposalSummary,
+            Notes = request.Notes,
+            DocumentsJson = JsonSerializer.Serialize(request.Documents ?? Array.Empty<BidDocumentSubmission>()),
+            InputsJson = JsonSerializer.Serialize(request.Inputs ?? Array.Empty<BidInputSubmission>()),
+            SubmittedAtUtc = DateTime.UtcNow,
+        };
+
+        _dbContext.SupplierBids.Add(bid);
+        await _dbContext.SaveChangesAsync();
+
         return Ok(ApiResponse<string>.Ok("Bid submitted successfully.", "Bid submitted successfully."));
     }
 
