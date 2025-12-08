@@ -55,15 +55,20 @@ public class BidEvaluationController : ControllerBase
                 bid => bid.RfxId,
                 rfx => rfx.Id,
                 (bid, rfx) => new { bid, rfx })
-            .Join(
+            .GroupJoin(
                 _dbContext.Users.AsNoTracking(),
                 combined => combined.bid.SubmittedByUserId,
                 user => user.Id,
-                (combined, user) => new
+                (combined, users) => new { combined.bid, combined.rfx, users })
+            .SelectMany(
+                entry => entry.users.DefaultIfEmpty(),
+                (entry, user) => new
                 {
-                    combined.bid,
-                    combined.rfx,
-                    SupplierName = user.DisplayName ?? user.Email ?? user.UserName ?? "Supplier",
+                    entry.bid,
+                    entry.rfx,
+                    SupplierName = user != null
+                        ? user.DisplayName ?? user.Email ?? user.UserName ?? "Supplier"
+                        : "Supplier",
                 })
             .AsQueryable();
 
