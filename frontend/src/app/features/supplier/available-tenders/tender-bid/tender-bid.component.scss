@@ -1,0 +1,124 @@
+.tender-bid {
+  padding: 2rem 0 3rem;
+  color: #1f2933;
+}
+
+.page-header {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.75rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-weight: 700;
+}
+
+.page-subtitle {
+  color: #5f6b7a;
+}
+
+
+.deadline-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: #e8faf3;
+  color: #13854e;
+  font-weight: 600;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-label {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.summary-value {
+  font-weight: 700;
+  margin: 0;
+}
+
+.bid-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .bid-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bid-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  background: white;
+  box-shadow: 0 12px 30px rgba(17, 24, 39, 0.06);
+}
+
+.bid-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+
+.bid-panel__title {
+  font-weight: 700;
+}
+
+.section-label {
+  margin-bottom: 0.5rem;
+}
+
+.requirement-doc,
+.requirement-input {
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background: #fafbfd;
+}
+
+.requirement-doc:last-child,
+.requirement-input:last-child {
+  margin-bottom: 0;
+}
+
+.bid-panel__footer {
+  margin-top: 1rem;
+}
+
+.bid-panel__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.loading-state {
+  padding: 2rem 0;
+  color: #6b7280;
+}

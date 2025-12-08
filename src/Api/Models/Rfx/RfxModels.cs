@@ -11,6 +11,13 @@ public record RfxQueryParameters
     public bool AssignedOnly { get; init; }
 }
 
+public record SupplierRfxQueryParameters
+{
+    public int PageNumber { get; init; }
+    public int PageSize { get; init; }
+    public string? Search { get; init; }
+}
+
 public record CreateRfxRequest
 {
     public string RfxType { get; init; } = string.Empty;
@@ -75,6 +82,27 @@ public record RfxEvaluationCriterionResponse(
 
 public record RfxCommitteeMemberResponse(Guid Id, string DisplayName, string? UserId, bool IsApproved);
 
+public record PublishedRfxResponse(
+    Guid Id,
+    string ReferenceNumber,
+    string RfxType,
+    string Title,
+    string Category,
+    string Description,
+    DateTime PublicationDate,
+    DateTime SubmissionDeadline,
+    DateTime ClosingDate,
+    decimal EstimatedBudget,
+    string Currency,
+    bool HideBudget,
+    string Scope,
+    string TechnicalSpecification,
+    string Deliverables,
+    string Timeline,
+    IReadOnlyCollection<string> RequiredDocuments,
+    IReadOnlyCollection<string> RequiredDetails,
+    IReadOnlyCollection<string> RequiredInputs);
+
 public record RfxDetailResponse(
     Guid Id,
     string ReferenceNumber,
@@ -108,3 +136,26 @@ public record RfxDetailResponse(
     DateTime CreatedAt,
     DateTime LastModified,
     string? WorkflowName);
+
+public record SubmitBidRequest
+{
+    public decimal BidAmount { get; init; }
+
+    public string Currency { get; init; } = string.Empty;
+
+    public DateTime? ExpectedDeliveryDate { get; init; }
+        = null;
+
+    public string ProposalSummary { get; init; } = string.Empty;
+
+    public string? Notes { get; init; }
+        = null;
+
+    public IReadOnlyCollection<BidDocumentSubmission> Documents { get; init; } = Array.Empty<BidDocumentSubmission>();
+
+    public IReadOnlyCollection<BidInputSubmission> Inputs { get; init; } = Array.Empty<BidInputSubmission>();
+}
+
+public record BidDocumentSubmission(string Name, string FileName, string ContentBase64);
+
+public record BidInputSubmission(string Name, string Value);

@@ -18,6 +18,12 @@ export const supplierRoutes: Routes = [
           import('./available-tenders/available-tenders.component').then((m) => m.AvailableTendersComponent),
       },
       {
+        path: 'available-tenders/:id/bid',
+        title: 'Submit Bid',
+        loadComponent: () =>
+          import('./available-tenders/tender-bid/tender-bid.component').then((m) => m.TenderBidComponent),
+      },
+      {
         path: 'my-bids',
         title: 'My Bids',
         loadComponent: () => import('./my-bids/my-bids.component').then((m) => m.MyBidsComponent),

@@ -1,0 +1,194 @@
+<div class="tender-bid container-xxl" *ngIf="!loading; else loadingState">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <button class="btn btn-link px-0" type="button" (click)="goBack()">
+      &larr; Back to tenders
+    </button>
+    <div class="badge badge-soft-primary" *ngIf="tender">{{ tender.rfxType }}</div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
+
+  <ng-container *ngIf="tender && !error">
+    <div class="page-header">
+      <div>
+        <p class="text-uppercase text-muted small mb-1">Reference {{ tender.referenceNumber }}</p>
+        <h1 class="page-title mb-2">{{ tender.title }}</h1>
+        <p class="page-subtitle mb-0">{{ tender.description }}</p>
+      </div>
+      <div class="text-end">
+        <div class="badge badge-soft-info mb-2">{{ tender.category }}</div>
+        <div class="deadline-chip">{{ getRemainingDays(tender.submissionDeadline) }} days left</div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div>
+        <p class="summary-label">Submission deadline</p>
+        <p class="summary-value">{{ tender.submissionDeadline | date: 'fullDate' }}</p>
+      </div>
+      <div>
+        <p class="summary-label">Closing date</p>
+        <p class="summary-value">{{ tender.closingDate | date: 'fullDate' }}</p>
+      </div>
+      <div>
+        <p class="summary-label">Budget</p>
+        <p class="summary-value">{{ formatBudget(tender) }}</p>
+      </div>
+    </div>
+
+    <div class="bid-shell">
+      <div class="bid-panel">
+        <div class="bid-panel__header">
+          <div>
+            <p class="detail-label mb-1">Submit your bid</p>
+            <h4 class="bid-panel__title mb-0">Provide commercial and delivery details</h4>
+          </div>
+          <div class="badge badge-soft-success">{{ getRemainingDays(tender.submissionDeadline) }} days left</div>
+        </div>
+
+        <form #bidForm="ngForm" novalidate (ngSubmit)="submitBid(bidForm)" id="bid-form-anchor">
+          <div class="row g-3" id="bid-basics">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="bidAmount">Bid amount</label>
+              <div class="input-group">
+                <span class="input-group-text">{{ bidRequest.currency }}</span>
+                <input
+                  id="bidAmount"
+                  name="bidAmount"
+                  type="number"
+                  class="form-control"
+                  required
+                  min="0.01"
+                  step="0.01"
+                  [(ngModel)]="bidRequest.bidAmount"
+                />
+              </div>
+              <div class="form-text text-danger" *ngIf="bidForm.submitted && bidForm.controls['bidAmount']?.invalid">
+                Bid amount is required.
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="expectedDeliveryDate">Expected delivery date</label>
+              <input
+                id="expectedDeliveryDate"
+                name="expectedDeliveryDate"
+                type="date"
+                class="form-control"
+                required
+                [(ngModel)]="bidRequest.expectedDeliveryDate"
+              />
+              <div class="form-text text-danger" *ngIf="bidForm.submitted && bidForm.controls['expectedDeliveryDate']?.invalid">
+                Delivery date is required.
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="proposalSummary">Technical &amp; commercial overview</label>
+              <textarea
+                id="proposalSummary"
+                name="proposalSummary"
+                class="form-control"
+                rows="4"
+                required
+                placeholder="Summarize your approach, delivery plan, and key commercial terms"
+                [(ngModel)]="bidRequest.proposalSummary"
+              ></textarea>
+              <div class="form-text text-danger" *ngIf="bidForm.submitted && bidForm.controls['proposalSummary']?.invalid">
+                A brief proposal summary is required.
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-2">
+            <div class="col-12" *ngIf="bidRequest.documents?.length" id="bid-documents">
+              <div class="section-label d-flex align-items-center justify-content-between">
+                <span class="form-label mb-0">Required documents</span>
+                <small class="text-muted">Upload a file for every required item.</small>
+              </div>
+              <div class="requirement-doc-list">
+                <div class="requirement-doc" *ngFor="let doc of bidRequest.documents; let i = index">
+                  <label class="form-label" [for]="'doc-' + i">{{ doc.name }}</label>
+                  <input
+                    class="form-control"
+                    type="file"
+                    accept="application/pdf,image/*,.doc,.docx,.xlsx,.xls,.zip"
+                    [id]="'doc-' + i"
+                    [name]="'doc-file-' + i"
+                    required
+                    (change)="onDocumentSelected($event, doc, bidForm)"
+                  />
+                  <input
+                    type="hidden"
+                    [name]="'doc-content-' + i"
+                    required
+                    [(ngModel)]="doc.contentBase64"
+                  />
+                  <div class="form-text" *ngIf="doc.fileName">Selected: {{ doc.fileName }}</div>
+                  <div class="form-text text-danger" *ngIf="bidForm.submitted && !doc.contentBase64">
+                    A file is required for this document.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12" *ngIf="bidRequest.inputs?.length" id="bid-inputs">
+              <div class="section-label d-flex align-items-center justify-content-between">
+                <span class="form-label mb-0">Required input data</span>
+                <small class="text-muted">Answer the tender-specific inputs before submitting.</small>
+              </div>
+              <div class="requirement-input-list">
+                <div class="requirement-input" *ngFor="let input of bidRequest.inputs; let i = index">
+                  <label class="form-label" [for]="'input-' + i">{{ input.name }}</label>
+                  <textarea
+                    class="form-control"
+                    rows="2"
+                    required
+                    [id]="'input-' + i"
+                    [name]="'input-' + i"
+                    placeholder="Provide the requested input"
+                    [(ngModel)]="input.value"
+                  ></textarea>
+                  <div class="form-text text-danger" *ngIf="bidForm.submitted && bidForm.controls['input-' + i]?.invalid">
+                    This response is required.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12" id="bid-submit">
+              <label class="form-label" for="notes">Internal notes (optional)</label>
+              <textarea
+                id="notes"
+                name="notes"
+                class="form-control"
+                rows="2"
+                placeholder="Share clarifications, assumptions, or attachment references"
+                [(ngModel)]="bidRequest.notes"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="bid-panel__footer" *ngIf="bidSuccess || bidError">
+            <div class="alert alert-success" *ngIf="bidSuccess">{{ bidSuccess }}</div>
+            <div class="alert alert-danger" *ngIf="bidError">{{ bidError }}</div>
+          </div>
+
+          <div class="bid-panel__actions">
+            <button type="submit" class="btn btn-success" [disabled]="bidSubmitting || bidForm.invalid">
+              <span *ngIf="bidSubmitting" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+              Submit bid
+            </button>
+            <button type="button" class="btn btn-outline-secondary" (click)="bidForm.resetForm(bidRequest)" [disabled]="bidSubmitting">
+              Clear form
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-state container-xxl">Loading tender details...</div>
+</ng-template>
