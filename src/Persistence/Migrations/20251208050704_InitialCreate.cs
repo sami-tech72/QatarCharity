@@ -59,6 +59,27 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SupplierBids",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RfxId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SubmittedByUserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BidAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExpectedDeliveryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ProposalSummary = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DocumentsJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    InputsJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SubmittedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SupplierBids", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Workflows",
                 columns: table => new
                 {
@@ -561,6 +582,9 @@ namespace Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "RfxEvaluationCriteria");
+
+            migrationBuilder.DropTable(
+                name: "SupplierBids");
 
             migrationBuilder.DropTable(
                 name: "Suppliers");
