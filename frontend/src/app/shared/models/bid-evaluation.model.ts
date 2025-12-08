@@ -10,6 +10,8 @@ export interface SupplierBidSummary {
   rfxReferenceNumber: string;
   rfxTitle: string;
   supplierName: string;
+  submittedByUserId: string;
+  submittedByName: string;
   bidAmount: number;
   currency: string;
   expectedDeliveryDate?: string | null;

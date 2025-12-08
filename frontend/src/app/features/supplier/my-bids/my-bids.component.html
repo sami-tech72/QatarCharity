@@ -17,6 +17,7 @@
         <tr>
           <th>Tender Reference</th>
           <th>Title</th>
+          <th>Submitted By</th>
           <th>Bid Amount</th>
           <th>Submitted On</th>
           <th>Status</th>
@@ -26,6 +27,10 @@
         <tr *ngFor="let bid of bids; trackBy: trackByBidId">
           <td class="muted">{{ bid.rfxReferenceNumber || bid.rfxId }}</td>
           <td>{{ bid.rfxTitle }}</td>
+          <td>
+            <strong>{{ bid.submittedByName }}</strong>
+            <div class="muted">{{ bid.submittedByUserId }}</div>
+          </td>
           <td>
             <strong>{{ bid.bidAmount | number: '1.0-2' }} {{ bid.currency }}</strong>
           </td>

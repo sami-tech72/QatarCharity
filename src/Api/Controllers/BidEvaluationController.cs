@@ -69,6 +69,10 @@ public class BidEvaluationController : ControllerBase
                     SupplierName = user != null
                         ? user.DisplayName ?? user.Email ?? user.UserName ?? "Supplier"
                         : "Supplier",
+                    SubmittedByUserId = entry.bid.SubmittedByUserId,
+                    SubmittedByName = user != null
+                        ? user.DisplayName ?? user.Email ?? user.UserName ?? "Supplier User"
+                        : "Supplier User",
                 })
             .AsQueryable();
 
@@ -79,9 +83,24 @@ public class BidEvaluationController : ControllerBase
                     _dbContext.RfxCommitteeMembers.AsNoTracking(),
                     entry => entry.rfx.Id,
                     member => member.RfxId,
-                    (entry, member) => new { entry.bid, entry.rfx, entry.SupplierName, member.UserId })
+                    (entry, member) => new
+                    {
+                        entry.bid,
+                        entry.rfx,
+                        entry.SupplierName,
+                        entry.SubmittedByUserId,
+                        entry.SubmittedByName,
+                        member.UserId,
+                    })
                 .Where(entry => entry.UserId == currentUserId)
-                .Select(entry => new { entry.bid, entry.rfx, entry.SupplierName });
+                .Select(entry => new
+                {
+                    entry.bid,
+                    entry.rfx,
+                    entry.SupplierName,
+                    entry.SubmittedByUserId,
+                    entry.SubmittedByName,
+                });
         }
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -89,7 +108,8 @@ public class BidEvaluationController : ControllerBase
             bidsQuery = bidsQuery.Where(entry =>
                 entry.rfx.ReferenceNumber.ToLower().Contains(search) ||
                 entry.rfx.Title.ToLower().Contains(search) ||
-                entry.SupplierName.ToLower().Contains(search));
+                entry.SupplierName.ToLower().Contains(search) ||
+                entry.SubmittedByName.ToLower().Contains(search));
         }
 
         var totalCount = await bidsQuery.CountAsync();
@@ -105,6 +125,8 @@ public class BidEvaluationController : ControllerBase
                 entry.rfx.ReferenceNumber,
                 entry.rfx.Title,
                 entry.SupplierName,
+                entry.SubmittedByUserId,
+                entry.SubmittedByName,
                 entry.bid.BidAmount,
                 entry.bid.Currency,
                 entry.bid.ExpectedDeliveryDate,

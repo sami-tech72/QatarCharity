@@ -53,19 +53,34 @@ public class SupplierRfxController : ControllerBase
                 bid => bid.RfxId,
                 rfx => rfx.Id,
                 (bid, rfx) => new { bid, rfx })
-            .Select(entry => new
-            {
-                entry.bid,
-                entry.rfx,
-                SupplierName = string.IsNullOrWhiteSpace(bidderName) ? "You" : bidderName,
-            })
+            .GroupJoin(
+                _dbContext.Users.AsNoTracking(),
+                entry => entry.bid.SubmittedByUserId,
+                user => user.Id,
+                (entry, users) => new { entry.bid, entry.rfx, users })
+            .SelectMany(
+                entry => entry.users.DefaultIfEmpty(),
+                (entry, user) => new
+                {
+                    entry.bid,
+                    entry.rfx,
+                    SupplierName = user != null
+                        ? user.DisplayName ?? user.Email ?? user.UserName ?? "You"
+                        : (string.IsNullOrWhiteSpace(bidderName) ? "You" : bidderName),
+                    SubmittedByUserId = entry.bid.SubmittedByUserId,
+                    SubmittedByName = user != null
+                        ? user.DisplayName ?? user.Email ?? user.UserName ?? "You"
+                        : (string.IsNullOrWhiteSpace(bidderName) ? "You" : bidderName),
+                })
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             bidsQuery = bidsQuery.Where(entry =>
                 (entry.rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(search) ||
-                (entry.rfx.Title ?? string.Empty).ToLower().Contains(search));
+                (entry.rfx.Title ?? string.Empty).ToLower().Contains(search) ||
+                entry.SupplierName.ToLower().Contains(search) ||
+                entry.SubmittedByName.ToLower().Contains(search));
         }
 
         var totalCount = await bidsQuery.CountAsync();
@@ -81,6 +96,8 @@ public class SupplierRfxController : ControllerBase
                 entry.rfx.ReferenceNumber ?? string.Empty,
                 entry.rfx.Title ?? string.Empty,
                 entry.SupplierName,
+                entry.SubmittedByUserId,
+                entry.SubmittedByName,
                 entry.bid.BidAmount,
                 entry.bid.Currency,
                 entry.bid.ExpectedDeliveryDate,

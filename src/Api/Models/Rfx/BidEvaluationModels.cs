@@ -20,6 +20,8 @@ public record SupplierBidSummaryResponse(
     string RfxReferenceNumber,
     string RfxTitle,
     string SupplierName,
+    string SubmittedByUserId,
+    string SubmittedByName,
     decimal BidAmount,
     string Currency,
     DateTime? ExpectedDeliveryDate,

@@ -66,6 +66,7 @@
           <tr class="text-muted fw-semibold text-uppercase">
             <th>Bid No</th>
             <th>Supplier</th>
+            <th>Submitted By</th>
             <th>RFx</th>
             <th>Bid Amount</th>
             <th>Status</th>
@@ -75,19 +76,23 @@
         </thead>
         <tbody>
           <tr *ngIf="loading">
-            <td colspan="7" class="text-center py-10 text-muted">
+            <td colspan="8" class="text-center py-10 text-muted">
               <span class="spinner-border spinner-border-sm align-middle me-2"></span>
               Loading bids for evaluation...
             </td>
           </tr>
           <tr *ngIf="!loading && !bids.length">
-            <td colspan="7" class="text-center py-10 text-muted">{{ emptyStateMessage }}</td>
+            <td colspan="8" class="text-center py-10 text-muted">{{ emptyStateMessage }}</td>
           </tr>
           <tr *ngFor="let bid of bids; trackBy: trackByBidId" class="align-middle">
             <td class="fw-bold text-gray-900">{{ getBidNumber(bid) }}</td>
             <td>
               <div class="fw-semibold text-gray-900">{{ bid.supplierName }}</div>
               <div class="text-muted">{{ bid.notes || 'No notes provided' }}</div>
+            </td>
+            <td>
+              <div class="fw-semibold text-gray-900">{{ bid.submittedByName }}</div>
+              <div class="text-muted">User ID: {{ bid.submittedByUserId }}</div>
             </td>
             <td>
               <div class="fw-semibold text-gray-900">{{ bid.rfxTitle }}</div>
