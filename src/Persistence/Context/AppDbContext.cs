@@ -24,5 +24,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        builder.Entity<SupplierBid>()
+            .Property(bid => bid.BidAmount)
+            .HasPrecision(18, 2);
     }
 }
