@@ -2,12 +2,88 @@
   display: block;
 }
 
-.page-placeholder {
-  padding: 2rem;
-  text-align: center;
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.page-placeholder__title {
-  font-size: 2rem;
+.page-title {
+  margin: 0;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.search input {
+  border: none;
+  outline: none;
+  min-width: 220px;
+}
+
+.summary-card {
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  height: 100%;
+}
+
+.summary-label {
+  color: #64748b;
   font-weight: 600;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.badge {
+  text-transform: capitalize;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.badge-success {
+  color: #15803d;
+  background: #ecfdf3;
+}
+
+.badge-info {
+  color: #155e75;
+  background: #e0f2fe;
+}
+
+.badge-warning {
+  color: #854d0e;
+  background: #fef3c7;
+}
+
+.badge-primary {
+  color: #1d4ed8;
+  background: #e0e7ff;
+}
+
+.card-subtitle {
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }

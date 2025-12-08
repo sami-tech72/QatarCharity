@@ -16,4 +16,5 @@ export interface SupplierBidSummary {
   submittedAtUtc: string;
   proposalSummary: string;
   notes?: string | null;
+  status?: string;
 }

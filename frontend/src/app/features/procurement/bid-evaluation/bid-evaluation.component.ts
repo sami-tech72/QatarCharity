@@ -21,6 +21,12 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
   bids: SupplierBidSummary[] = [];
   loading = false;
   isCommitteeUser = false;
+  statusTotals = {
+    total: 0,
+    underReview: 0,
+    accepted: 0,
+    pending: 0,
+  };
 
   private readonly destroy$ = new Subject<void>();
 
@@ -59,6 +65,29 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
     return bid.id;
   }
 
+  getBidNumber(bid: SupplierBidSummary): string {
+    return bid.rfxReferenceNumber || `BID-${bid.id.slice(0, 8).toUpperCase()}`;
+  }
+
+  getStatusDisplay(bid: SupplierBidSummary): { label: string; cssClass: string } {
+    const normalized = (bid.status || 'submitted').toLowerCase();
+
+    switch (normalized) {
+      case 'accepted':
+        return { label: 'accepted', cssClass: 'badge-success' };
+      case 'under_review':
+      case 'review':
+      case 'under review':
+        return { label: 'under review', cssClass: 'badge-info' };
+      case 'pending':
+      case 'pending_review':
+      case 'pending review':
+        return { label: 'pending review', cssClass: 'badge-warning' };
+      default:
+        return { label: 'submitted', cssClass: 'badge-primary' };
+    }
+  }
+
   private loadBids(search?: string): void {
     this.loading = true;
     this.bidService
@@ -67,12 +96,37 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result: PagedResult<SupplierBidSummary>) => {
           this.bids = result.items;
+          this.refreshStatusTotals();
           this.loading = false;
         },
         error: () => {
           this.bids = [];
+          this.refreshStatusTotals();
           this.loading = false;
         },
       });
+  }
+
+  private refreshStatusTotals(): void {
+    const totals = {
+      total: this.bids.length,
+      underReview: 0,
+      accepted: 0,
+      pending: 0,
+    };
+
+    this.bids.forEach((bid) => {
+      const status = (bid.status || 'submitted').toLowerCase();
+
+      if (status === 'accepted') {
+        totals.accepted += 1;
+      } else if (status === 'under_review' || status === 'under review' || status === 'review') {
+        totals.underReview += 1;
+      } else {
+        totals.pending += 1;
+      }
+    });
+
+    this.statusTotals = totals;
   }
 }

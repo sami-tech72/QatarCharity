@@ -1,105 +1,114 @@
-<!--begin::Content wrapper-->
-<div class="d-flex flex-column flex-column-fluid">
-  <!--begin::Content-->
-  <div id="kt_app_content" class="app-content flex-column-fluid">
-    <!--begin::Content container-->
-    <div id="kt_app_content_container" class="app-container container-xxl">
-      <!--begin::Card-->
-      <div class="card">
-        <!--begin::Card header-->
-        <div class="card-header border-0 pt-6">
-          <div class="card-title">
-            <form class="d-flex align-items-center position-relative my-1" (submit)="$event.preventDefault()">
-              <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
-                <span class="path1"></span>
-                <span class="path2"></span>
-              </i>
-              <input
-                type="text"
-                class="form-control form-control-solid w-250px ps-13"
-                placeholder="Search bids"
-                [formControl]="searchControl"
-              />
-              <button
-                type="button"
-                class="btn btn-light ms-3"
-                (click)="searchControl.setValue('')"
-                [disabled]="!searchControl.value"
-              >
-                Clear
-              </button>
-            </form>
-          </div>
-          <div class="card-toolbar">
-            <div class="text-muted fw-semibold">
-              {{ isCommitteeUser ? 'Showing bids assigned to your committee' : 'Showing all supplier bids' }}
-            </div>
-          </div>
-        </div>
-        <!--end::Card header-->
-
-        <!--begin::Card body-->
-        <div class="card-body py-4">
-          <div *ngIf="isCommitteeUser" class="alert alert-warning d-flex align-items-center p-5 mb-5">
-            <i class="ki-duotone ki-abstract-41 fs-2hx text-warning me-4"></i>
-            <div class="d-flex flex-column">
-              <h4 class="mb-1 text-dark">Committee view</h4>
-              <span class="text-gray-700">Only bids for RFx records assigned to your committee role are listed.</span>
-            </div>
-          </div>
-
-          <!--begin::Table-->
-          <table class="table align-middle table-row-dashed fs-6 gy-5">
-            <thead>
-              <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
-                <th class="min-w-125px">RFx Reference</th>
-                <th class="min-w-200px">Title &amp; Proposal</th>
-                <th class="min-w-150px">Supplier</th>
-                <th class="min-w-150px">Bid Amount</th>
-                <th class="min-w-150px">Expected Delivery</th>
-                <th class="min-w-150px">Submitted On</th>
-                <th class="min-w-200px">Notes</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-600 fw-semibold">
-              <tr *ngIf="loading">
-                <td colspan="7" class="text-center py-10 text-muted">
-                  <span class="spinner-border spinner-border-sm align-middle me-2"></span>
-                  Loading bids for evaluation...
-                </td>
-              </tr>
-              <tr *ngIf="!loading && !bids.length">
-                <td colspan="7" class="text-center py-10 text-muted">{{ emptyStateMessage }}</td>
-              </tr>
-              <tr *ngFor="let bid of bids; trackBy: trackByBidId" class="align-middle">
-                <td class="fw-bold text-gray-800">{{ bid.rfxReferenceNumber }}</td>
-                <td>
-                  <div class="text-gray-800 fw-semibold">{{ bid.rfxTitle }}</div>
-                  <div class="text-muted text-truncate" style="max-width: 320px">
-                    {{ bid.proposalSummary || 'No proposal summary provided.' }}
-                  </div>
-                </td>
-                <td class="fw-semibold text-gray-800">{{ bid.supplierName }}</td>
-                <td class="fw-bold text-gray-800">
-                  {{ bid.bidAmount | currency: bid.currency : 'symbol-narrow' : '1.0-0' }}
-                </td>
-                <td>{{ bid.expectedDeliveryDate ? (bid.expectedDeliveryDate | date: 'mediumDate') : '—' }}</td>
-                <td>{{ bid.submittedAtUtc | date: 'medium' }}</td>
-                <td>
-                  <span class="d-inline-block text-truncate" style="max-width: 260px">
-                    {{ bid.notes || '—' }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <!--end::Table-->
-        </div>
-        <!--end::Card body-->
-      </div>
-      <!--end::Card-->
-    </div>
-    <!--end::Content container-->
+<div class="page-header">
+  <div>
+    <h2 class="page-title">Bid Evaluation</h2>
+    <p class="text-muted mb-0">Review and evaluate supplier bids</p>
   </div>
-  <!--end::Content-->
+
+  <form class="search" (submit)="$event.preventDefault()">
+    <i class="ki-duotone ki-magnifier fs-3"></i>
+    <input type="text" placeholder="Search bids" [formControl]="searchControl" />
+    <button type="button" class="btn btn-light" (click)="searchControl.setValue('')" [disabled]="!searchControl.value">
+      Clear
+    </button>
+  </form>
+</div>
+
+<div class="row g-4 mb-6">
+  <div class="col-xxl-3 col-md-6">
+    <div class="summary-card">
+      <div class="summary-label">Total Bids</div>
+      <div class="summary-value">{{ statusTotals.total }}</div>
+    </div>
+  </div>
+  <div class="col-xxl-3 col-md-6">
+    <div class="summary-card">
+      <div class="summary-label">Under Review</div>
+      <div class="summary-value">{{ statusTotals.underReview }}</div>
+    </div>
+  </div>
+  <div class="col-xxl-3 col-md-6">
+    <div class="summary-card">
+      <div class="summary-label">Accepted</div>
+      <div class="summary-value">{{ statusTotals.accepted }}</div>
+    </div>
+  </div>
+  <div class="col-xxl-3 col-md-6">
+    <div class="summary-card">
+      <div class="summary-label">Pending Review</div>
+      <div class="summary-value">{{ statusTotals.pending }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-6">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5">
+      <div>
+        <div class="card-subtitle text-muted">All Bids</div>
+        <h4 class="mb-0">Review and evaluate supplier bids</h4>
+      </div>
+      <span class="text-muted fw-semibold">
+        {{ isCommitteeUser ? 'Showing bids assigned to your committee' : 'Showing all supplier bids' }}
+      </span>
+    </div>
+
+    <div *ngIf="isCommitteeUser" class="alert alert-warning d-flex align-items-center p-5 mb-5">
+      <i class="ki-duotone ki-abstract-41 fs-2hx text-warning me-4"></i>
+      <div class="d-flex flex-column">
+        <h4 class="mb-1 text-dark">Committee view</h4>
+        <span class="text-gray-700">Only bids for RFx records assigned to your committee role are listed.</span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr class="text-muted fw-semibold text-uppercase">
+            <th>Bid No</th>
+            <th>Supplier</th>
+            <th>RFx</th>
+            <th>Bid Amount</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="7" class="text-center py-10 text-muted">
+              <span class="spinner-border spinner-border-sm align-middle me-2"></span>
+              Loading bids for evaluation...
+            </td>
+          </tr>
+          <tr *ngIf="!loading && !bids.length">
+            <td colspan="7" class="text-center py-10 text-muted">{{ emptyStateMessage }}</td>
+          </tr>
+          <tr *ngFor="let bid of bids; trackBy: trackByBidId" class="align-middle">
+            <td class="fw-bold text-gray-900">{{ getBidNumber(bid) }}</td>
+            <td>
+              <div class="fw-semibold text-gray-900">{{ bid.supplierName }}</div>
+              <div class="text-muted">{{ bid.notes || 'No notes provided' }}</div>
+            </td>
+            <td>
+              <div class="fw-semibold text-gray-900">{{ bid.rfxTitle }}</div>
+              <div class="text-muted">{{ bid.rfxReferenceNumber }}</div>
+            </td>
+            <td class="fw-bold text-gray-900">{{ bid.bidAmount | currency: bid.currency : 'symbol-narrow' : '1.0-0' }}</td>
+            <td>
+              <span class="badge" [ngClass]="getStatusDisplay(bid).cssClass">{{ getStatusDisplay(bid).label }}</span>
+            </td>
+            <td>{{ bid.submittedAtUtc | date: 'mediumDate' }}</td>
+            <td class="text-end">
+              <div class="btn btn-icon btn-light btn-sm me-1" title="Open bid details">
+                <i class="ki-duotone ki-exit-right-corner"></i>
+              </div>
+              <div class="btn btn-icon btn-light btn-sm" title="Contact supplier">
+                <i class="ki-duotone ki-sms"></i>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
