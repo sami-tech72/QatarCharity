@@ -96,7 +96,7 @@
     </div>
 
     <div class="tender-details" [class.has-selection]="selectedTender">
-      <div *ngIf="selectedTender; else noSelection" class="tender-details__content">
+      <div *ngIf="selectedTender" class="tender-details__content">
         <div class="detail-header">
           <div>
             <p class="detail-label mb-1">Reference {{ selectedTender.referenceNumber }}</p>
@@ -380,12 +380,6 @@
         </div>
       </div>
 
-      <ng-template #noSelection>
-        <div class="tender-details__placeholder">
-          <h4 class="mb-2">Select a tender to review and submit your bid</h4>
-          <p class="text-muted mb-0">Choose a tender on the left to see requirements and share your proposal details.</p>
-        </div>
-      </ng-template>
     </div>
   </div>
 </div>
