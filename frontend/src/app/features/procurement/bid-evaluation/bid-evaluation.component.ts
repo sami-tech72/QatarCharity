@@ -28,6 +28,7 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
   loading = false;
   submitting = false;
   total = 0;
+  reviewModalOpen = false;
   summary = {
     total: 0,
     pendingReview: 0,
@@ -83,6 +84,15 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
     });
   }
 
+  openReviewModal(bid: SupplierBidEvaluation): void {
+    this.selectBid(bid);
+    this.reviewModalOpen = true;
+  }
+
+  closeReviewModal(): void {
+    this.reviewModalOpen = false;
+  }
+
   submitReview(): void {
     if (!this.selectedBid || this.reviewForm.invalid) {
       return;
@@ -103,6 +113,7 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
           this.bids = this.bids.map((bid) => (bid.id === updated.id ? updated : bid));
           this.updateSummary();
           this.notification.success('Bid review saved successfully.');
+          this.reviewModalOpen = false;
           this.submitting = false;
         },
         error: (error) => {

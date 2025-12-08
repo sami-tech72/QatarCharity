@@ -26,7 +26,7 @@
       <div class="value text-info">{{ summary.underReview }}</div>
     </div>
     <div class="summary-card">
-      <div class="label">Approved / Recommended</div>
+      <div class="label">Accepted</div>
       <div class="value text-success">{{ summary.approved }}</div>
     </div>
     <div class="summary-card">
@@ -35,58 +35,74 @@
     </div>
   </div>
 
-  <div class="grid">
-    <section class="card list-card">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h2 class="h5 mb-1">Submitted bids</h2>
-            <p class="text-muted mb-0">Showing {{ bids.length }} of {{ total }} submissions.</p>
-          </div>
-          <div *ngIf="loading" class="text-muted small">Loading...</div>
+  <section class="card list-card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h2 class="h5 mb-1">All Bids</h2>
+          <p class="text-muted mb-0">Showing {{ bids.length }} of {{ total }} submissions.</p>
         </div>
-
-        <div *ngIf="!bids.length && !loading" class="empty-state">No bids have been submitted yet.</div>
-
-        <div class="table-responsive" *ngIf="bids.length">
-          <table class="table align-middle">
-            <thead>
-              <tr>
-                <th>RFx</th>
-                <th>Supplier</th>
-                <th>Bid</th>
-                <th>Submitted</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                *ngFor="let bid of bids; trackBy: trackByBidId"
-                (click)="selectBid(bid)"
-                [class.table-active]="selectedBid?.id === bid.id"
-              >
-                <td>
-                  <div class="fw-semibold">{{ bid.referenceNumber }}</div>
-                  <div class="text-muted small">{{ bid.title }}</div>
-                </td>
-                <td>{{ bid.submittedBy }}</td>
-                <td>
-                  <div class="fw-semibold">{{ bid.bidAmount | number: '1.0-2' }} {{ bid.currency }}</div>
-                  <div class="text-muted small">Delivery: {{ bid.expectedDeliveryDate | date: 'mediumDate' }}</div>
-                </td>
-                <td>{{ bid.submittedAtUtc | date: 'medium' }}</td>
-                <td>
-                  <span class="badge" [ngClass]="statusBadgeClass(bid.evaluationStatus)">{{ bid.evaluationStatus }}</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <div *ngIf="loading" class="text-muted small">Loading...</div>
       </div>
-    </section>
 
-    <section class="card detail-card">
-      <div class="card-body" *ngIf="selectedBid; else selectPrompt">
+      <div *ngIf="!bids.length && !loading" class="empty-state">No bids have been submitted yet.</div>
+
+      <div class="table-responsive" *ngIf="bids.length">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Bid Number</th>
+              <th>Supplier Name</th>
+              <th>RFx</th>
+              <th>Bid Amount</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let bid of bids; trackBy: trackByBidId" [class.table-active]="selectedBid?.id === bid.id">
+              <td>
+                <div class="fw-semibold">{{ bid.referenceNumber }}</div>
+                <div class="text-muted small">{{ bid.id }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ bid.submittedBy }}</div>
+                <div class="text-muted small">{{ bid.proposalSummary }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ bid.title }}</div>
+                <div class="text-muted small">{{ bid.rfxId }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ bid.bidAmount | number: '1.0-2' }} {{ bid.currency }}</div>
+                <div class="text-muted small">Delivery: {{ bid.expectedDeliveryDate | date: 'mediumDate' }}</div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="statusBadgeClass(bid.evaluationStatus)">{{ bid.evaluationStatus }}</span>
+              </td>
+              <td>{{ bid.submittedAtUtc | date: 'mediumDate' }}</td>
+              <td class="text-end">
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-light btn-sm" (click)="selectBid(bid)">
+                    View
+                  </button>
+                  <button type="button" class="btn btn-success btn-sm" (click)="openReviewModal(bid)">
+                    Review
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal-backdrop" *ngIf="reviewModalOpen"></div>
+  <div class="review-modal" *ngIf="reviewModalOpen">
+    <div class="modal-content card">
+      <div class="card-body">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
           <div>
             <div class="text-muted small">RFx {{ selectedBid?.referenceNumber }}</div>
@@ -138,19 +154,13 @@
           </div>
 
           <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-light" (click)="closeReviewModal()">Cancel</button>
             <button type="submit" class="btn btn-primary" [disabled]="submitting || reviewForm.invalid">
               {{ submitting ? 'Saving...' : 'Save Review' }}
             </button>
           </div>
         </form>
       </div>
-
-      <ng-template #selectPrompt>
-        <div class="placeholder">
-          <h3 class="h5 mb-2">Select a bid to review</h3>
-          <p class="text-muted mb-0">Choose a submission from the list to view its details and provide feedback.</p>
-        </div>
-      </ng-template>
-    </section>
+    </div>
   </div>
 </div>
