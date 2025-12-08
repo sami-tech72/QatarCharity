@@ -186,16 +186,15 @@ public class BidEvaluationController : ControllerBase
         if (isProcurementSubRole)
         {
             bidsQuery = bidsQuery
-                .Join(
+                .GroupJoin(
                     _dbContext.RfxCommitteeMembers.AsNoTracking(),
                     entry => entry.Rfx.Id,
                     member => member.RfxId,
-                    (entry, member) => new
-                    {
-                        entry,
-                        member.UserId,
-                    })
-                .Where(entry => entry.UserId == currentUserId)
+                    (entry, members) => new { entry, members })
+                .SelectMany(
+                    x => x.members.DefaultIfEmpty(),
+                    (x, member) => new { x.entry, member })
+                .Where(entry => entry.member == null || entry.member.UserId == currentUserId)
                 .Select(entry => entry.entry);
         }
 
