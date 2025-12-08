@@ -183,14 +183,14 @@
 <!--end::Content wrapper-->
 
 <div
-  class="modal fade"
+  class="modal fade app-modal-theme"
   id="kt_modal_add_supplier"
   tabindex="-1"
   aria-hidden="true"
 >
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <div class="modal-header" id="kt_modal_add_supplier_header">
+  <div class="modal-dialog modal-dialog-centered modal-lg app-modal-dialog app-modal-dialog--wide">
+    <div class="modal-content app-modal-content">
+      <div class="modal-header app-modal-header" id="kt_modal_add_supplier_header">
         <h2 class="fw-bold">{{ editingSupplier ? 'Edit Supplier' : 'Add Supplier' }}</h2>
         <button
           type="button"
@@ -205,7 +205,7 @@
           </i>
         </button>
       </div>
-      <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+      <div class="modal-body app-modal-body scroll-y mx-5 mx-xl-15 my-7">
         <form class="form" [formGroup]="supplierForm" (ngSubmit)="onSubmit()">
           <div
             class="d-flex flex-column scroll-y me-n7 pe-7"
@@ -435,7 +435,7 @@
             </div>
           </div>
 
-          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-10">
+          <div class="modal-footer app-modal-footer flex-wrap justify-content-between align-items-center gap-3 pt-6">
             <button
               type="reset"
               class="btn btn-light"

@@ -2,46 +2,6 @@
   display: block;
 }
 
-.modal-backdrop-custom {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(2px);
-  z-index: 1040;
-}
-
-.modal-custom {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  z-index: 1041;
-  overflow: auto;
-}
-
-.modal-dialog-custom {
-  width: min(960px, 100%);
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 20px 70px rgba(15, 23, 42, 0.25);
-}
-
-.modal-dialog-sm {
-  width: min(520px, 100%);
-}
-
-.modal-content {
-  border: none;
-  border-radius: 12px;
-}
-
-.section-divider {
-  height: 1px;
-  background: #eff2f5;
-}
-
 .step-card {
   border: 1px solid #eff2f5;
   border-radius: 10px;

@@ -55,17 +55,17 @@
 
             <!--begin::Modal - Add task-->
             <div
-              class="modal fade"
+              class="modal fade app-modal-theme"
               id="kt_modal_add_user"
               tabindex="-1"
               aria-hidden="true"
             >
               <!--begin::Modal dialog-->
-              <div class="modal-dialog modal-dialog-centered mw-650px">
+              <div class="modal-dialog modal-dialog-centered mw-650px app-modal-dialog app-modal-dialog--narrow">
                 <!--begin::Modal content-->
-                <div class="modal-content">
+                <div class="modal-content app-modal-content">
                   <!--begin::Modal header-->
-                  <div class="modal-header" id="kt_modal_add_user_header">
+                  <div class="modal-header app-modal-header" id="kt_modal_add_user_header">
                     <!--begin::Modal title-->
                     <h2 class="fw-bold">{{ editingUser ? 'Edit User' : 'Add User' }}</h2>
                     <!--end::Modal title-->
@@ -86,7 +86,7 @@
                   </div>
                   <!--end::Modal header-->
                   <!--begin::Modal body-->
-                  <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                  <div class="modal-body app-modal-body scroll-y mx-5 mx-xl-15 my-7">
                     <!--begin::Form-->
                     <form
                       id="kt_modal_add_user_form"
@@ -217,7 +217,7 @@
                       </div>
                       <!--end::Scroll-->
                         <!--begin::Actions-->
-                        <div class="text-center pt-15">
+                        <div class="modal-footer app-modal-footer justify-content-center pt-10 gap-3">
                           <button
                             type="reset"
                             class="btn btn-light me-3"
