@@ -27,4 +27,22 @@ public record SupplierBidSummaryResponse(
     DateTime? ExpectedDeliveryDate,
     DateTime SubmittedAtUtc,
     string ProposalSummary,
-    string? Notes);
+    string? Notes,
+    IReadOnlyList<BidReviewResponse> Reviews);
+
+public record BidReviewResponse(
+    Guid Id,
+    Guid BidId,
+    string ReviewerUserId,
+    string ReviewerName,
+    string Decision,
+    DateTime ReviewedAtUtc,
+    string? Comments);
+
+public record ReviewBidRequest
+{
+    public string Decision { get; init; } = string.Empty;
+
+    public string? Comments { get; init; }
+        = null;
+}

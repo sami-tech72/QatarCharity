@@ -22,6 +22,19 @@ export class BidEvaluationService {
       .pipe(map((response) => this.unwrap(response)));
   }
 
+  reviewBid(
+    bidId: string,
+    decision: 'approved' | 'rejected' | 'review',
+    comments?: string,
+  ): Observable<SupplierBidSummary> {
+    return this.api
+      .post<SupplierBidSummary>(`rfx/bids/${bidId}/review`, {
+        decision,
+        comments,
+      })
+      .pipe(map((response) => this.unwrap(response)));
+  }
+
   private unwrap<T>(response: ApiResponse<T>): T {
     if (!response.success || response.data === undefined || response.data === null) {
       throw new Error(response.message || 'Request failed.');

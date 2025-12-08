@@ -19,4 +19,15 @@ export interface SupplierBidSummary {
   proposalSummary: string;
   notes?: string | null;
   status?: string;
+  reviews?: BidReviewSummary[];
+}
+
+export interface BidReviewSummary {
+  id: string;
+  bidId: string;
+  reviewerUserId: string;
+  reviewerName: string;
+  decision: string;
+  reviewedAtUtc: string;
+  comments?: string | null;
 }

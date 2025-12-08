@@ -15,6 +15,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<RfxEvaluationCriterion> RfxEvaluationCriteria => Set<RfxEvaluationCriterion>();
     public DbSet<RfxCommitteeMember> RfxCommitteeMembers => Set<RfxCommitteeMember>();
     public DbSet<SupplierBid> SupplierBids => Set<SupplierBid>();
+    public DbSet<BidReview> BidReviews => Set<BidReview>();
     public DbSet<ProcurementPermissionDefinition> ProcurementPermissionDefinitions => Set<ProcurementPermissionDefinition>();
     public DbSet<ProcurementRoleTemplate> ProcurementRoleTemplates => Set<ProcurementRoleTemplate>();
     public DbSet<ProcurementRoleAvatar> ProcurementRoleAvatars => Set<ProcurementRoleAvatar>();

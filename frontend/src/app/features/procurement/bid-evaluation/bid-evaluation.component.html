@@ -70,6 +70,7 @@
             <th>RFx</th>
             <th>Bid Amount</th>
             <th>Status</th>
+            <th>Reviews</th>
             <th>Submitted</th>
             <th class="text-end">Actions</th>
           </tr>
@@ -102,14 +103,54 @@
             <td>
               <span class="badge" [ngClass]="getStatusDisplay(bid).cssClass">{{ getStatusDisplay(bid).label }}</span>
             </td>
+            <td>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="review-chip neutral" title="Total reviews">
+                  <i class="ki-duotone ki-eye fs-4 me-1"></i>
+                  {{ bid.reviews?.length || 0 }}
+                </span>
+                <span class="review-chip success" title="Approvals">
+                  <i class="ki-duotone ki-check fs-4 me-1"></i>
+                  {{ getReviewTotals(bid).approved }}
+                </span>
+                <span class="review-chip danger" title="Rejections">
+                  <i class="ki-duotone ki-cross-circle fs-4 me-1"></i>
+                  {{ getReviewTotals(bid).rejected }}
+                </span>
+              </div>
+              <div class="text-muted small" *ngIf="getReviewDecision(bid) as decision">
+                You marked this bid as <strong>{{ decision === 'approved' ? 'good' : 'not good' }}</strong>.
+              </div>
+            </td>
             <td>{{ bid.submittedAtUtc | date: 'mediumDate' }}</td>
             <td class="text-end">
-              <div class="btn btn-icon btn-light btn-sm me-1" title="Open bid details">
-                <i class="ki-duotone ki-exit-right-corner"></i>
-              </div>
-              <div class="btn btn-icon btn-light btn-sm" title="Contact supplier">
-                <i class="ki-duotone ki-sms"></i>
-              </div>
+              <button
+                type="button"
+                class="btn btn-icon btn-light btn-sm me-1"
+                title="Mark under review"
+                [disabled]="reviewing.has(bid.id)"
+                (click)="submitReview(bid, 'review')"
+              >
+                <i class="ki-duotone ki-eye"></i>
+              </button>
+              <button
+                type="button"
+                class="btn btn-icon btn-light-success btn-sm me-1"
+                title="Mark as good"
+                [disabled]="reviewing.has(bid.id)"
+                (click)="submitReview(bid, 'approved')"
+              >
+                <i class="ki-duotone ki-check"></i>
+              </button>
+              <button
+                type="button"
+                class="btn btn-icon btn-light-danger btn-sm"
+                title="Mark as not good"
+                [disabled]="reviewing.has(bid.id)"
+                (click)="submitReview(bid, 'rejected')"
+              >
+                <i class="ki-duotone ki-cross-circle"></i>
+              </button>
             </td>
           </tr>
         </tbody>

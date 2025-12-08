@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Api.Authorization;
 using Api.Models;
 using Api.Models.Rfx;
+using Domain.Entities;
+using Domain.Entities.Procurement;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -21,6 +23,13 @@ namespace Api.Controllers;
 public class BidEvaluationController : ControllerBase
 {
     private readonly AppDbContext _dbContext;
+
+    private record BidProjection(
+        SupplierBid Bid,
+        Domain.Entities.Rfx Rfx,
+        string SupplierName,
+        string SubmittedByUserId,
+        string SubmittedByName);
 
     public BidEvaluationController(AppDbContext dbContext)
     {
@@ -46,6 +55,106 @@ public class BidEvaluationController : ControllerBase
         var search = query.Search?.Trim().ToLowerInvariant();
         var isProcurementSubRole = User.HasClaim(claim => string.Equals(claim.Type, "procurement_role_id", StringComparison.OrdinalIgnoreCase));
 
+        var bidsQuery = BuildBidQuery(currentUserId, isProcurementSubRole, search);
+
+        var totalCount = await bidsQuery.CountAsync();
+
+        var pagedEntries = await bidsQuery
+            .OrderByDescending(entry => entry.Bid.SubmittedAtUtc)
+            .ThenBy(entry => entry.Rfx.ReferenceNumber)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var reviewLookup = await BuildReviewLookupAsync(pagedEntries.Select(entry => entry.Bid.Id));
+        var bids = pagedEntries
+            .Select(entry => BuildBidResponse(entry, reviewLookup))
+            .ToList();
+
+        var response = new PagedResult<SupplierBidSummaryResponse>(bids, totalCount, pageNumber, pageSize);
+
+        return Ok(ApiResponse<PagedResult<SupplierBidSummaryResponse>>.Ok(response, "Supplier bids retrieved successfully."));
+    }
+
+    [HttpPost("{bidId:guid}/review")]
+    [Authorize(Policy = ProcurementPolicies.BidEvaluationRead)]
+    [ProducesResponseType(typeof(ApiResponse<SupplierBidSummaryResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<SupplierBidSummaryResponse>>> ReviewBid(
+        Guid bidId,
+        [FromBody] ReviewBidRequest? request)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.Decision))
+        {
+            return BadRequest(ApiResponse<SupplierBidSummaryResponse>.Fail(
+                "A decision is required to review the bid.",
+                "invalid_decision"));
+        }
+
+        var normalizedDecision = NormalizeDecision(request.Decision);
+        if (string.IsNullOrWhiteSpace(normalizedDecision))
+        {
+            return BadRequest(ApiResponse<SupplierBidSummaryResponse>.Fail(
+                "Decision must be approve or reject.",
+                "invalid_decision"));
+        }
+
+        var currentUserId = GetCurrentUserId();
+        if (string.IsNullOrWhiteSpace(currentUserId))
+        {
+            return Unauthorized(ApiResponse<SupplierBidSummaryResponse>.Fail(
+                "Invalid or expired token.",
+                errorCode: "auth_invalid_token"));
+        }
+
+        var isProcurementSubRole = User.HasClaim(claim => string.Equals(claim.Type, "procurement_role_id", StringComparison.OrdinalIgnoreCase));
+        var bidQuery = BuildBidQuery(currentUserId, isProcurementSubRole, search: null);
+        var targetBid = await bidQuery.FirstOrDefaultAsync(entry => entry.Bid.Id == bidId);
+
+        if (targetBid is null)
+        {
+            return NotFound(ApiResponse<SupplierBidSummaryResponse>.Fail(
+                "Bid not found or not accessible.",
+                "bid_not_found"));
+        }
+
+        var existing = await _dbContext.BidReviews
+            .FirstOrDefaultAsync(review => review.BidId == bidId && review.ReviewerUserId == currentUserId);
+
+        if (existing is null)
+        {
+            _dbContext.BidReviews.Add(new BidReview
+            {
+                BidId = bidId,
+                ReviewerUserId = currentUserId,
+                Decision = normalizedDecision,
+                Comments = request.Comments?.Trim(),
+                ReviewedAtUtc = DateTime.UtcNow,
+            });
+        }
+        else
+        {
+            existing.Decision = normalizedDecision;
+            existing.Comments = request.Comments?.Trim();
+            existing.ReviewedAtUtc = DateTime.UtcNow;
+            _dbContext.BidReviews.Update(existing);
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        var reviewsLookup = await BuildReviewLookupAsync(new[] { bidId });
+        var response = BuildBidResponse(targetBid, reviewsLookup);
+
+        return Ok(ApiResponse<SupplierBidSummaryResponse>.Ok(response, "Bid review recorded."));
+    }
+
+    private string? GetCurrentUserId()
+    {
+        return User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+    }
+
+    private IQueryable<BidProjection> BuildBidQuery(string currentUserId, bool isProcurementSubRole, string? search)
+    {
         var bidsQuery = _dbContext.SupplierBids
             .AsNoTracking()
             .Join(
@@ -62,18 +171,16 @@ public class BidEvaluationController : ControllerBase
                 (combined, users) => new { combined.bid, combined.rfx, users })
             .SelectMany(
                 entry => entry.users.DefaultIfEmpty(),
-                (entry, user) => new
-                {
+                (entry, user) => new BidProjection(
                     entry.bid,
                     entry.rfx,
-                    SupplierName = user != null
+                    user != null
                         ? user.DisplayName ?? user.Email ?? user.UserName ?? "Supplier"
                         : "Supplier",
-                    SubmittedByUserId = entry.bid.SubmittedByUserId,
-                    SubmittedByName = user != null
+                    entry.bid.SubmittedByUserId,
+                    user != null
                         ? user.DisplayName ?? user.Email ?? user.UserName ?? "Supplier User"
-                        : "Supplier User",
-                })
+                        : "Supplier User"))
             .AsQueryable();
 
         if (isProcurementSubRole)
@@ -81,68 +188,101 @@ public class BidEvaluationController : ControllerBase
             bidsQuery = bidsQuery
                 .Join(
                     _dbContext.RfxCommitteeMembers.AsNoTracking(),
-                    entry => entry.rfx.Id,
+                    entry => entry.Rfx.Id,
                     member => member.RfxId,
                     (entry, member) => new
                     {
-                        entry.bid,
-                        entry.rfx,
-                        entry.SupplierName,
-                        entry.SubmittedByUserId,
-                        entry.SubmittedByName,
+                        entry,
                         member.UserId,
                     })
                 .Where(entry => entry.UserId == currentUserId)
-                .Select(entry => new
-                {
-                    entry.bid,
-                    entry.rfx,
-                    entry.SupplierName,
-                    entry.SubmittedByUserId,
-                    entry.SubmittedByName,
-                });
+                .Select(entry => entry.entry);
         }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
+            var normalizedSearch = search.ToLowerInvariant();
             bidsQuery = bidsQuery.Where(entry =>
-                entry.rfx.ReferenceNumber.ToLower().Contains(search) ||
-                entry.rfx.Title.ToLower().Contains(search) ||
-                entry.SupplierName.ToLower().Contains(search) ||
-                entry.SubmittedByName.ToLower().Contains(search));
+                (entry.Rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(normalizedSearch) ||
+                (entry.Rfx.Title ?? string.Empty).ToLower().Contains(normalizedSearch) ||
+                entry.SupplierName.ToLower().Contains(normalizedSearch) ||
+                entry.SubmittedByName.ToLower().Contains(normalizedSearch));
         }
 
-        var totalCount = await bidsQuery.CountAsync();
-
-        var bids = await bidsQuery
-            .OrderByDescending(entry => entry.bid.SubmittedAtUtc)
-            .ThenBy(entry => entry.rfx.ReferenceNumber)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .Select(entry => new SupplierBidSummaryResponse(
-                entry.bid.Id,
-                entry.bid.RfxId,
-                entry.rfx.ReferenceNumber,
-                entry.rfx.Title,
-                entry.SupplierName,
-                entry.SubmittedByUserId,
-                entry.SubmittedByName,
-                entry.bid.BidAmount,
-                entry.bid.Currency,
-                entry.bid.ExpectedDeliveryDate,
-                entry.bid.SubmittedAtUtc,
-                entry.bid.ProposalSummary,
-                entry.bid.Notes))
-            .ToListAsync();
-
-        var response = new PagedResult<SupplierBidSummaryResponse>(bids, totalCount, pageNumber, pageSize);
-
-        return Ok(ApiResponse<PagedResult<SupplierBidSummaryResponse>>.Ok(response, "Supplier bids retrieved successfully."));
+        return bidsQuery;
     }
 
-    private string? GetCurrentUserId()
+    private async Task<Dictionary<Guid, List<BidReviewResponse>>> BuildReviewLookupAsync(IEnumerable<Guid> bidIds)
     {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        var targetIds = bidIds.ToList();
+
+        if (!targetIds.Any())
+        {
+            return new();
+        }
+
+        var reviews = await _dbContext.BidReviews
+            .AsNoTracking()
+            .Where(review => targetIds.Contains(review.BidId))
+            .GroupJoin(
+                _dbContext.Users.AsNoTracking(),
+                review => review.ReviewerUserId,
+                user => user.Id,
+                (review, users) => new { review, users })
+            .SelectMany(
+                entry => entry.users.DefaultIfEmpty(),
+                (entry, user) => new BidReviewResponse(
+                    entry.review.Id,
+                    entry.review.BidId,
+                    entry.review.ReviewerUserId,
+                    user != null
+                        ? user.DisplayName ?? user.Email ?? user.UserName ?? entry.review.ReviewerUserId
+                        : entry.review.ReviewerUserId,
+                    entry.review.Decision,
+                    entry.review.ReviewedAtUtc,
+                    entry.review.Comments))
+            .ToListAsync();
+
+        return reviews
+            .GroupBy(review => review.BidId)
+            .ToDictionary(
+                group => group.Key,
+                group => group.OrderByDescending(review => review.ReviewedAtUtc).ToList());
+    }
+
+    private SupplierBidSummaryResponse BuildBidResponse(
+        BidProjection entry,
+        IReadOnlyDictionary<Guid, List<BidReviewResponse>> reviewLookup)
+    {
+        reviewLookup.TryGetValue(entry.Bid.Id, out var reviews);
+
+        return new SupplierBidSummaryResponse(
+            entry.Bid.Id,
+            entry.Bid.RfxId,
+            entry.Rfx.ReferenceNumber,
+            entry.Rfx.Title,
+            entry.SupplierName,
+            entry.SubmittedByUserId,
+            entry.SubmittedByName,
+            entry.Bid.BidAmount,
+            entry.Bid.Currency,
+            entry.Bid.ExpectedDeliveryDate,
+            entry.Bid.SubmittedAtUtc,
+            entry.Bid.ProposalSummary,
+            entry.Bid.Notes,
+            reviews ?? new List<BidReviewResponse>());
+    }
+
+    private string? NormalizeDecision(string decision)
+    {
+        var normalized = decision.Trim().ToLowerInvariant();
+
+        return normalized switch
+        {
+            "approve" or "approved" or "accept" or "accepted" or "good" => "approved",
+            "reject" or "rejected" or "decline" or "not good" or "bad" => "rejected",
+            "review" or "under review" or "view" => "review",
+            _ => null,
+        };
     }
 }

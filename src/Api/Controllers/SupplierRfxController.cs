@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Api.Models;
 using Api.Models.Rfx;
 using Domain.Entities;
+using Domain.Entities.Procurement;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -21,6 +22,13 @@ namespace Api.Controllers;
 public class SupplierRfxController : ControllerBase
 {
     private readonly AppDbContext _dbContext;
+
+    private record SupplierBidProjection(
+        SupplierBid bid,
+        Domain.Entities.Rfx rfx,
+        string SupplierName,
+        string SubmittedByUserId,
+        string SubmittedByName);
 
     public SupplierRfxController(AppDbContext dbContext)
     {
@@ -45,66 +53,21 @@ public class SupplierRfxController : ControllerBase
         var search = query.Search?.Trim().ToLowerInvariant();
         var bidderName = User?.Identity?.Name ?? "You";
 
-        var bidsQuery = _dbContext.SupplierBids
-            .AsNoTracking()
-            .Where(bid => bid.SubmittedByUserId == bidderId)
-            .Join(
-                _dbContext.Rfxes.AsNoTracking(),
-                bid => bid.RfxId,
-                rfx => rfx.Id,
-                (bid, rfx) => new { bid, rfx })
-            .GroupJoin(
-                _dbContext.Users.AsNoTracking(),
-                entry => entry.bid.SubmittedByUserId,
-                user => user.Id,
-                (entry, users) => new { entry.bid, entry.rfx, users })
-            .SelectMany(
-                entry => entry.users.DefaultIfEmpty(),
-                (entry, user) => new
-                {
-                    entry.bid,
-                    entry.rfx,
-                    SupplierName = user != null
-                        ? user.DisplayName ?? user.Email ?? user.UserName ?? "You"
-                        : (string.IsNullOrWhiteSpace(bidderName) ? "You" : bidderName),
-                    SubmittedByUserId = entry.bid.SubmittedByUserId,
-                    SubmittedByName = user != null
-                        ? user.DisplayName ?? user.Email ?? user.UserName ?? "You"
-                        : (string.IsNullOrWhiteSpace(bidderName) ? "You" : bidderName),
-                })
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            bidsQuery = bidsQuery.Where(entry =>
-                (entry.rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(search) ||
-                (entry.rfx.Title ?? string.Empty).ToLower().Contains(search) ||
-                entry.SupplierName.ToLower().Contains(search) ||
-                entry.SubmittedByName.ToLower().Contains(search));
-        }
+        var bidsQuery = BuildSupplierBidQuery(bidderId, bidderName, search);
 
         var totalCount = await bidsQuery.CountAsync();
 
-        var bids = await bidsQuery
+        var pagedEntries = await bidsQuery
             .OrderByDescending(entry => entry.bid.SubmittedAtUtc)
             .ThenBy(entry => entry.rfx.ReferenceNumber)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(entry => new SupplierBidSummaryResponse(
-                entry.bid.Id,
-                entry.bid.RfxId,
-                entry.rfx.ReferenceNumber ?? string.Empty,
-                entry.rfx.Title ?? string.Empty,
-                entry.SupplierName,
-                entry.SubmittedByUserId,
-                entry.SubmittedByName,
-                entry.bid.BidAmount,
-                entry.bid.Currency,
-                entry.bid.ExpectedDeliveryDate,
-                entry.bid.SubmittedAtUtc,
-                entry.bid.ProposalSummary,
-                entry.bid.Notes))
             .ToListAsync();
+
+        var reviewLookup = await BuildReviewLookupAsync(pagedEntries.Select(entry => entry.bid.Id));
+        var bids = pagedEntries
+            .Select(entry => BuildBidSummary(entry, reviewLookup))
+            .ToList();
 
         var response = new PagedResult<SupplierBidSummaryResponse>(bids, totalCount, pageNumber, pageSize);
 
@@ -284,6 +247,106 @@ public class SupplierRfxController : ControllerBase
         var response = BuildPublishedRfxResponse(rfx);
 
         return Ok(ApiResponse<PublishedRfxResponse>.Ok(response, "Published RFx retrieved successfully."));
+    }
+
+    private IQueryable<SupplierBidProjection> BuildSupplierBidQuery(string bidderId, string bidderName, string? search)
+    {
+        var bidsQuery = _dbContext.SupplierBids
+            .AsNoTracking()
+            .Where(bid => bid.SubmittedByUserId == bidderId)
+            .Join(
+                _dbContext.Rfxes.AsNoTracking(),
+                bid => bid.RfxId,
+                rfx => rfx.Id,
+                (bid, rfx) => new { bid, rfx })
+            .GroupJoin(
+                _dbContext.Users.AsNoTracking(),
+                entry => entry.bid.SubmittedByUserId,
+                user => user.Id,
+                (entry, users) => new { entry.bid, entry.rfx, users })
+            .SelectMany(
+                entry => entry.users.DefaultIfEmpty(),
+                (entry, user) => new SupplierBidProjection(
+                    entry.bid,
+                    entry.rfx,
+                    user != null
+                        ? user.DisplayName ?? user.Email ?? user.UserName ?? "You"
+                        : (string.IsNullOrWhiteSpace(bidderName) ? "You" : bidderName),
+                    entry.bid.SubmittedByUserId,
+                    user != null
+                        ? user.DisplayName ?? user.Email ?? user.UserName ?? "You"
+                        : (string.IsNullOrWhiteSpace(bidderName) ? "You" : bidderName)))
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            bidsQuery = bidsQuery.Where(entry =>
+                (entry.rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(search) ||
+                (entry.rfx.Title ?? string.Empty).ToLower().Contains(search) ||
+                entry.SupplierName.ToLower().Contains(search) ||
+                entry.SubmittedByName.ToLower().Contains(search));
+        }
+
+        return bidsQuery;
+    }
+
+    private async Task<Dictionary<Guid, List<BidReviewResponse>>> BuildReviewLookupAsync(IEnumerable<Guid> bidIds)
+    {
+        var targetIds = bidIds.ToList();
+
+        if (!targetIds.Any())
+        {
+            return new();
+        }
+
+        var reviews = await _dbContext.BidReviews
+            .AsNoTracking()
+            .Where(review => targetIds.Contains(review.BidId))
+            .GroupJoin(
+                _dbContext.Users.AsNoTracking(),
+                review => review.ReviewerUserId,
+                user => user.Id,
+                (review, users) => new { review, users })
+            .SelectMany(
+                entry => entry.users.DefaultIfEmpty(),
+                (entry, user) => new BidReviewResponse(
+                    entry.review.Id,
+                    entry.review.BidId,
+                    entry.review.ReviewerUserId,
+                    user != null
+                        ? user.DisplayName ?? user.Email ?? user.UserName ?? entry.review.ReviewerUserId
+                        : entry.review.ReviewerUserId,
+                    entry.review.Decision,
+                    entry.review.ReviewedAtUtc,
+                    entry.review.Comments))
+            .ToListAsync();
+
+        return reviews
+            .GroupBy(review => review.BidId)
+            .ToDictionary(
+                group => group.Key,
+                group => group.OrderByDescending(review => review.ReviewedAtUtc).ToList());
+    }
+
+    private static SupplierBidSummaryResponse BuildBidSummary(SupplierBidProjection entry, IReadOnlyDictionary<Guid, List<BidReviewResponse>> reviewsLookup)
+    {
+        reviewsLookup.TryGetValue(entry.bid.Id, out var reviews);
+
+        return new SupplierBidSummaryResponse(
+            entry.bid.Id,
+            entry.bid.RfxId,
+            entry.rfx.ReferenceNumber ?? string.Empty,
+            entry.rfx.Title ?? string.Empty,
+            entry.SupplierName,
+            entry.SubmittedByUserId,
+            entry.SubmittedByName,
+            entry.bid.BidAmount,
+            entry.bid.Currency,
+            entry.bid.ExpectedDeliveryDate,
+            entry.bid.SubmittedAtUtc,
+            entry.bid.ProposalSummary,
+            entry.bid.Notes,
+            reviews ?? new List<BidReviewResponse>());
     }
 
     private static bool IsBase64(string? value)

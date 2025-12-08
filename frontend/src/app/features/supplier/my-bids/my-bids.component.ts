@@ -41,6 +41,20 @@ export class MyBidsComponent implements OnInit, OnDestroy {
     return bid.id;
   }
 
+  getReviewTotals(bid: SupplierBidSummary): { approved: number; rejected: number } {
+    const totals = { approved: 0, rejected: 0 };
+
+    bid.reviews?.forEach((review) => {
+      if (review.decision === 'approved') {
+        totals.approved += 1;
+      } else if (review.decision === 'rejected') {
+        totals.rejected += 1;
+      }
+    });
+
+    return totals;
+  }
+
   get emptyMessage(): string {
     if (this.loading) {
       return 'Loading your bids...';

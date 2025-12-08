@@ -21,6 +21,7 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
   bids: SupplierBidSummary[] = [];
   loading = false;
   isCommitteeUser = false;
+  reviewing = new Set<string>();
   statusTotals = {
     total: 0,
     underReview: 0,
@@ -86,6 +87,55 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
       default:
         return { label: 'submitted', cssClass: 'badge-primary' };
     }
+  }
+
+  getReviewDecision(bid: SupplierBidSummary): string | null {
+    const userId = this.auth.currentSession()?.userId;
+
+    if (!bid.reviews?.length || !userId) {
+      return null;
+    }
+
+    const reviewerEntry = bid.reviews.find((review) => review.reviewerUserId === userId);
+    return reviewerEntry?.decision ?? null;
+  }
+
+  getReviewTotals(bid: SupplierBidSummary): { approved: number; rejected: number } {
+    const totals = { approved: 0, rejected: 0 };
+
+    bid.reviews?.forEach((review) => {
+      if (review.decision === 'approved') {
+        totals.approved += 1;
+      } else if (review.decision === 'rejected') {
+        totals.rejected += 1;
+      }
+    });
+
+    return totals;
+  }
+
+  submitReview(bid: SupplierBidSummary, decision: 'approved' | 'rejected' | 'review'): void {
+    if (this.reviewing.has(bid.id)) {
+      return;
+    }
+
+    this.reviewing.add(bid.id);
+
+    this.bidService
+      .reviewBid(bid.id, decision)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updated) => {
+          this.bids = this.bids.map((existing) => (existing.id === updated.id ? updated : existing));
+          this.refreshStatusTotals();
+        },
+        error: () => {
+          this.reviewing.delete(bid.id);
+        },
+        complete: () => {
+          this.reviewing.delete(bid.id);
+        },
+      });
   }
 
   private loadBids(search?: string): void {

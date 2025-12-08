@@ -21,6 +21,7 @@
           <th>Bid Amount</th>
           <th>Submitted On</th>
           <th>Status</th>
+          <th>Reviews</th>
         </tr>
       </thead>
       <tbody>
@@ -37,6 +38,18 @@
           <td>{{ bid.submittedAtUtc | date: 'mediumDate' }}</td>
           <td>
             <span class="status-badge">{{ bid.status || 'submitted' }}</span>
+          </td>
+          <td>
+            <div class="review-summary">
+              <span title="Approvals">
+                <i class="ki-duotone ki-check"></i>
+                {{ getReviewTotals(bid).approved }}
+              </span>
+              <span title="Rejections">
+                <i class="ki-duotone ki-cross-circle"></i>
+                {{ getReviewTotals(bid).rejected }}
+              </span>
+            </div>
           </td>
         </tr>
       </tbody>
