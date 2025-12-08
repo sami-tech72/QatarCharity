@@ -82,11 +82,11 @@
     </div>
   </div>
 
-  <div class="modal-backdrop-custom" *ngIf="showAddRoleModal" (click)="closeAddRoleModal()"></div>
-  <div class="modal-custom" *ngIf="showAddRoleModal">
-    <div class="modal-dialog-custom">
-      <div class="modal-content">
-        <div class="modal-header px-6 py-4 border-0">
+  <div class="app-modal-backdrop" *ngIf="showAddRoleModal" (click)="closeAddRoleModal()"></div>
+  <div class="app-modal" *ngIf="showAddRoleModal">
+    <div class="app-modal-dialog app-modal-dialog--wide">
+      <div class="modal-content app-modal-content">
+        <div class="modal-header app-modal-header px-6 py-4">
           <div>
             <h3 class="modal-title mb-1">Add New Role</h3>
             <div class="text-muted">Set role permissions</div>
@@ -96,7 +96,7 @@
           </button>
         </div>
 
-        <div class="modal-body px-6 pb-6 pt-0">
+        <div class="modal-body app-modal-body px-6 pb-6 pt-0">
           <form class="needs-validation" novalidate>
             <div class="row g-4">
               <div class="col-12 col-md-6">
@@ -188,7 +188,7 @@
           </form>
         </div>
 
-        <div class="modal-footer px-6 py-4 border-0 justify-content-end gap-3">
+        <div class="modal-footer app-modal-footer px-6 py-4 justify-content-end gap-3">
           <button type="button" class="btn btn-light" (click)="closeAddRoleModal()">Cancel</button>
           <button
             type="button"

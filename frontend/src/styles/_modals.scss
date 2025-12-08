@@ -1,0 +1,71 @@
+// Global modal theming to keep overlays consistent across the app
+$app-modal-radius: 12px;
+$app-modal-shadow: 0 20px 70px rgba(15, 23, 42, 0.22);
+$app-modal-border: 1px solid #eff2f5;
+$app-modal-background: #fff;
+
+.app-modal-backdrop,
+.modal-backdrop.show {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 1040;
+}
+
+.app-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1041;
+  overflow: auto;
+}
+
+.app-modal-dialog {
+  width: min(960px, 100%);
+  background: $app-modal-background;
+  border-radius: $app-modal-radius;
+  box-shadow: $app-modal-shadow;
+}
+
+.app-modal-dialog--wide {
+  width: min(1100px, 100%);
+}
+
+.app-modal-dialog--narrow {
+  width: min(640px, 100%);
+}
+
+.app-modal-content,
+.modal.app-modal-theme .modal-content {
+  border: $app-modal-border;
+  border-radius: $app-modal-radius;
+  box-shadow: $app-modal-shadow;
+  background: $app-modal-background;
+  overflow: hidden;
+}
+
+.app-modal-header,
+.modal.app-modal-theme .modal-header {
+  border: 0;
+  padding: 1.25rem 1.5rem;
+}
+
+.app-modal-body,
+.modal.app-modal-theme .modal-body {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.app-modal-footer,
+.modal.app-modal-theme .modal-footer {
+  border: 0;
+  padding: 1.25rem 1.5rem;
+}
+
+.section-divider {
+  height: 1px;
+  background: #eff2f5;
+}

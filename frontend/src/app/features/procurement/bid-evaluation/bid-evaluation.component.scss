@@ -77,37 +77,8 @@
   resize: vertical;
 }
 
-.review-modal {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 2rem 1rem;
-  z-index: 1050;
-  overflow-y: auto;
-}
-
-.review-modal .modal-content {
-  width: min(900px, 100%);
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.1);
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.35);
-  z-index: 1040;
-}
-
 @media (max-width: 992px) {
   .search-box {
     width: 100%;
-  }
-
-  .review-modal {
-    align-items: stretch;
   }
 }
