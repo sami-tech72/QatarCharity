@@ -12,9 +12,10 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251208000000_AddSupplierBidsAndBidReviews")]
-    partial class AddSupplierBidsAndBidReviews : Migration
+    [Migration("20251208074436_InitialCreate")]
+    partial class InitialCreate
     {
+        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
@@ -95,6 +96,38 @@ namespace Persistence.Migrations
                     b.HasIndex("ProcurementRoleTemplateId");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.Procurement.BidReview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BidId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Comments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Decision")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ReviewedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReviewerUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BidId");
+
+                    b.HasIndex("ReviewerUserId");
+
+                    b.ToTable("BidReviews");
                 });
 
             modelBuilder.Entity("Domain.Entities.Procurement.ProcurementPermissionDefinition", b =>
@@ -564,7 +597,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("SubmittedByUserId");
 
-                    b.ToTable("SupplierBids", (string)null);
+                    b.ToTable("SupplierBids");
                 });
 
             modelBuilder.Entity("Domain.Entities.Workflow", b =>
@@ -769,38 +802,6 @@ namespace Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.Procurement.BidReview", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("BidId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Comments")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Decision")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("ReviewedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ReviewerUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BidId");
-
-                    b.HasIndex("ReviewerUserId");
-
-                    b.ToTable("BidReviews", (string)null);
-                });
-
             modelBuilder.Entity("Domain.Entities.ApplicationUser", b =>
                 {
                     b.HasOne("Domain.Entities.Procurement.ProcurementRoleTemplate", "ProcurementRoleTemplate")
@@ -809,6 +810,21 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("ProcurementRoleTemplate");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Procurement.BidReview", b =>
+                {
+                    b.HasOne("Domain.Entities.SupplierBid", null)
+                        .WithMany()
+                        .HasForeignKey("BidId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entities.Procurement.ProcurementRoleAvatar", b =>
@@ -912,21 +928,6 @@ namespace Persistence.Migrations
                     b.Navigation("Assignee");
 
                     b.Navigation("Workflow");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Procurement.BidReview", b =>
-                {
-                    b.HasOne("Domain.Entities.SupplierBid", null)
-                        .WithMany()
-                        .HasForeignKey("BidId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("ReviewerUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
