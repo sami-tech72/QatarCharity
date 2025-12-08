@@ -2,12 +2,66 @@
   display: block;
 }
 
-.page-placeholder {
-  padding: 2rem;
-  text-align: center;
+.bid-evaluation {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.page-placeholder__title {
-  font-size: 2rem;
-  font-weight: 600;
+.page-header {
+  background: #fff;
+  border: 1px solid #f1f1f4;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.search-box {
+  width: 260px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1rem;
+}
+
+.list-card,
+.detail-card {
+  border: 1px solid #f1f1f4;
+  border-radius: 0.75rem;
+}
+
+.list-card .table {
+  margin-bottom: 0;
+}
+
+.list-card tbody tr {
+  cursor: pointer;
+}
+
+.list-card tbody tr:hover {
+  background: #f9fafb;
+}
+
+.empty-state,
+.placeholder {
+  padding: 1.5rem;
+  border: 1px dashed #e5e7eb;
+  border-radius: 0.75rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.review-form textarea {
+  resize: vertical;
+}
+
+@media (max-width: 992px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-box {
+    width: 100%;
+  }
 }

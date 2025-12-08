@@ -26,4 +26,12 @@ public class SupplierBid
     public string InputsJson { get; set; } = string.Empty;
 
     public DateTime SubmittedAtUtc { get; set; } = DateTime.UtcNow;
+
+    public string EvaluationStatus { get; set; } = "Pending Review";
+
+    public string? EvaluationNotes { get; set; }
+
+    public DateTime? EvaluatedAtUtc { get; set; }
+
+    public string? EvaluatedByUserId { get; set; }
 }
