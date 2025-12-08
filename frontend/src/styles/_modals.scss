@@ -24,20 +24,7 @@ $app-modal-background: #fff;
   overflow: auto;
 }
 
-.app-modal-dialog {
-  width: min(960px, 100%);
-  background: $app-modal-background;
-  border-radius: $app-modal-radius;
-  box-shadow: $app-modal-shadow;
-}
 
-.app-modal-dialog--wide {
-  width: min(1100px, 100%);
-}
-
-.app-modal-dialog--narrow {
-  width: min(640px, 100%);
-}
 
 .app-modal-content,
 .modal.app-modal-theme .modal-content {

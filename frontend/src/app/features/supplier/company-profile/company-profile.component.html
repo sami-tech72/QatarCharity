@@ -1,3 +1,93 @@
-<div class="page-placeholder">
-  <h1 class="page-placeholder__title">Company Profile</h1>
+<div class="container-fluid">
+  <div class="row mb-5">
+    <div class="col-12">
+      <h1 class="page-title mb-4">Company Profile</h1>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <form>
+            <!-- Company Name and Industry -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="companyName" class="form-label fw-semibold">Company Name</label>
+                  <input type="text" class="form-control" id="companyName" placeholder="Enter company name" value="ACME Corporation">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="industry" class="form-label fw-semibold">Industry</label>
+                  <input type="text" class="form-control" id="industry" placeholder="Select industry" value="Technology">
+                </div>
+              </div>
+            </div>
+
+            <!-- Registration Number and Tax ID -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="regNumber" class="form-label fw-semibold">Registration Number</label>
+                  <input type="text" class="form-control" id="regNumber" placeholder="Enter registration number">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="taxId" class="form-label fw-semibold">Tax ID</label>
+                  <input type="text" class="form-control" id="taxId" placeholder="Enter tax ID">
+                </div>
+              </div>
+            </div>
+
+            <!-- Website -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <div class="mb-3">
+                  <label for="website" class="form-label fw-semibold">Website</label>
+                  <input type="url" class="form-control" id="website" placeholder="Enter website URL">
+                </div>
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <div class="mb-3">
+                  <label for="address" class="form-label fw-semibold">Address</label>
+                  <textarea class="form-control" id="address" rows="3" placeholder="Enter company address">123 Business St</textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- City and Country -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="city" class="form-label fw-semibold">City</label>
+                  <input type="text" class="form-control" id="city" placeholder="Enter city" value="New York">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="country" class="form-label fw-semibold">Country</label>
+                  <input type="text" class="form-control" id="country" placeholder="Enter country" value="USA">
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row">
+              <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="reset" class="btn btn-secondary">Cancel</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
