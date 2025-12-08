@@ -128,6 +128,7 @@ export class LayoutComponent implements AfterViewInit {
     const isLoginRoute = currentPath === '/' || currentPath.startsWith('/login');
 
     if (isLoginRoute) {
+      const defaultPath = this.authService.defaultPathForRole(session.role, session);
       this.router.navigateByUrl(defaultPath);
       return;
     }
