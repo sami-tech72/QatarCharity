@@ -2,12 +2,112 @@
   display: block;
 }
 
-.page-placeholder {
-  padding: 2rem;
-  text-align: center;
+.bid-evaluation {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.page-placeholder__title {
-  font-size: 2rem;
+.page-header {
+  background: #fff;
+  border: 1px solid #f1f1f4;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.search-box {
+  width: 260px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.summary-card {
+  background: #fff;
+  border: 1px solid #f1f1f4;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.summary-card .label {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.summary-card .value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+.list-card {
+  border: 1px solid #f1f1f4;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.list-card .table {
+  margin-bottom: 0;
+}
+
+.list-card thead th {
+  color: #6b7280;
   font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.list-card tbody tr:hover {
+  background: #f9fafb;
+}
+
+.empty-state,
+.placeholder {
+  padding: 1.5rem;
+  border: 1px dashed #e5e7eb;
+  border-radius: 0.75rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.review-form textarea {
+  resize: vertical;
+}
+
+.review-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+  z-index: 1050;
+  overflow-y: auto;
+}
+
+.review-modal .modal-content {
+  width: min(900px, 100%);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.1);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  z-index: 1040;
+}
+
+@media (max-width: 992px) {
+  .search-box {
+    width: 100%;
+  }
+
+  .review-modal {
+    align-items: stretch;
+  }
 }

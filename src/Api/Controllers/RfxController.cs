@@ -30,6 +30,16 @@ public class RfxController : ControllerBase
         "Closed",
     };
 
+    private static readonly HashSet<string> AllowedBidStatuses = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Pending Review",
+        "Under Review",
+        "Recommended",
+        "Approved",
+        "Rejected",
+        "Needs Clarification",
+    };
+
     private readonly AppDbContext _dbContext;
     private readonly UserManager<ApplicationUser> _userManager;
 
@@ -37,6 +47,53 @@ public class RfxController : ControllerBase
     {
         _dbContext = dbContext;
         _userManager = userManager;
+    }
+
+    [HttpGet("bids")]
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<SupplierBidResponse>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<PagedResult<SupplierBidResponse>>>> GetSupplierBids([FromQuery] SupplierBidQueryParameters query)
+    {
+        var pageSize = Math.Clamp(query.PageSize <= 0 ? 20 : query.PageSize, 1, 100);
+        var pageNumber = query.PageNumber <= 0 ? 1 : query.PageNumber;
+        var search = query.Search?.Trim().ToLowerInvariant();
+
+        var bidsQuery = _dbContext.SupplierBids
+            .AsNoTracking()
+            .Join(_dbContext.Rfxes.AsNoTracking(), bid => bid.RfxId, rfx => rfx.Id, (bid, rfx) => new
+            {
+                Bid = bid,
+                Rfx = rfx,
+            });
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            bidsQuery = bidsQuery.Where(entry =>
+                (entry.Rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(search) ||
+                (entry.Rfx.Title ?? string.Empty).ToLower().Contains(search) ||
+                (entry.Bid.EvaluationStatus ?? string.Empty).ToLower().Contains(search));
+        }
+
+        var totalCount = await bidsQuery.CountAsync();
+
+        var results = await bidsQuery
+            .OrderByDescending(entry => entry.Bid.SubmittedAtUtc)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var userLookup = await BuildUserLookupAsync(results
+            .Select(entry => entry.Bid.SubmittedByUserId)
+            .Concat(results.Select(entry => entry.Bid.EvaluatedByUserId ?? string.Empty))
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct());
+
+        var bidResponses = results
+            .Select(entry => BuildBidResponse(entry.Bid, entry.Rfx, userLookup))
+            .ToList();
+
+        var pagedResult = new PagedResult<SupplierBidResponse>(bidResponses, totalCount, pageNumber, pageSize);
+
+        return Ok(ApiResponse<PagedResult<SupplierBidResponse>>.Ok(pagedResult, "Supplier bids retrieved successfully."));
     }
 
     [HttpGet]
@@ -225,6 +282,48 @@ public class RfxController : ControllerBase
         var response = MapToDetailResponse(rfx, rfx.Workflow?.Name);
 
         return Ok(ApiResponse<RfxDetailResponse>.Ok(response, "RFx details retrieved successfully."));
+    }
+
+    [HttpPost("{rfxId:guid}/bids/{bidId:guid}/evaluate")]
+    [ProducesResponseType(typeof(ApiResponse<SupplierBidResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<SupplierBidResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<SupplierBidResponse>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<SupplierBidResponse>>> EvaluateBid(Guid rfxId, Guid bidId, [FromBody] EvaluateBidRequest request)
+    {
+        if (request is null)
+        {
+            return BadRequest(ApiResponse<SupplierBidResponse>.Fail("Review details are required.", "invalid_request"));
+        }
+
+        var normalizedStatus = AllowedBidStatuses.FirstOrDefault(status => status.Equals(request.Status?.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (normalizedStatus is null)
+        {
+            return BadRequest(ApiResponse<SupplierBidResponse>.Fail("Invalid bid status provided.", "invalid_status"));
+        }
+
+        var rfx = await _dbContext.Rfxes.AsNoTracking().FirstOrDefaultAsync(r => r.Id == rfxId);
+        if (rfx is null)
+        {
+            return NotFound(ApiResponse<SupplierBidResponse>.Fail("Tender not found.", "rfx_not_found"));
+        }
+
+        var bid = await _dbContext.SupplierBids.FirstOrDefaultAsync(b => b.Id == bidId && b.RfxId == rfxId);
+        if (bid is null)
+        {
+            return NotFound(ApiResponse<SupplierBidResponse>.Fail("Bid not found for this tender.", "bid_not_found"));
+        }
+
+        bid.EvaluationStatus = normalizedStatus;
+        bid.EvaluationNotes = string.IsNullOrWhiteSpace(request.ReviewNotes) ? null : request.ReviewNotes.Trim();
+        bid.EvaluatedAtUtc = DateTime.UtcNow;
+        bid.EvaluatedByUserId = GetCurrentUserId();
+
+        await _dbContext.SaveChangesAsync();
+
+        var userLookup = await BuildUserLookupAsync(new[] { bid.SubmittedByUserId, bid.EvaluatedByUserId ?? string.Empty });
+        var response = BuildBidResponse(bid, rfx, userLookup);
+
+        return Ok(ApiResponse<SupplierBidResponse>.Ok(response, "Bid evaluation saved."));
     }
 
     [HttpPost("{id:guid}/approve")]
@@ -475,6 +574,52 @@ public class RfxController : ControllerBase
             UserId = user.Id,
             DisplayName = user.DisplayName ?? user.Email ?? user.UserName ?? string.Empty,
         }).ToList();
+    }
+
+    private static SupplierBidResponse BuildBidResponse(SupplierBid bid, Rfx rfx, IReadOnlyDictionary<string, string> userLookup)
+    {
+        userLookup.TryGetValue(bid.SubmittedByUserId, out var submittedBy);
+        userLookup.TryGetValue(bid.EvaluatedByUserId ?? string.Empty, out var evaluatedBy);
+
+        return new SupplierBidResponse(
+            bid.Id,
+            bid.RfxId,
+            rfx.ReferenceNumber,
+            rfx.Title,
+            submittedBy ?? bid.SubmittedByUserId,
+            bid.BidAmount,
+            bid.Currency,
+            bid.ExpectedDeliveryDate,
+            bid.ProposalSummary,
+            bid.Notes,
+            bid.SubmittedAtUtc,
+            bid.EvaluationStatus,
+            bid.EvaluationNotes,
+            bid.EvaluatedAtUtc,
+            evaluatedBy);
+    }
+
+    private async Task<Dictionary<string, string>> BuildUserLookupAsync(IEnumerable<string> userIds)
+    {
+        var ids = userIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct()
+            .ToList();
+
+        if (ids.Count == 0)
+        {
+            return new Dictionary<string, string>();
+        }
+
+        var users = await _userManager.Users
+            .AsNoTracking()
+            .Where(user => ids.Contains(user.Id))
+            .Select(user => new { user.Id, user.DisplayName, user.Email, user.UserName })
+            .ToListAsync();
+
+        return users.ToDictionary(
+            user => user.Id,
+            user => user.DisplayName ?? user.Email ?? user.UserName ?? user.Id);
     }
 
     private static RfxDetailResponse MapToDetailResponse(Rfx rfx, string? workflowName)
