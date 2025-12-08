@@ -72,6 +72,7 @@ export class TenderBidComponent implements OnInit, OnDestroy {
     this.currentStep = Math.max(this.currentStep, 2);
 
     if (!this.tender || form.invalid) {
+      this.focusFirstIncompleteStep();
       return;
     }
 
@@ -182,6 +183,15 @@ export class TenderBidComponent implements OnInit, OnDestroy {
     this.scrollToSection(step.anchorId);
   }
 
+  private focusFirstIncompleteStep(): void {
+    const firstIncompleteIndex = this.stepperSteps.findIndex((step) => !this.isStepComplete(step.key));
+
+    if (firstIncompleteIndex >= 0) {
+      this.currentStep = firstIncompleteIndex + 1;
+      this.scrollToSection(this.stepperSteps[firstIncompleteIndex].anchorId);
+    }
+  }
+
   private createBidRequest(tender?: SupplierRfx): SupplierBidRequest {
     const documents: BidDocumentSubmission[] = tender
       ? (tender.requiredDocuments || []).map((name) => ({ name, fileName: '', contentBase64: '' }))
@@ -213,6 +223,13 @@ export class TenderBidComponent implements OnInit, OnDestroy {
     const hasDocuments = Boolean(tender?.requiredDocuments?.length);
     const hasInputs = Boolean(tender?.requiredInputs?.length);
 
+    const documentHint = hasDocuments
+      ? `${tender?.requiredDocuments?.length} required file${tender?.requiredDocuments?.length === 1 ? '' : 's'}`
+      : 'Upload each requested file';
+    const inputHint = hasInputs
+      ? `${tender?.requiredInputs?.length} tender prompt${tender?.requiredInputs?.length === 1 ? '' : 's'}`
+      : 'Respond to tender prompts';
+
     const steps: BidStep[] = [
       {
         key: 'basics',
@@ -226,7 +243,7 @@ export class TenderBidComponent implements OnInit, OnDestroy {
       steps.push({
         key: 'documents',
         label: 'Required documents',
-        hint: 'Upload each requested file',
+        hint: documentHint,
         anchorId: 'bid-documents',
       });
     }
@@ -235,7 +252,7 @@ export class TenderBidComponent implements OnInit, OnDestroy {
       steps.push({
         key: 'inputs',
         label: 'Required inputs',
-        hint: 'Respond to tender prompts',
+        hint: inputHint,
         anchorId: 'bid-inputs',
       });
     }

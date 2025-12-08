@@ -120,6 +120,7 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
     this.currentStep = Math.max(this.currentStep, 2);
 
     if (!this.selectedTender || form.invalid) {
+      this.focusFirstIncompleteStep();
       return;
     }
 
@@ -220,6 +221,15 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
     this.scrollToSection(step.anchorId);
   }
 
+  private focusFirstIncompleteStep(): void {
+    const firstIncompleteIndex = this.stepperSteps.findIndex((step) => !this.isStepComplete(step.key));
+
+    if (firstIncompleteIndex >= 0) {
+      this.currentStep = firstIncompleteIndex + 1;
+      this.scrollToSection(this.stepperSteps[firstIncompleteIndex].anchorId);
+    }
+  }
+
   private scrollToSection(anchorId: string): void {
     setTimeout(() => {
       const element = document.getElementById(anchorId);
@@ -279,6 +289,13 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
     const hasDocuments = Boolean(tender?.requiredDocuments?.length);
     const hasInputs = Boolean(tender?.requiredInputs?.length);
 
+    const documentHint = hasDocuments
+      ? `${tender?.requiredDocuments?.length} required file${tender?.requiredDocuments?.length === 1 ? '' : 's'}`
+      : 'Upload each requested file';
+    const inputHint = hasInputs
+      ? `${tender?.requiredInputs?.length} tender prompt${tender?.requiredInputs?.length === 1 ? '' : 's'}`
+      : 'Respond to tender prompts';
+
     const steps: BidStep[] = [
       {
         key: 'basics',
@@ -292,7 +309,7 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
       steps.push({
         key: 'documents',
         label: 'Required documents',
-        hint: 'Upload each requested file',
+        hint: documentHint,
         anchorId: 'bid-documents',
       });
     }
@@ -301,7 +318,7 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
       steps.push({
         key: 'inputs',
         label: 'Required inputs',
-        hint: 'Respond to tender prompts',
+        hint: inputHint,
         anchorId: 'bid-inputs',
       });
     }
