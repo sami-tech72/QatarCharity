@@ -69,7 +69,14 @@ public class BidEvaluationController : ControllerBase
 
         if (isProcurementSubRole)
         {
-            bidsQuery = bidsQuery.Where(entry => entry.rfx.CommitteeMembers.Any(member => member.UserId == currentUserId));
+            bidsQuery = bidsQuery
+                .Join(
+                    _dbContext.RfxCommitteeMembers.AsNoTracking(),
+                    entry => entry.rfx.Id,
+                    member => member.RfxId,
+                    (entry, member) => new { entry.bid, entry.rfx, entry.SupplierName, member.UserId })
+                .Where(entry => entry.UserId == currentUserId)
+                .Select(entry => new { entry.bid, entry.rfx, entry.SupplierName });
         }
 
         if (!string.IsNullOrWhiteSpace(search))
