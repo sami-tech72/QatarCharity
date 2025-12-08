@@ -27,6 +27,73 @@ public class SupplierRfxController : ControllerBase
         _dbContext = dbContext;
     }
 
+    [HttpGet("bids")]
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<SupplierBidSummaryResponse>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<PagedResult<SupplierBidSummaryResponse>>>> GetMySupplierBids([FromQuery] BidQueryParameters query)
+    {
+        var bidderId = User?.FindFirst("sub")?.Value ?? User?.Identity?.Name;
+
+        if (string.IsNullOrWhiteSpace(bidderId))
+        {
+            return Unauthorized(ApiResponse<PagedResult<SupplierBidSummaryResponse>>.Fail(
+                "Invalid or expired token.",
+                errorCode: "auth_invalid_token"));
+        }
+
+        var pageSize = Math.Clamp(query.PageSize <= 0 ? 10 : query.PageSize, 1, 100);
+        var pageNumber = query.PageNumber <= 0 ? 1 : query.PageNumber;
+        var search = query.Search?.Trim().ToLowerInvariant();
+        var bidderName = User?.Identity?.Name ?? "You";
+
+        var bidsQuery = _dbContext.SupplierBids
+            .AsNoTracking()
+            .Where(bid => bid.SubmittedByUserId == bidderId)
+            .Join(
+                _dbContext.Rfxes.AsNoTracking(),
+                bid => bid.RfxId,
+                rfx => rfx.Id,
+                (bid, rfx) => new { bid, rfx })
+            .Select(entry => new
+            {
+                entry.bid,
+                entry.rfx,
+                SupplierName = string.IsNullOrWhiteSpace(bidderName) ? "You" : bidderName,
+            })
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            bidsQuery = bidsQuery.Where(entry =>
+                (entry.rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(search) ||
+                (entry.rfx.Title ?? string.Empty).ToLower().Contains(search));
+        }
+
+        var totalCount = await bidsQuery.CountAsync();
+
+        var bids = await bidsQuery
+            .OrderByDescending(entry => entry.bid.SubmittedAtUtc)
+            .ThenBy(entry => entry.rfx.ReferenceNumber)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(entry => new SupplierBidSummaryResponse(
+                entry.bid.Id,
+                entry.bid.RfxId,
+                entry.rfx.ReferenceNumber ?? string.Empty,
+                entry.rfx.Title ?? string.Empty,
+                entry.SupplierName,
+                entry.bid.BidAmount,
+                entry.bid.Currency,
+                entry.bid.ExpectedDeliveryDate,
+                entry.bid.SubmittedAtUtc,
+                entry.bid.ProposalSummary,
+                entry.bid.Notes))
+            .ToListAsync();
+
+        var response = new PagedResult<SupplierBidSummaryResponse>(bids, totalCount, pageNumber, pageSize);
+
+        return Ok(ApiResponse<PagedResult<SupplierBidSummaryResponse>>.Ok(response, "Supplier bids retrieved successfully."));
+    }
+
     [HttpGet("published")]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<PublishedRfxResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<PagedResult<PublishedRfxResponse>>>> GetPublishedRfx([FromQuery] SupplierRfxQueryParameters query)

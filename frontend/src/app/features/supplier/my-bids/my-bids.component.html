@@ -1,3 +1,46 @@
-<div class="page-placeholder">
-  <h1 class="page-placeholder__title">My Bids</h1>
+<div class="my-bids">
+  <div class="my-bids__header">
+    <div>
+      <h1 class="my-bids__title">My Bids</h1>
+      <p class="my-bids__subtitle">Track the tenders you have submitted bids for.</p>
+    </div>
+
+    <label class="my-bids__search">
+      <span>Search</span>
+      <input type="search" [formControl]="searchControl" placeholder="Search by reference or title" />
+    </label>
+  </div>
+
+  <div class="my-bids__table" *ngIf="bids.length; else emptyState">
+    <table>
+      <thead>
+        <tr>
+          <th>Tender Reference</th>
+          <th>Title</th>
+          <th>Bid Amount</th>
+          <th>Submitted On</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let bid of bids; trackBy: trackByBidId">
+          <td class="muted">{{ bid.rfxReferenceNumber || bid.rfxId }}</td>
+          <td>{{ bid.rfxTitle }}</td>
+          <td>
+            <strong>{{ bid.bidAmount | number: '1.0-2' }} {{ bid.currency }}</strong>
+          </td>
+          <td>{{ bid.submittedAtUtc | date: 'mediumDate' }}</td>
+          <td>
+            <span class="status-badge">{{ bid.status || 'submitted' }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #emptyState>
+    <div class="empty" role="status">
+      <p>{{ emptyMessage }}</p>
+    </div>
+  </ng-template>
 </div>
