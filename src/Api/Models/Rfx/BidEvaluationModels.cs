@@ -27,5 +27,5 @@ public class SupplierBidQueryParameters
 
     public int PageSize { get; set; } = 20;
 
-    public string? Search { get; set; }
+    public string? Search { get; set; } = string.Empty;
 }

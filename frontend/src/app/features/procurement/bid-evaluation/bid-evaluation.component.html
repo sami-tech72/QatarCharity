@@ -16,6 +16,25 @@
     </div>
   </div>
 
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Total Bids</div>
+      <div class="value">{{ summary.total }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Under Review</div>
+      <div class="value text-info">{{ summary.underReview }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Approved / Recommended</div>
+      <div class="value text-success">{{ summary.approved }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Pending Review</div>
+      <div class="value text-warning">{{ summary.pendingReview }}</div>
+    </div>
+  </div>
+
   <div class="grid">
     <section class="card list-card">
       <div class="card-body">

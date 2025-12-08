@@ -13,7 +13,7 @@ import { EvaluateBidRequest, SupplierBidEvaluation } from '../../../shared/model
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './bid-evaluation.component.html',
-  styleUrl: './bid-evaluation.component.scss',
+  styleUrls: ['./bid-evaluation.component.scss'],
 })
 export class BidEvaluationComponent implements OnInit, OnDestroy {
   readonly statuses = ['Pending Review', 'Under Review', 'Recommended', 'Approved', 'Rejected', 'Needs Clarification'];
@@ -28,6 +28,12 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
   loading = false;
   submitting = false;
   total = 0;
+  summary = {
+    total: 0,
+    pendingReview: 0,
+    underReview: 0,
+    approved: 0,
+  };
 
   private readonly destroy$ = new Subject<void>();
 
@@ -95,6 +101,7 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
         next: (updated) => {
           this.selectedBid = updated;
           this.bids = this.bids.map((bid) => (bid.id === updated.id ? updated : bid));
+          this.updateSummary();
           this.notification.success('Bid review saved successfully.');
           this.submitting = false;
         },
@@ -114,6 +121,7 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
         next: (result: PagedResult<SupplierBidEvaluation>) => {
           this.bids = result.items;
           this.total = result.totalCount;
+          this.updateSummary();
           this.loading = false;
           if (this.bids.length > 0) {
             this.selectBid(this.bids[0]);
@@ -125,9 +133,23 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
           this.notification.error(error.message || 'Unable to load bids.');
           this.bids = [];
           this.total = 0;
+          this.updateSummary();
           this.loading = false;
           this.selectedBid = null;
         },
       });
+  }
+
+  private updateSummary(): void {
+    const pendingReview = this.bids.filter((bid) => bid.evaluationStatus === 'Pending Review').length;
+    const underReview = this.bids.filter((bid) => bid.evaluationStatus === 'Under Review').length;
+    const approved = this.bids.filter((bid) => bid.evaluationStatus === 'Approved' || bid.evaluationStatus === 'Recommended').length;
+
+    this.summary = {
+      total: this.total,
+      pendingReview,
+      underReview,
+      approved,
+    };
   }
 }
