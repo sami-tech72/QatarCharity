@@ -532,6 +532,19 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("EvaluatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EvaluatedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EvaluationNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EvaluationStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("ExpectedDeliveryDate")
                         .HasColumnType("datetime2");
 
@@ -548,19 +561,6 @@ namespace Persistence.Migrations
 
                     b.Property<Guid>("RfxId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EvaluatedByUserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("EvaluatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EvaluationNotes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EvaluationStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("SubmittedAtUtc")
                         .HasColumnType("datetime2");

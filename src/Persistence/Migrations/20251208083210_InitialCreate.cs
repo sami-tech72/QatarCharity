@@ -72,7 +72,11 @@ namespace Persistence.Migrations
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DocumentsJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     InputsJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SubmittedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    SubmittedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EvaluationStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EvaluationNotes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EvaluatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EvaluatedByUserId = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

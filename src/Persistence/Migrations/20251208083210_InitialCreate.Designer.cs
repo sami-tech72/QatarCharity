@@ -12,7 +12,7 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251208050704_InitialCreate")]
+    [Migration("20251208083210_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -532,6 +532,19 @@ namespace Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DocumentsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EvaluatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EvaluatedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EvaluationNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EvaluationStatus")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
