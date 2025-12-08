@@ -12,15 +12,6 @@ import {
   SupplierRfx,
 } from '../../../shared/models/supplier-rfx.model';
 
-type BidStepKey = 'basics' | 'documents' | 'inputs' | 'review';
-
-interface BidStep {
-  key: BidStepKey;
-  label: string;
-  hint: string;
-  anchorId: string;
-}
-
 @Component({
   selector: 'app-available-tenders',
   standalone: true,
@@ -38,10 +29,6 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
   bidSuccess?: string;
   bidError?: string;
   bidRequest: SupplierBidRequest = this.createBidRequest();
-  currentStep = 1;
-  requirementsReviewed = false;
-  submissionComplete = false;
-  stepperSteps: BidStep[] = [];
 
   private readonly destroy$ = new Subject<void>();
   private readonly search$ = new Subject<string>();
@@ -77,10 +64,6 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
     this.selectedTender = tender;
     this.bidSuccess = undefined;
     this.bidError = undefined;
-    this.currentStep = 1;
-    this.requirementsReviewed = false;
-    this.submissionComplete = false;
-    this.buildStepper(tender);
 
     if (hasChanged) {
       this.bidRequest = this.createBidRequest(tender);
@@ -117,10 +100,7 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
   }
 
   submitBid(form: NgForm): void {
-    this.currentStep = Math.max(this.currentStep, 2);
-
     if (!this.selectedTender || form.invalid) {
-      this.focusFirstIncompleteStep();
       return;
     }
 
@@ -141,12 +121,9 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
           this.bidSuccess = message || 'Bid submitted successfully.';
           this.bidRequest = this.createBidRequest(this.selectedTender);
           form.resetForm(this.bidRequest);
-          this.submissionComplete = true;
-          this.currentStep = this.stepperSteps.length;
         },
         error: (err) => {
           this.bidError = err?.message ?? 'Unable to submit your bid right now.';
-          this.submissionComplete = false;
         },
       });
   }
@@ -182,52 +159,7 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
   }
 
   proceedToBid(): void {
-    this.requirementsReviewed = true;
-    this.currentStep = 1;
     this.scrollToSection('bid-basics');
-  }
-
-  reopenForm(): void {
-    this.currentStep = 1;
-    this.submissionComplete = false;
-  }
-
-  resetFlow(): void {
-    this.bidRequest = this.createBidRequest(this.selectedTender);
-    this.bidSuccess = undefined;
-    this.bidError = undefined;
-    this.submissionComplete = false;
-    this.currentStep = 1;
-    this.buildStepper(this.selectedTender);
-  }
-
-  stepClass(index: number, step: BidStep): string {
-    const stepNumber = index + 1;
-    const complete = this.isStepComplete(step.key);
-
-    if (this.currentStep === stepNumber) {
-      return 'stepper__step stepper__step--active';
-    }
-
-    if (this.currentStep > stepNumber || complete) {
-      return 'stepper__step stepper__step--done';
-    }
-
-    return 'stepper__step';
-  }
-
-  goToStep(index: number, step: BidStep): void {
-    this.currentStep = index + 1;
-    this.scrollToSection(step.anchorId);
-  }
-
-  private focusFirstIncompleteStep(): void {
-    const firstIncompleteIndex = this.stepperSteps.findIndex((step) => !this.isStepComplete(step.key));
-
-    if (firstIncompleteIndex >= 0) {
-      this.currentStep = firstIncompleteIndex + 1;
-      this.scrollToSection(this.stepperSteps[firstIncompleteIndex].anchorId);
-    }
   }
 
   private scrollToSection(anchorId: string): void {
@@ -254,9 +186,6 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
           this.selectedTender =
             this.selectedTender &&
             result.items.find((tender) => tender.id === this.selectedTender?.id);
-          if (this.selectedTender) {
-            this.buildStepper(this.selectedTender);
-          }
         },
         error: (err) => {
           this.tenders = [];
@@ -283,73 +212,5 @@ export class AvailableTendersComponent implements OnInit, OnDestroy {
       documents,
       inputs,
     };
-  }
-
-  private buildStepper(tender?: SupplierRfx): void {
-    const hasDocuments = Boolean(tender?.requiredDocuments?.length);
-    const hasInputs = Boolean(tender?.requiredInputs?.length);
-
-    const documentHint = hasDocuments
-      ? `${tender?.requiredDocuments?.length} required file${tender?.requiredDocuments?.length === 1 ? '' : 's'}`
-      : 'Upload each requested file';
-    const inputHint = hasInputs
-      ? `${tender?.requiredInputs?.length} tender prompt${tender?.requiredInputs?.length === 1 ? '' : 's'}`
-      : 'Respond to tender prompts';
-
-    const steps: BidStep[] = [
-      {
-        key: 'basics',
-        label: 'Bid basics',
-        hint: 'Amount, delivery, and overview',
-        anchorId: 'bid-basics',
-      },
-    ];
-
-    if (hasDocuments) {
-      steps.push({
-        key: 'documents',
-        label: 'Required documents',
-        hint: documentHint,
-        anchorId: 'bid-documents',
-      });
-    }
-
-    if (hasInputs) {
-      steps.push({
-        key: 'inputs',
-        label: 'Required inputs',
-        hint: inputHint,
-        anchorId: 'bid-inputs',
-      });
-    }
-
-    steps.push({
-      key: 'review',
-      label: 'Review & submit',
-      hint: 'Confirm and send bid',
-      anchorId: 'bid-submit',
-    });
-
-    this.stepperSteps = steps;
-    this.currentStep = 1;
-  }
-
-  private isStepComplete(step: BidStepKey): boolean {
-    switch (step) {
-      case 'basics':
-        return Boolean(
-          this.bidRequest.bidAmount &&
-            this.bidRequest.expectedDeliveryDate &&
-            (this.bidRequest.proposalSummary?.trim()?.length || 0) > 0
-        );
-      case 'documents':
-        return !this.bidRequest.documents?.length || this.bidRequest.documents.every((doc) => !!doc.contentBase64);
-      case 'inputs':
-        return !this.bidRequest.inputs?.length || this.bidRequest.inputs.every((input) => !!input.value?.trim());
-      case 'review':
-        return this.submissionComplete;
-      default:
-        return false;
-    }
   }
 }
