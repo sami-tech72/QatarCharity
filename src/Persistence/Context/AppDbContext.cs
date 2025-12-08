@@ -29,5 +29,29 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.Entity<SupplierBid>()
             .Property(bid => bid.BidAmount)
             .HasPrecision(18, 2);
+
+        builder.Entity<SupplierBid>()
+            .HasOne<Rfx>()
+            .WithMany()
+            .HasForeignKey(bid => bid.RfxId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<SupplierBid>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(bid => bid.SubmittedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<BidReview>()
+            .HasOne<SupplierBid>()
+            .WithMany()
+            .HasForeignKey(review => review.BidId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<BidReview>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(review => review.ReviewerUserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
