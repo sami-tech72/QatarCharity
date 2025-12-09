@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-
-namespace Api.Models.Rfx;
+namespace Application.DTOs.Rfx;
 
 public record RfxQueryParameters
 {

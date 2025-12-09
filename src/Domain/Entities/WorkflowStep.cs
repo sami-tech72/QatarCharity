@@ -17,6 +17,4 @@ public class WorkflowStep
     public int Order { get; set; }
 
     public Workflow? Workflow { get; set; }
-
-    public ApplicationUser? Assignee { get; set; }
 }

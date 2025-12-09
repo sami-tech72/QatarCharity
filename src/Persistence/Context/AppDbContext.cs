@@ -2,6 +2,7 @@ using Domain.Entities;
 using Domain.Entities.Procurement;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Persistence.Identity;
 
 namespace Persistence.Context;
 

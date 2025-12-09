@@ -1,7 +1,7 @@
-using Domain.Entities;
 using Domain.Entities.Procurement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Persistence.Identity;
 
 namespace Persistence.Configurations;
 

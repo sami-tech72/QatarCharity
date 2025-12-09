@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Api.Models;
 using Api.Models.Workflows;
+using Application.DTOs.Common;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Context;
+using Persistence.Identity;
 
 namespace Api.Controllers;
 

@@ -1,7 +1,7 @@
 using Domain.Entities.Procurement;
 using Microsoft.AspNetCore.Identity;
 
-namespace Domain.Entities;
+namespace Persistence.Identity;
 
 public class ApplicationUser : IdentityUser
 {

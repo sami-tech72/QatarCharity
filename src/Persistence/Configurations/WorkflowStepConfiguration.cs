@@ -1,6 +1,7 @@
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Persistence.Identity;
 
 namespace Persistence.Configurations;
 
@@ -28,7 +29,7 @@ public class WorkflowStepConfiguration : IEntityTypeConfiguration<WorkflowStep>
             .HasForeignKey(step => step.WorkflowId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(step => step.Assignee)
+        builder.HasOne<ApplicationUser>()
             .WithMany()
             .HasForeignKey(step => step.AssigneeId)
             .OnDelete(DeleteBehavior.Restrict);

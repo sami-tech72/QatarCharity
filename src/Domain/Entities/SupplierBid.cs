@@ -1,6 +1,3 @@
-using System;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Domain.Entities;
 
 public class SupplierBid
@@ -10,7 +7,6 @@ public class SupplierBid
     public Guid RfxId { get; set; }
 
     public string SubmittedByUserId { get; set; } = string.Empty;
-    [Column(TypeName = "decimal(18,2)")]
     public decimal BidAmount { get; set; }
 
     public string Currency { get; set; } = string.Empty;

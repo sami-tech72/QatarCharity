@@ -1,6 +1,4 @@
-using System;
-
-namespace Api.Models.Rfx;
+namespace Application.DTOs.Rfx;
 
 public record SupplierBidResponse(
     Guid Id,
