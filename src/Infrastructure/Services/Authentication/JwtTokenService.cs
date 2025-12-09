@@ -4,7 +4,6 @@ using System.Text;
 using System.Collections.Generic;
 using Application.DTOs.Authentication;
 using Application.Interfaces.Authentication;
-using Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -15,7 +14,7 @@ public class JwtTokenService(IOptions<JwtSettings> settings) : IJwtTokenService
     private readonly JwtSettings _settings = settings.Value;
 
     public JwtTokenResult CreateToken(
-        ApplicationUser user,
+        AuthenticatedUser user,
         IEnumerable<string> roles,
         IEnumerable<Claim>? additionalClaims = null)
     {

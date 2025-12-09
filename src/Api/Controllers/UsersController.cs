@@ -4,6 +4,7 @@ using System.Linq;
 using Api.Models;
 using Api.Models.Users;
 using Application.DTOs.Authentication;
+using Application.DTOs.Common;
 using Domain.Entities;
 using Domain.Entities.Procurement;
 using Domain.Enums;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Context;
+using Persistence.Identity;
 
 namespace Api.Controllers;
 

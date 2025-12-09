@@ -5,7 +5,6 @@ using System.Security.Claims;
 using Api.Models;
 using Application.Interfaces.Authentication;
 using Application.DTOs.Authentication;
-using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Context;
+using Persistence.Identity;
 
 namespace Api.Controllers;
 
@@ -99,7 +99,11 @@ public class AuthController : ControllerBase
         var procurementRole = await BuildProcurementRoleAsync(user, roles);
 
         var tokenResult = _tokenService.CreateToken(
-            user,
+            new AuthenticatedUser(
+                user.Id,
+                user.UserName ?? string.Empty,
+                user.Email ?? string.Empty,
+                user.DisplayName),
             roles,
             BuildProcurementClaims(procurementRole));
 

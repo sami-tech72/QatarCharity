@@ -1,9 +1,11 @@
-using Domain.Entities;
+using Application.Interfaces.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Context;
+using Persistence.Identity;
+using Persistence.Repositories;
 
 namespace Persistence;
 
@@ -27,6 +29,9 @@ public static class DependencyInjection
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
+
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
+        services.AddScoped<IRfxRepository, RfxRepository>();
 
         return services;
     }

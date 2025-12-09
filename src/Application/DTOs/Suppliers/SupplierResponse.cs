@@ -1,6 +1,6 @@
 using System;
 
-namespace Api.Models.Suppliers;
+namespace Application.DTOs.Suppliers;
 
 public class SupplierResponse
 {

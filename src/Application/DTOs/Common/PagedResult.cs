@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Api.Models;
+namespace Application.DTOs.Common;
 
 public class PagedResult<T>
 {

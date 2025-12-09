@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Api.Models.Suppliers;
+namespace Application.DTOs.Suppliers;
 
 public class UpsertSupplierRequest
 {
