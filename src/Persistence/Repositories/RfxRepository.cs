@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Application.Interfaces.Repositories;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -159,6 +161,55 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
             UserId = user.Id,
             DisplayName = user.DisplayName ?? user.Email ?? user.UserName ?? string.Empty,
         }).ToList();
+    }
+
+    public async Task<int> CountPublishedRfxAsync(string? search)
+    {
+        var query = BuildPublishedRfxQuery(search);
+        return await query.CountAsync();
+    }
+
+    public async Task<IReadOnlyList<Rfx>> GetPublishedRfxAsync(string? search, int pageNumber, int pageSize)
+    {
+        var query = BuildPublishedRfxQuery(search);
+
+        return await query
+            .OrderBy(rfx => rfx.SubmissionDeadline)
+            .ThenBy(rfx => rfx.Title)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<Rfx?> GetPublishedRfxByIdAsync(Guid rfxId)
+    {
+        return await dbContext.Rfxes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(rfx =>
+                rfx.Id == rfxId && rfx.Status != null && rfx.Status.ToLower() == "published");
+    }
+
+    public async Task AddSupplierBidAsync(SupplierBid bid)
+    {
+        dbContext.SupplierBids.Add(bid);
+        await Task.CompletedTask;
+    }
+
+    private IQueryable<Rfx> BuildPublishedRfxQuery(string? search)
+    {
+        var rfxQuery = dbContext.Rfxes
+            .AsNoTracking()
+            .Where(rfx => rfx.Status != null && rfx.Status.ToLower() == "published");
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            rfxQuery = rfxQuery.Where(rfx =>
+                (rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(search) ||
+                (rfx.Title ?? string.Empty).ToLower().Contains(search) ||
+                (rfx.Category ?? string.Empty).ToLower().Contains(search));
+        }
+
+        return rfxQuery;
     }
 
     private IQueryable<(SupplierBid Bid, Rfx Rfx)> BuildBidQuery(string? search)

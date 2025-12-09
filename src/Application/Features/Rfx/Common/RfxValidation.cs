@@ -1,3 +1,4 @@
+using System;
 using Application.DTOs.Common;
 using Application.DTOs.Rfx;
 using Application.Models;
@@ -81,5 +82,53 @@ internal static class RfxValidation
     public static string? NormalizeBidStatus(string? status)
     {
         return AllowedBidStatuses.FirstOrDefault(value => value.Equals(status?.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static Result<string>? ValidateBidSubmission(SubmitBidRequest request)
+    {
+        if (request is null)
+        {
+            return Result<string>.Fail("invalid_request", "Bid request payload is required.");
+        }
+
+        if (request.BidAmount <= 0)
+        {
+            return Result<string>.Fail("invalid_bid_amount", "Bid amount must be greater than zero.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Currency))
+        {
+            return Result<string>.Fail("invalid_currency", "Currency is required for bid submission.");
+        }
+
+        if (request.ExpectedDeliveryDate is null)
+        {
+            return Result<string>.Fail("invalid_delivery_date", "Expected delivery date is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ProposalSummary))
+        {
+            return Result<string>.Fail("invalid_proposal_summary", "Proposal summary is required.");
+        }
+
+        return null;
+    }
+
+    public static bool IsBase64(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        try
+        {
+            _ = Convert.FromBase64String(value);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

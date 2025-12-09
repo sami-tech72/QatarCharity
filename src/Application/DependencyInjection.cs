@@ -17,6 +17,9 @@ public static class DependencyInjection
         services.AddScoped<EvaluateBidCommand>();
         services.AddScoped<ApproveRfxCommand>();
         services.AddScoped<CloseRfxCommand>();
+        services.AddScoped<GetPublishedRfxListQuery>();
+        services.AddScoped<GetPublishedRfxByIdQuery>();
+        services.AddScoped<SubmitBidCommand>();
 
         services.AddScoped<GetSuppliersQuery>();
         services.AddScoped<CreateSupplierCommand>();

@@ -19,4 +19,8 @@ public interface IRfxRepository
     Task<string> GenerateReferenceNumberAsync();
     Task<List<string>> GetMissingCommitteeMemberIdsAsync(IEnumerable<string> committeeMemberIds);
     Task<List<RfxCommitteeMember>> BuildCommitteeMembersAsync(IEnumerable<string> committeeMemberIds);
+    Task<int> CountPublishedRfxAsync(string? search);
+    Task<IReadOnlyList<Rfx>> GetPublishedRfxAsync(string? search, int pageNumber, int pageSize);
+    Task<Rfx?> GetPublishedRfxByIdAsync(Guid rfxId);
+    Task AddSupplierBidAsync(SupplierBid bid);
 }

@@ -88,6 +88,30 @@ internal static class RfxMapping
             workflowName);
     }
 
+    public static PublishedRfxResponse BuildPublishedRfxResponse(Rfx rfx)
+    {
+        return new PublishedRfxResponse(
+            rfx.Id,
+            rfx.ReferenceNumber,
+            rfx.RfxType,
+            rfx.Title,
+            rfx.Category,
+            rfx.Description,
+            rfx.PublicationDate,
+            rfx.SubmissionDeadline,
+            rfx.ClosingDate,
+            rfx.EstimatedBudget,
+            rfx.Currency,
+            rfx.HideBudget,
+            rfx.Scope,
+            rfx.TechnicalSpecification,
+            rfx.Deliverables,
+            rfx.Timeline,
+            DeserializeList(rfx.RequiredDocuments),
+            BuildRequirementDetails(rfx),
+            BuildRequiredInputs(rfx));
+    }
+
     public static List<string> DeserializeList(string data)
     {
         return string.IsNullOrWhiteSpace(data)
@@ -102,5 +126,54 @@ internal static class RfxMapping
             .Select(value => value.Trim());
 
         return string.Join(';', sanitized);
+    }
+
+    public static IReadOnlyCollection<string> BuildRequirementDetails(Rfx rfx)
+    {
+        var details = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(rfx.Scope))
+        {
+            details.Add(rfx.Scope);
+        }
+
+        if (!string.IsNullOrWhiteSpace(rfx.TechnicalSpecification))
+        {
+            details.Add(rfx.TechnicalSpecification);
+        }
+
+        if (!string.IsNullOrWhiteSpace(rfx.Deliverables))
+        {
+            details.Add(rfx.Deliverables);
+        }
+
+        if (!string.IsNullOrWhiteSpace(rfx.Timeline))
+        {
+            details.Add(rfx.Timeline);
+        }
+
+        return details;
+    }
+
+    public static IReadOnlyCollection<string> BuildRequiredInputs(Rfx rfx)
+    {
+        var inputs = new List<string>
+        {
+            "Bid amount",
+            "Expected delivery date",
+            "Proposal summary",
+        };
+
+        if (!string.IsNullOrWhiteSpace(rfx.TechnicalSpecification))
+        {
+            inputs.Add("Technical compliance notes");
+        }
+
+        if (!string.IsNullOrWhiteSpace(rfx.Deliverables))
+        {
+            inputs.Add("Delivery approach for required deliverables");
+        }
+
+        return inputs;
     }
 }
