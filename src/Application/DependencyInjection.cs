@@ -1,7 +1,8 @@
+using Application.Features.Rfx.Commands;
+using Application.Features.Rfx.Queries;
+using Application.Features.Suppliers.Commands;
+using Application.Features.Suppliers.Queries;
 using Microsoft.Extensions.DependencyInjection;
-using Application.Features.Suppliers;
-using Application.Features.Rfx;
-using Application.Interfaces.Services;
 
 namespace Application;
 
@@ -9,8 +10,17 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        services.AddScoped<ISupplierService, SupplierService>();
-        services.AddScoped<IRfxService, RfxService>();
+        services.AddScoped<GetSupplierBidsQuery>();
+        services.AddScoped<GetRfxListQuery>();
+        services.AddScoped<CreateRfxCommand>();
+        services.AddScoped<GetRfxByIdQuery>();
+        services.AddScoped<EvaluateBidCommand>();
+        services.AddScoped<ApproveRfxCommand>();
+        services.AddScoped<CloseRfxCommand>();
+
+        services.AddScoped<GetSuppliersQuery>();
+        services.AddScoped<CreateSupplierCommand>();
+        services.AddScoped<UpdateSupplierCommand>();
 
         return services;
     }

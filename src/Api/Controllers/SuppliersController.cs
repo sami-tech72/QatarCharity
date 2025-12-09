@@ -2,7 +2,8 @@ using System;
 using Api.Models;
 using Application.DTOs.Common;
 using Application.DTOs.Suppliers;
-using Application.Interfaces.Services;
+using Application.Features.Suppliers.Commands;
+using Application.Features.Suppliers.Queries;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -15,18 +16,25 @@ namespace Api.Controllers;
 [Authorize(Roles = Roles.Admin)]
 public class SuppliersController : ControllerBase
 {
-    private readonly ISupplierService _supplierService;
+    private readonly GetSuppliersQuery _getSuppliers;
+    private readonly CreateSupplierCommand _createSupplier;
+    private readonly UpdateSupplierCommand _updateSupplier;
 
-    public SuppliersController(ISupplierService supplierService)
+    public SuppliersController(
+        GetSuppliersQuery getSuppliers,
+        CreateSupplierCommand createSupplier,
+        UpdateSupplierCommand updateSupplier)
     {
-        _supplierService = supplierService;
+        _getSuppliers = getSuppliers;
+        _createSupplier = createSupplier;
+        _updateSupplier = updateSupplier;
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<SupplierResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<PagedResult<SupplierResponse>>>> GetSuppliers([FromQuery] SupplierQueryParameters query)
     {
-        var pagedResult = await _supplierService.GetSuppliersAsync(query);
+        var pagedResult = await _getSuppliers.HandleAsync(query);
 
         return Ok(ApiResponse<PagedResult<SupplierResponse>>.Ok(pagedResult, "Suppliers retrieved successfully."));
     }
@@ -36,7 +44,7 @@ public class SuppliersController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<SupplierResponse>>> CreateSupplier(UpsertSupplierRequest request)
     {
-        var result = await _supplierService.CreateSupplierAsync(request);
+        var result = await _createSupplier.HandleAsync(request);
 
         if (!result.Success)
         {
@@ -52,7 +60,7 @@ public class SuppliersController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<SupplierResponse>>> UpdateSupplier(Guid id, UpsertSupplierRequest request)
     {
-        var result = await _supplierService.UpdateSupplierAsync(id, request);
+        var result = await _updateSupplier.HandleAsync(id, request);
 
         if (!result.Success)
         {
