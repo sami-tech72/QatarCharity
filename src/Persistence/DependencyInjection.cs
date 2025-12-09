@@ -19,17 +19,18 @@ public static class DependencyInjection
             options.UseSqlServer(connectionString, builder =>
                 builder.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 
-        services
-            .AddIdentity<ApplicationUser, IdentityRole>(options =>
-            {
-                options.Password.RequireDigit = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequiredLength = 6;
-            })
-            .AddEntityFrameworkStores<AppDbContext>()
-            .AddDefaultTokenProviders();
+        // Identity configuration
+        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        {
+            options.Password.RequireDigit = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 6;
+        })
+        .AddEntityFrameworkStores<AppDbContext>()
+        .AddDefaultTokenProviders();
 
+        // Repositories
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<IRfxRepository, RfxRepository>();
 

@@ -3,7 +3,7 @@ namespace Application.Models;
 public class Result<T>
 {
     public bool Success { get; }
-
+    public bool IsSuccess => Success;
     public string? ErrorCode { get; }
 
     public string? ErrorMessage { get; }

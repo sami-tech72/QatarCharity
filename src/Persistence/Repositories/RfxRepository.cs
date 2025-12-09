@@ -16,18 +16,36 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return await bidsQuery.CountAsync();
     }
 
-    public async Task<IReadOnlyList<(SupplierBid Bid, RfxEntity Rfx)>> GetSupplierBidsAsync(string? search, int pageNumber, int pageSize)
+    public async Task<IReadOnlyList<(SupplierBid Bid, RfxEntity Rfx)>> GetSupplierBidsAsync(
+    string? search, int pageNumber, int pageSize)
     {
-        var bidsQuery = BuildBidQuery(search);
+        var query =
+            from bid in dbContext.SupplierBids.AsNoTracking()
+            join rfx in dbContext.Rfxes.AsNoTracking()
+                on bid.RfxId equals rfx.Id
+            select new { Bid = bid, Rfx = rfx };
 
-        var results = await bidsQuery
-            .OrderByDescending(entry => entry.Bid.SubmittedAtUtc)
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            search = search.ToLower();
+
+            query = query.Where(x =>
+                (x.Rfx.ReferenceNumber ?? "").ToLower().Contains(search) ||
+                (x.Rfx.Title ?? "").ToLower().Contains(search) ||
+                (x.Bid.EvaluationStatus ?? "").ToLower().Contains(search)
+            );
+        }
+
+        var results = await query
+            .OrderByDescending(x => x.Bid.SubmittedAtUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        return results.Select(entry => (entry.Bid, entry.Rfx)).ToList();
+        return results.Select(x => (x.Bid, x.Rfx)).ToList();
     }
+
+
 
     public async Task<IReadOnlyList<RfxEntity>> GetRfxSummariesAsync(string? search, bool assignedOnly, string currentUserId, int pageNumber, int pageSize)
     {

@@ -5,8 +5,15 @@ using Persistence.Identity;
 
 namespace Infrastructure.Services;
 
-public class UserDirectoryService(UserManager<ApplicationUser> userManager) : IUserDirectoryService
+public class UserDirectoryService : IUserDirectoryService
 {
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    public UserDirectoryService(UserManager<ApplicationUser> userManager)
+    {
+        _userManager = userManager;
+    }
+
     public async Task<Dictionary<string, string>> GetUserNamesAsync(IEnumerable<string> userIds)
     {
         var ids = userIds
@@ -15,17 +22,16 @@ public class UserDirectoryService(UserManager<ApplicationUser> userManager) : IU
             .ToList();
 
         if (ids.Count == 0)
-        {
-            return new Dictionary<string, string>();
-        }
+            return new();
 
-        var users = await userManager.Users
+        var users = await _userManager.Users
             .Where(user => ids.Contains(user.Id))
             .Select(user => new { user.Id, user.DisplayName, user.Email, user.UserName })
             .ToListAsync();
 
         return users.ToDictionary(
-            user => user.Id,
-            user => user.DisplayName ?? user.Email ?? user.UserName ?? user.Id);
+            u => u.Id,
+            u => u.DisplayName ?? u.Email ?? u.UserName ?? u.Id
+        );
     }
 }
