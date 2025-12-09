@@ -179,6 +179,6 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
                 (entry.Bid.EvaluationStatus ?? string.Empty).ToLower().Contains(search));
         }
 
-        return bidsQuery.Select(entry => (entry.Bid, entry.Rfx));
+        return bidsQuery.Select(entry => new ValueTuple<SupplierBid, Rfx>(entry.Bid, entry.Rfx));
     }
 }
