@@ -1,12 +1,13 @@
 using Application.DTOs.Common;
 using Application.DTOs.Rfx;
 using Domain.Entities;
+using RfxEntity = Domain.Entities.Rfx;
 
 namespace Application.Features.Rfx.Common;
 
 internal static class RfxMapping
 {
-    public static SupplierBidResponse BuildBidResponse(SupplierBid bid, Rfx rfx, IReadOnlyDictionary<string, string> userLookup)
+    public static SupplierBidResponse BuildBidResponse(SupplierBid bid, RfxEntity rfx, IReadOnlyDictionary<string, string> userLookup)
     {
         userLookup.TryGetValue(bid.SubmittedByUserId, out var submittedBy);
         userLookup.TryGetValue(bid.EvaluatedByUserId ?? string.Empty, out var evaluatedBy);
@@ -29,7 +30,7 @@ internal static class RfxMapping
             evaluatedBy);
     }
 
-    public static RfxDetailResponse MapToDetailResponse(Rfx rfx, string? workflowName)
+    public static RfxDetailResponse MapToDetailResponse(RfxEntity rfx, string? workflowName)
     {
         var requiredDocuments = DeserializeList(rfx.RequiredDocuments);
 
@@ -88,7 +89,7 @@ internal static class RfxMapping
             workflowName);
     }
 
-    public static PublishedRfxResponse BuildPublishedRfxResponse(Rfx rfx)
+    public static PublishedRfxResponse BuildPublishedRfxResponse(RfxEntity rfx)
     {
         return new PublishedRfxResponse(
             rfx.Id,
@@ -128,7 +129,7 @@ internal static class RfxMapping
         return string.Join(';', sanitized);
     }
 
-    public static IReadOnlyCollection<string> BuildRequirementDetails(Rfx rfx)
+    public static IReadOnlyCollection<string> BuildRequirementDetails(RfxEntity rfx)
     {
         var details = new List<string>();
 
@@ -155,7 +156,7 @@ internal static class RfxMapping
         return details;
     }
 
-    public static IReadOnlyCollection<string> BuildRequiredInputs(Rfx rfx)
+    public static IReadOnlyCollection<string> BuildRequiredInputs(RfxEntity rfx)
     {
         var inputs = new List<string>
         {

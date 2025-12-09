@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Application.Interfaces.Repositories;
 using Domain.Entities;
+using RfxEntity = Domain.Entities.Rfx;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Context;
 
@@ -15,7 +16,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return await bidsQuery.CountAsync();
     }
 
-    public async Task<IReadOnlyList<(SupplierBid Bid, Rfx Rfx)>> GetSupplierBidsAsync(string? search, int pageNumber, int pageSize)
+    public async Task<IReadOnlyList<(SupplierBid Bid, RfxEntity Rfx)>> GetSupplierBidsAsync(string? search, int pageNumber, int pageSize)
     {
         var bidsQuery = BuildBidQuery(search);
 
@@ -28,7 +29,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return results.Select(entry => (entry.Bid, entry.Rfx)).ToList();
     }
 
-    public async Task<IReadOnlyList<Rfx>> GetRfxSummariesAsync(string? search, bool assignedOnly, string currentUserId, int pageNumber, int pageSize)
+    public async Task<IReadOnlyList<RfxEntity>> GetRfxSummariesAsync(string? search, bool assignedOnly, string currentUserId, int pageNumber, int pageSize)
     {
         var rfxQuery = dbContext.Rfxes
             .Include(rfx => rfx.Workflow)
@@ -75,7 +76,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return await rfxQuery.CountAsync();
     }
 
-    public Task<Rfx?> GetRfxByIdAsync(Guid id)
+    public Task<RfxEntity?> GetRfxByIdAsync(Guid id)
     {
         return dbContext.Rfxes.AsNoTracking().FirstOrDefaultAsync(rfx => rfx.Id == id);
     }
@@ -85,7 +86,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return dbContext.Workflows.AsNoTracking().FirstOrDefaultAsync(wf => wf.Id == id);
     }
 
-    public Task<Rfx?> GetRfxWithEvaluationAsync(Guid id)
+    public Task<RfxEntity?> GetRfxWithEvaluationAsync(Guid id)
     {
         return dbContext.Rfxes
             .Include(entity => entity.Workflow)
@@ -94,7 +95,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
             .FirstOrDefaultAsync(entity => entity.Id == id);
     }
 
-    public async Task AddRfxAsync(Rfx rfx)
+    public async Task AddRfxAsync(RfxEntity rfx)
     {
         await dbContext.Rfxes.AddAsync(rfx);
     }
@@ -169,7 +170,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return await query.CountAsync();
     }
 
-    public async Task<IReadOnlyList<Rfx>> GetPublishedRfxAsync(string? search, int pageNumber, int pageSize)
+    public async Task<IReadOnlyList<RfxEntity>> GetPublishedRfxAsync(string? search, int pageNumber, int pageSize)
     {
         var query = BuildPublishedRfxQuery(search);
 
@@ -181,7 +182,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
             .ToListAsync();
     }
 
-    public async Task<Rfx?> GetPublishedRfxByIdAsync(Guid rfxId)
+    public async Task<RfxEntity?> GetPublishedRfxByIdAsync(Guid rfxId)
     {
         return await dbContext.Rfxes
             .AsNoTracking()
@@ -195,7 +196,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         await Task.CompletedTask;
     }
 
-    private IQueryable<Rfx> BuildPublishedRfxQuery(string? search)
+    private IQueryable<RfxEntity> BuildPublishedRfxQuery(string? search)
     {
         var rfxQuery = dbContext.Rfxes
             .AsNoTracking()
@@ -212,7 +213,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return rfxQuery;
     }
 
-    private IQueryable<(SupplierBid Bid, Rfx Rfx)> BuildBidQuery(string? search)
+    private IQueryable<(SupplierBid Bid, RfxEntity Rfx)> BuildBidQuery(string? search)
     {
         var bidsQuery = dbContext.SupplierBids
             .AsNoTracking()
@@ -230,6 +231,6 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
                 (entry.Bid.EvaluationStatus ?? string.Empty).ToLower().Contains(search));
         }
 
-        return bidsQuery.Select(entry => new ValueTuple<SupplierBid, Rfx>(entry.Bid, entry.Rfx));
+        return bidsQuery.Select(entry => new ValueTuple<SupplierBid, RfxEntity>(entry.Bid, entry.Rfx));
     }
 }
