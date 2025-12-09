@@ -132,7 +132,8 @@ public class SupplierService(ISupplierRepository repository, ISupplierPortalUser
 
     private static Result<SupplierResponse>? ValidateStatus(string status)
     {
-        if (SupplierStatus.All.Contains(status))
+        if (!string.IsNullOrWhiteSpace(status) &&
+            SupplierStatus.All.Contains(status, StringComparer.OrdinalIgnoreCase))
         {
             return null;
         }

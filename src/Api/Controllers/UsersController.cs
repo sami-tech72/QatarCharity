@@ -398,9 +398,10 @@ public class UsersController : ControllerBase
     private static ProcurementUserRoleDto? MapProcurementRole(
         ApplicationUser user,
         IList<string> roles,
-        IReadOnlyDictionary<int, ProcurementRoleTemplate> procurementRoleLookup)
+        Dictionary<int, ProcurementRoleTemplate> procurementRoleLookup)
     {
-        if (user.ProcurementRoleTemplateId is null || !roles.Contains(Roles.Procurement))
+        if (user.ProcurementRoleTemplateId is null ||
+            !roles.Any(role => string.Equals(role, Roles.Procurement, StringComparison.OrdinalIgnoreCase)))
         {
             return null;
         }

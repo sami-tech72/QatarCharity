@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -143,7 +144,8 @@ public class AuthController : ControllerBase
 
     private async Task<ProcurementUserRoleDto?> BuildProcurementRoleAsync(ApplicationUser user, IList<string> roles)
     {
-        if (user.ProcurementRoleTemplateId is null || !roles.Contains(Roles.Procurement))
+        if (user.ProcurementRoleTemplateId is null ||
+            !roles.Any(role => string.Equals(role, Roles.Procurement, StringComparison.OrdinalIgnoreCase)))
         {
             return null;
         }
