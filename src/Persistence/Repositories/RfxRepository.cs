@@ -11,31 +11,16 @@ namespace Persistence.Repositories;
 
 public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 {
-    public async Task<int> CountSupplierBidsAsync(string? search)
+    public async Task<int> CountSupplierBidsAsync(string? search, string? submittedByUserId = null)
     {
-        var bidsQuery = BuildBidQuery(search);
+        var bidsQuery = BuildBidQuery(search, submittedByUserId);
         return await bidsQuery.CountAsync();
     }
 
     public async Task<IReadOnlyList<(SupplierBid Bid, RfxEntity Rfx)>> GetSupplierBidsAsync(
-    string? search, int pageNumber, int pageSize)
+    string? search, string? submittedByUserId, int pageNumber, int pageSize)
     {
-        var query =
-            from bid in dbContext.SupplierBids.AsNoTracking()
-            join rfx in dbContext.Rfxes.AsNoTracking()
-                on bid.RfxId equals rfx.Id
-            select new { Bid = bid, Rfx = rfx };
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            search = search.ToLower();
-
-            query = query.Where(x =>
-                (x.Rfx.ReferenceNumber ?? "").ToLower().Contains(search) ||
-                (x.Rfx.Title ?? "").ToLower().Contains(search) ||
-                (x.Bid.EvaluationStatus ?? "").ToLower().Contains(search)
-            );
-        }
+        var query = BuildBidQuery(search, submittedByUserId);
 
         var results = await query
             .OrderByDescending(x => x.Bid.SubmittedAtUtc)
@@ -43,7 +28,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
             .Take(pageSize)
             .ToListAsync();
 
-        return results.Select(x => (x.Bid, x.Rfx)).ToList();
+        return results.ToList();
     }
 
 
@@ -277,7 +262,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return rfxQuery;
     }
 
-    private IQueryable<(SupplierBid Bid, RfxEntity Rfx)> BuildBidQuery(string? search)
+    private IQueryable<(SupplierBid Bid, RfxEntity Rfx)> BuildBidQuery(string? search, string? submittedByUserId)
     {
         var bidsQuery = dbContext.SupplierBids
             .AsNoTracking()
@@ -286,6 +271,11 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
                 Bid = bid,
                 Rfx = rfx,
             });
+
+        if (!string.IsNullOrWhiteSpace(submittedByUserId))
+        {
+            bidsQuery = bidsQuery.Where(entry => entry.Bid.SubmittedByUserId == submittedByUserId);
+        }
 
         if (!string.IsNullOrWhiteSpace(search))
         {

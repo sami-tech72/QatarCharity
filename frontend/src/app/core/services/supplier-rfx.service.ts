@@ -5,6 +5,8 @@ import { ApiResponse } from '../../shared/models/api-response.model';
 import { PagedResult } from '../../shared/models/pagination.model';
 import {
   SupplierBidRequest,
+  SupplierBidQueryRequest,
+  SupplierBidSummary,
   SupplierRfx,
   SupplierRfxQueryRequest,
 } from '../../shared/models/supplier-rfx.model';
@@ -35,6 +37,18 @@ export class SupplierRfxService {
   submitBid(rfxId: string, payload: SupplierBidRequest): Observable<string> {
     return this.api
       .post<string>(`supplier/rfx/${rfxId}/bid`, payload)
+      .pipe(map((response) => this.unwrap(response)));
+  }
+
+  loadSupplierBids(query: SupplierBidQueryRequest): Observable<PagedResult<SupplierBidSummary>> {
+    return this.api
+      .get<PagedResult<SupplierBidSummary>>('supplier/rfx/bids', {
+        params: {
+          pageNumber: query.pageNumber,
+          pageSize: query.pageSize,
+          search: query.search ?? '',
+        },
+      })
       .pipe(map((response) => this.unwrap(response)));
   }
 

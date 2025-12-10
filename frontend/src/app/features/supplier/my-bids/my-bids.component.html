@@ -61,16 +61,24 @@
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h5 class="card-title mb-0 fw-bold">All Bids</h5>
         <div class="search-box" style="width: 300px;">
-          <input type="text" class="form-control" placeholder="Search bids..." (input)="filterBids($event)">
+          <input type="text" class="form-control" placeholder="Search bids..." (input)="onSearchChange($event)" [value]="searchTerm">
         </div>
       </div>
 
+      <div *ngIf="loading" class="text-center py-5 text-muted">
+        Loading bids...
+      </div>
+
+      <div *ngIf="!loading && errorMessage" class="alert alert-danger" role="alert">
+        {{ errorMessage }}
+      </div>
+
       <!-- Bids Table -->
-      <div class="table-responsive">
+      <div class="table-responsive" *ngIf="!loading && bids.length > 0">
         <table class="table table-hover">
           <thead class="table-light">
             <tr>
-              <th class="fw-semibold">Bid Number</th>
+              <th class="fw-semibold">RFx Number</th>
               <th class="fw-semibold">RFx Title</th>
               <th class="fw-semibold">Bid Amount</th>
               <th class="fw-semibold">Status</th>
@@ -79,19 +87,19 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let bid of filteredBids">
-              <td class="fw-semibold text-primary">{{ bid.bidNumber }}</td>
+            <tr *ngFor="let bid of bids">
+              <td class="fw-semibold text-primary">{{ bid.referenceNumber }}</td>
               <td>
-                <div>{{ bid.rfxTitle }}</div>
-                <small class="text-muted">{{ bid.rfxNumber }}</small>
+                <div>{{ bid.title }}</div>
+                <small class="text-muted">{{ bid.rfxId }}</small>
               </td>
-              <td class="fw-semibold">{{ bid.bidAmount | currency }}</td>
+              <td class="fw-semibold">{{ bid.bidAmount | currency: bid.currency }}</td>
               <td>
-                <span class="badge" [ngClass]="getStatusClass(bid.status)">
-                  {{ bid.status }}
+                <span class="badge" [ngClass]="getStatusClass(bid.evaluationStatus)">
+                  {{ bid.evaluationStatus }}
                 </span>
               </td>
-              <td>{{ bid.submittedDate | date: 'M/d/y' }}</td>
+              <td>{{ bid.submittedAtUtc | date: 'M/d/y' }}</td>
               <td class="text-end">
                 <button class="btn btn-sm btn-link text-primary p-0" title="View" (click)="viewBid(bid)">
                   <i class="bi bi-eye"></i>
@@ -103,7 +111,7 @@
       </div>
 
       <!-- Empty State -->
-      <div *ngIf="filteredBids.length === 0" class="text-center py-5">
+      <div *ngIf="!loading && bids.length === 0" class="text-center py-5">
         <p class="text-muted">No bids found</p>
       </div>
     </div>

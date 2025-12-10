@@ -7,8 +7,8 @@ namespace Application.Interfaces.Repositories;
 
 public interface IRfxRepository
 {
-    Task<int> CountSupplierBidsAsync(string? search);
-    Task<IReadOnlyList<(SupplierBid Bid, RfxEntity Rfx)>> GetSupplierBidsAsync(string? search, int pageNumber, int pageSize);
+    Task<int> CountSupplierBidsAsync(string? search, string? submittedByUserId = null);
+    Task<IReadOnlyList<(SupplierBid Bid, RfxEntity Rfx)>> GetSupplierBidsAsync(string? search, string? submittedByUserId, int pageNumber, int pageSize);
     Task<IReadOnlyList<RfxEntity>> GetRfxSummariesAsync(string? search, bool assignedOnly, string currentUserId, int pageNumber, int pageSize);
     Task<int> CountRfxAsync(string? search, bool assignedOnly, string currentUserId);
     Task<RfxEntity?> GetRfxByIdAsync(Guid id);
