@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <div class="table-wrapper" *ngIf="filteredContracts.length > 0; else emptyState">
+    <div class="table-wrapper" *ngIf="filteredReadyBids.length > 0; else emptyState">
       <table class="contracts-table">
         <thead>
           <tr>
@@ -51,7 +51,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let contract of filteredContracts">
+          <tr *ngFor="let contract of filteredReadyBids">
             <td class="contract-number">{{ contract.referenceNumber }}</td>
             <td class="title">{{ contract.title }}</td>
             <td>{{ contract.supplierName }}</td>
@@ -105,7 +105,7 @@
           <span>Supplier *</span>
           <select formControlName="bidId" #bidSelect (change)="onBidSelected(bidSelect.value)">
             <option value="" disabled>Select supplier</option>
-            <option *ngFor="let bid of contracts" [value]="bid.bidId">{{ bid.supplierName }} - {{ bid.title }}</option>
+            <option *ngFor="let bid of readyBids" [value]="bid.bidId">{{ bid.supplierName }} - {{ bid.title }}</option>
           </select>
         </label>
 
@@ -155,10 +155,54 @@
   </div>
 </div>
 
+<div class="table-section" *ngIf="filteredContracts.length > 0; else noContractsState">
+  <div class="table-header">
+    <h2>Created contracts</h2>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="contracts-table">
+      <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Title</th>
+          <th>Supplier</th>
+          <th>Value</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let contract of filteredContracts">
+          <td class="contract-number">{{ contract.referenceNumber }}</td>
+          <td class="title">{{ contract.title }}</td>
+          <td>{{ contract.supplierName }}</td>
+          <td class="value">{{ contract.contractValue | currency: contract.currency }}</td>
+          <td>{{ contract.startDateUtc | date: 'mediumDate' }}</td>
+          <td>{{ contract.endDateUtc | date: 'mediumDate' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(contract.status)">
+              {{ contract.status }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 <ng-template #emptyState>
   <div class="no-results">
     <p>No approved bids are ready for contract management.</p>
     <p class="muted">Approve a supplier bid to begin the contracting process.</p>
+  </div>
+</ng-template>
+
+<ng-template #noContractsState>
+  <div class="no-results">
+    <p>No contracts have been created yet.</p>
+    <p class="muted">Submit a contract to see it listed here.</p>
   </div>
 </ng-template>
 

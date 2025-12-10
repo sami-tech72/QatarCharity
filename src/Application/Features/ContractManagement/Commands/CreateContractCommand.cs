@@ -27,6 +27,12 @@ public class CreateContractCommand
             return Result<ContractResponse>.Fail("invalid_request", validationError);
         }
 
+        var rfx = await _rfxRepository.GetRfxByIdAsync(request.RfxId);
+        if (rfx is null)
+        {
+            return Result<ContractResponse>.Fail("not_found", "The RFx referenced by this bid could not be found.");
+        }
+
         var bid = await _rfxRepository.GetBidAsync(request.RfxId, request.BidId);
         if (bid is null)
         {
@@ -71,8 +77,10 @@ public class CreateContractCommand
             contract.Id,
             contract.BidId,
             contract.RfxId,
+            rfx.ReferenceNumber ?? string.Empty,
             contract.Title,
             contract.SupplierName,
+            contract.SupplierUserId,
             contract.ContractValue,
             contract.Currency,
             contract.StartDateUtc,

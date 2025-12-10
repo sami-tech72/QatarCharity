@@ -5,18 +5,20 @@ import { Subject, takeUntil } from 'rxjs';
 
 import { ContractManagementService } from '../../../core/services/contract-management.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { ContractReadyBid } from '../../../shared/models/contract-management.model';
+import { ContractReadyBid, ContractRecord } from '../../../shared/models/contract-management.model';
 
 @Component({
   selector: 'app-contract-management',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './contract-management.component.html',
-  styleUrl: './contract-management.component.scss',
+  styleUrls: ['./contract-management.component.scss'],
 })
 export class ContractManagementComponent implements OnInit, OnDestroy {
-  contracts: ContractReadyBid[] = [];
-  filteredContracts: ContractReadyBid[] = [];
+  readyBids: ContractReadyBid[] = [];
+  filteredReadyBids: ContractReadyBid[] = [];
+  contracts: ContractRecord[] = [];
+  filteredContracts: ContractRecord[] = [];
   selectedBid?: ContractReadyBid;
   summary = {
     total: 0,
@@ -50,7 +52,8 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadContracts();
+    this.loadReadyBids();
+    this.loadExistingContracts();
   }
 
   ngOnDestroy(): void {
@@ -60,40 +63,61 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
 
   onSearch(event: Event): void {
     const query = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.filteredReadyBids = this.readyBids.filter((contract) =>
+      `${contract.referenceNumber} ${contract.title} ${contract.supplierName}`.toLowerCase().includes(query),
+    );
+
     this.filteredContracts = this.contracts.filter((contract) =>
       `${contract.referenceNumber} ${contract.title} ${contract.supplierName}`.toLowerCase().includes(query),
     );
   }
 
-  loadContracts(search?: string): void {
+  loadReadyBids(search?: string): void {
     this.loading = true;
     this.contractManagementService
       .loadReadyBids({ pageNumber: 1, pageSize: 50, search })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
-          this.contracts = result.items || [];
-          this.filteredContracts = [...this.contracts];
+          this.readyBids = result.items || [];
+          this.filteredReadyBids = [...this.readyBids];
           this.summary = {
             total: result.totalCount,
             approved: result.totalCount,
-            totalValue: this.contracts.reduce((sum, contract) => sum + contract.bidAmount, 0),
+            totalValue: this.readyBids.reduce((sum, contract) => sum + contract.bidAmount, 0),
           };
           this.loading = false;
         },
         error: (error) => {
           this.notification.error(error.message || 'Unable to load contract-ready bids.');
-          this.contracts = [];
-          this.filteredContracts = [];
+          this.readyBids = [];
+          this.filteredReadyBids = [];
           this.summary = { total: 0, approved: 0, totalValue: 0 };
           this.loading = false;
         },
       });
   }
 
+  loadExistingContracts(): void {
+    this.contractManagementService
+      .loadContracts({ pageNumber: 1, pageSize: 50 })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.contracts = result.items || [];
+          this.filteredContracts = [...this.contracts];
+        },
+        error: (error) => {
+          this.notification.error(error.message || 'Unable to load created contracts.');
+          this.contracts = [];
+          this.filteredContracts = [];
+        },
+      });
+  }
+
   openCreateModal(bid?: ContractReadyBid): void {
     this.showCreateModal = true;
-    const preselected = bid ?? this.contracts[0];
+    const preselected = bid ?? this.readyBids[0];
     if (preselected) {
       this.onBidSelected(preselected.bidId);
       this.createForm.patchValue({
@@ -112,7 +136,7 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   }
 
   onBidSelected(bidId: string): void {
-    const bid = this.contracts.find((c) => c.bidId === bidId);
+    const bid = this.readyBids.find((c) => c.bidId === bidId);
     if (!bid) {
       return;
     }
@@ -148,6 +172,8 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
           this.notification.success('Contract created successfully.');
           this.showCreateModal = false;
           this.createForm.reset({ status: 'Draft' });
+          this.loadExistingContracts();
+          this.loadReadyBids();
         },
         error: (error) => {
           this.notification.error(error.message || 'Unable to create contract.');

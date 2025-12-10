@@ -7,6 +7,7 @@ import {
   ContractReadyBid,
   CreateContractPayload,
   ContractResponse,
+  ContractRecord,
 } from '../../shared/models/contract-management.model';
 import { PagedResult } from '../../shared/models/pagination.model';
 import { ApiService } from './api.service';
@@ -29,6 +30,18 @@ export class ContractManagementService {
 
   createContract(payload: CreateContractPayload): Observable<ContractResponse> {
     return this.api.post<ContractResponse>('contracts', payload).pipe(map((response) => this.unwrap(response)));
+  }
+
+  loadContracts(query: ContractManagementQuery): Observable<PagedResult<ContractRecord>> {
+    return this.api
+      .get<PagedResult<ContractRecord>>('contracts', {
+        params: {
+          pageNumber: query.pageNumber,
+          pageSize: query.pageSize,
+          search: query.search ?? '',
+        },
+      })
+      .pipe(map((response) => this.unwrap(response)));
   }
 
   private unwrap<T>(response: ApiResponse<T>): T {

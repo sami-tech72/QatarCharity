@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<GetPublishedRfxByIdQuery>();
         services.AddScoped<SubmitBidCommand>();
         services.AddScoped<GetContractReadyBidsQuery>();
+        services.AddScoped<GetContractsQuery>();
         services.AddScoped<CreateContractCommand>();
 
         services.AddScoped<GetSuppliersQuery>();

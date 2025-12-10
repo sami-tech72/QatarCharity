@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Application.Interfaces.Repositories;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -24,8 +26,53 @@ public class ContractRepository : IContractRepository
         return await _dbContext.Contracts.AnyAsync(c => c.BidId == bidId);
     }
 
+    public async Task<int> CountAsync(string? search)
+    {
+        var query = BuildContractsQuery(search);
+        return await query.CountAsync();
+    }
+
+    public async Task<IReadOnlyList<(Contract Contract, string ReferenceNumber)>> GetContractsAsync(
+        string? search,
+        int pageNumber,
+        int pageSize)
+    {
+        var query = BuildContractsQuery(search);
+
+        return await query
+            .OrderByDescending(entry => entry.Contract.CreatedAtUtc)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(entry => (entry.Contract, entry.ReferenceNumber))
+            .ToListAsync();
+    }
+
     public async Task SaveChangesAsync()
     {
         await _dbContext.SaveChangesAsync();
+    }
+
+    private IQueryable<(Contract Contract, string ReferenceNumber)> BuildContractsQuery(string? search)
+    {
+        var query = _dbContext.Contracts
+            .Join(
+                _dbContext.Rfxes,
+                contract => contract.RfxId,
+                rfx => rfx.Id,
+                (contract, rfx) => new { Contract = contract, ReferenceNumber = rfx.ReferenceNumber ?? string.Empty })
+            .Select(entry => (entry.Contract, entry.ReferenceNumber))
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var normalizedSearch = search.Trim().ToLower();
+
+            query = query.Where(entry =>
+                (entry.Contract.Title ?? string.Empty).ToLower().Contains(normalizedSearch) ||
+                (entry.Contract.SupplierName ?? string.Empty).ToLower().Contains(normalizedSearch) ||
+                (entry.ReferenceNumber ?? string.Empty).ToLower().Contains(normalizedSearch));
+        }
+
+        return query;
     }
 }

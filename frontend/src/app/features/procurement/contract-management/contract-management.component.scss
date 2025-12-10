@@ -237,6 +237,26 @@
     background-color: #fef2f2;
     color: #dc2626;
   }
+
+  &.status-draft {
+    background-color: #e0f2fe;
+    color: #0369a1;
+  }
+
+  &.status-active {
+    background-color: #ecfdf3;
+    color: #047857;
+  }
+
+  &.status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  &.status-closed {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
 }
 
 .modal-backdrop {

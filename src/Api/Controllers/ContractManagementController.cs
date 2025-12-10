@@ -17,13 +17,25 @@ public class ContractManagementController : ControllerBase
 {
     private readonly CreateContractCommand _createContractCommand;
     private readonly GetContractReadyBidsQuery _getContractReadyBidsQuery;
+    private readonly GetContractsQuery _getContractsQuery;
 
     public ContractManagementController(
         GetContractReadyBidsQuery getContractReadyBidsQuery,
+        GetContractsQuery getContractsQuery,
         CreateContractCommand createContractCommand)
     {
         _getContractReadyBidsQuery = getContractReadyBidsQuery;
+        _getContractsQuery = getContractsQuery;
         _createContractCommand = createContractCommand;
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<ContractResponse>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<PagedResult<ContractResponse>>>> GetContracts([FromQuery] ContractReadyQueryParameters query)
+    {
+        var result = await _getContractsQuery.HandleAsync(query);
+
+        return Ok(ApiResponse<PagedResult<ContractResponse>>.Ok(result.Value!, "Contracts retrieved."));
     }
 
     [HttpGet("ready")]

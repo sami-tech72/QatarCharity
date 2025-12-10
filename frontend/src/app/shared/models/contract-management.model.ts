@@ -35,8 +35,10 @@ export interface ContractResponse {
   id: string;
   bidId: string;
   rfxId: string;
+  referenceNumber: string;
   title: string;
   supplierName: string;
+  supplierUserId: string;
   contractValue: number;
   currency: string;
   startDateUtc: string;
@@ -44,3 +46,5 @@ export interface ContractResponse {
   status: string;
   createdAtUtc: string;
 }
+
+export type ContractRecord = ContractResponse;
