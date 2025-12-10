@@ -40,7 +40,9 @@ public class GetContractsQuery
                     entry.Contract.StartDateUtc,
                     entry.Contract.EndDateUtc,
                     entry.Contract.Status,
-                    entry.Contract.CreatedAtUtc))
+                    entry.Contract.CreatedAtUtc,
+                    entry.Contract.SupplierSignature,
+                    entry.Contract.SupplierSignedAtUtc))
             .ToList();
 
         var paged = new PagedResult<ContractResponse>(results, totalCount, pageNumber, pageSize);

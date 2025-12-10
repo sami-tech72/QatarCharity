@@ -7,8 +7,7 @@ namespace Application.Features.ContractManagement.Commands;
 
 public class CreateContractCommand
 {
-    private static readonly HashSet<string> AllowedStatuses =
-        new(StringComparer.OrdinalIgnoreCase) { "draft", "active", "pending", "closed" };
+    private const string DefaultStatus = "Draft";
 
     private readonly IContractRepository _contractRepository;
     private readonly IRfxRepository _rfxRepository;
@@ -50,7 +49,6 @@ public class CreateContractCommand
             return Result<ContractResponse>.Fail("duplicate", "A contract already exists for this bid.");
         }
 
-        var normalizedStatus = request.Status.Trim();
         var normalizedCurrency = request.Currency.Trim();
         var normalizedSupplierId = request.SupplierUserId.Trim();
 
@@ -66,7 +64,7 @@ public class CreateContractCommand
             Currency = normalizedCurrency,
             StartDateUtc = request.StartDateUtc,
             EndDateUtc = request.EndDateUtc,
-            Status = normalizedStatus,
+            Status = DefaultStatus,
             CreatedAtUtc = DateTime.UtcNow,
         };
 
@@ -86,7 +84,9 @@ public class CreateContractCommand
             contract.StartDateUtc,
             contract.EndDateUtc,
             contract.Status,
-            contract.CreatedAtUtc);
+            contract.CreatedAtUtc,
+            contract.SupplierSignature,
+            contract.SupplierSignedAtUtc);
 
         return Result<ContractResponse>.Ok(response);
     }
@@ -126,12 +126,6 @@ public class CreateContractCommand
         if (request.EndDateUtc < request.StartDateUtc)
         {
             return "End date must be after the start date.";
-        }
-
-        var status = request.Status?.Trim() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(status) || !AllowedStatuses.Contains(status))
-        {
-            return "A valid contract status is required (Draft, Active, Pending, Closed).";
         }
 
         return null;

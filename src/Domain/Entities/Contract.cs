@@ -26,5 +26,9 @@ public class Contract
 
     public string Status { get; set; } = "Draft";
 
+    public string? SupplierSignature { get; set; }
+
+    public DateTime? SupplierSignedAtUtc { get; set; }
+
     public DateTime CreatedAtUtc { get; set; }
 }

@@ -28,7 +28,6 @@ export interface CreateContractPayload {
   currency: string;
   startDateUtc: string;
   endDateUtc: string;
-  status: string;
 }
 
 export interface ContractResponse {
@@ -45,6 +44,8 @@ export interface ContractResponse {
   endDateUtc: string;
   status: string;
   createdAtUtc: string;
+  supplierSignature?: string | null;
+  supplierSignedAtUtc?: string | null;
 }
 
 export type ContractRecord = ContractResponse;

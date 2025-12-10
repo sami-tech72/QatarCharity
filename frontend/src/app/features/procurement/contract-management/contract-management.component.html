@@ -123,13 +123,6 @@
           <span>End Date *</span>
           <input type="date" formControlName="endDateUtc" />
         </label>
-
-        <label class="form-field">
-          <span>Status *</span>
-          <select formControlName="status">
-            <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
-          </select>
-        </label>
       </div>
 
       <div class="inline-fields">

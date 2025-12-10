@@ -2,12 +2,16 @@
   display: block;
 }
 
-.page-placeholder {
-  padding: 2rem;
-  text-align: center;
+.page-title {
+  font-weight: 700;
 }
 
-.page-placeholder__title {
-  font-size: 2rem;
+.search-box input {
+  border-radius: 12px;
+}
+
+.badge {
   font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: 9999px;
 }

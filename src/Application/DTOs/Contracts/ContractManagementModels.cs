@@ -49,4 +49,6 @@ public record ContractResponse(
     DateTime StartDateUtc,
     DateTime EndDateUtc,
     string Status,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAtUtc,
+    string? SupplierSignature,
+    DateTime? SupplierSignedAtUtc);

@@ -29,7 +29,6 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   loading = false;
   showCreateModal = false;
   createForm: FormGroup;
-  readonly statuses = ['Draft', 'Active', 'Pending', 'Closed'];
 
   private readonly destroy$ = new Subject<void>();
 
@@ -48,7 +47,6 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
       currency: [{ value: '', disabled: true }, Validators.required],
       startDateUtc: ['', Validators.required],
       endDateUtc: ['', Validators.required],
-      status: ['Draft', Validators.required],
     });
   }
 
@@ -117,7 +115,7 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
     }
 
     const preselected = bid ?? this.readyBids[0];
-    this.createForm.reset({ status: 'Draft' });
+    this.createForm.reset();
     this.selectedBid = undefined;
 
     if (preselected) {
@@ -125,7 +123,6 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
       this.createForm.patchValue({
         title: preselected.title,
         contractValue: preselected.bidAmount,
-        status: 'Draft',
       });
     }
 
@@ -136,7 +133,7 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
     console.log('closeCreateModal called');
     this.showCreateModal = false;
     this.selectedBid = undefined;
-    this.createForm.reset({ status: 'Draft' });
+    this.createForm.reset();
   }
 
   onBidSelected(bidId: string): void {
@@ -175,7 +172,7 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
         next: (created) => {
           this.notification.success('Contract created successfully.');
           this.showCreateModal = false;
-          this.createForm.reset({ status: 'Draft' });
+          this.createForm.reset();
           this.contracts = [created, ...this.contracts];
           this.readyBids = this.readyBids.filter((bid) => bid.bidId !== created.bidId);
           this.applySearchFilters();

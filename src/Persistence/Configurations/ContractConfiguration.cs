@@ -36,6 +36,11 @@ public class ContractConfiguration : IEntityTypeConfiguration<Contract>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(c => c.SupplierSignature)
+            .HasMaxLength(2000);
+
+        builder.Property(c => c.SupplierSignedAtUtc);
+
         builder.Property(c => c.CreatedAtUtc)
             .IsRequired();
     }

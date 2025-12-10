@@ -29,7 +29,13 @@ public class ContractRepository : IContractRepository
 
     public async Task<int> CountAsync(string? search)
     {
-        var query = BuildContractsQuery(search);
+        var query = BuildContractsQuery(search, null);
+        return await query.CountAsync();
+    }
+
+    public async Task<int> CountForSupplierAsync(string supplierUserId, string? search)
+    {
+        var query = BuildContractsQuery(search, supplierUserId);
         return await query.CountAsync();
     }
 
@@ -38,18 +44,44 @@ public class ContractRepository : IContractRepository
         int pageNumber,
         int pageSize)
     {
-        var query = BuildContractsQuery(search);
+        var query = BuildContractsQuery(search, null);
 
         return await query
             .OrderByDescending(entry => entry.Contract.CreatedAtUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(entry => new ContractWithReference
-            {
-                Contract = entry.Contract,
-                ReferenceNumber = entry.ReferenceNumber,
-            })
             .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<ContractWithReference>> GetContractsForSupplierAsync(
+        string supplierUserId,
+        string? search,
+        int pageNumber,
+        int pageSize)
+    {
+        var query = BuildContractsQuery(search, supplierUserId);
+
+        return await query
+            .OrderByDescending(entry => entry.Contract.CreatedAtUtc)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<ContractWithReference?> GetByIdAsync(Guid contractId)
+    {
+        return await _dbContext.Contracts
+            .Where(contract => contract.Id == contractId)
+            .Join(
+                _dbContext.Rfxes,
+                contract => contract.RfxId,
+                rfx => rfx.Id,
+                (contract, rfx) => new ContractWithReference
+                {
+                    Contract = contract,
+                    ReferenceNumber = rfx.ReferenceNumber ?? string.Empty,
+                })
+            .FirstOrDefaultAsync();
     }
 
     public async Task SaveChangesAsync()
@@ -57,7 +89,7 @@ public class ContractRepository : IContractRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    private IQueryable<ContractWithReference> BuildContractsQuery(string? search)
+    private IQueryable<ContractWithReference> BuildContractsQuery(string? search, string? supplierUserId)
     {
         var query = _dbContext.Contracts
             .Join(
@@ -70,6 +102,11 @@ public class ContractRepository : IContractRepository
                     ReferenceNumber = rfx.ReferenceNumber ?? string.Empty,
                 })
             .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(supplierUserId))
+        {
+            query = query.Where(entry => entry.Contract.SupplierUserId == supplierUserId);
+        }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
