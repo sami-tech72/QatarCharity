@@ -11,18 +11,29 @@ export class ThemeService {
   private readonly defaultMode: ThemeMode = 'light';
 
   private readonly systemMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  private readonly modeSubject = new BehaviorSubject<ThemeMode>(this.resolveInitialMode());
+  private readonly modeSubject = new BehaviorSubject<ThemeMode>(this.defaultMode);
+  private isInitialized = false;
 
   readonly mode$ = this.modeSubject.asObservable();
 
-  constructor() {
-    this.applyTheme(this.modeSubject.value);
+  initialize() {
+    if (this.isInitialized) {
+      return;
+    }
+
+    const initialMode = this.resolveInitialMode();
+
+    this.modeSubject.next(initialMode);
+    this.persistMode(initialMode);
+    this.applyTheme(initialMode);
 
     this.systemMediaQuery.addEventListener('change', () => {
       if (this.modeSubject.value === 'system') {
         this.applyTheme('system');
       }
     });
+
+    this.isInitialized = true;
   }
 
   setMode(mode: ThemeMode) {
@@ -37,9 +48,19 @@ export class ThemeService {
 
   private resolveInitialMode(): ThemeMode {
     const storedMode = localStorage.getItem(this.storageKey) as ThemeMode | null;
+    const modeAttribute = document.documentElement.getAttribute(this.modeAttributeName) as ThemeMode | null;
+    const themeAttribute = document.documentElement.getAttribute(this.attributeName) as ThemeMode | null;
 
-    if (storedMode === 'light' || storedMode === 'dark' || storedMode === 'system') {
+    if (this.isValidMode(storedMode)) {
       return storedMode;
+    }
+
+    if (this.isValidMode(modeAttribute)) {
+      return modeAttribute;
+    }
+
+    if (themeAttribute === 'light' || themeAttribute === 'dark') {
+      return themeAttribute;
     }
 
     return this.defaultMode;
@@ -54,9 +75,19 @@ export class ThemeService {
 
     document.documentElement.setAttribute(this.attributeName, resolvedTheme);
     document.documentElement.setAttribute(this.modeAttributeName, mode);
+
+    if (document.body) {
+      document.body.setAttribute(this.attributeName, resolvedTheme);
+      document.body.setAttribute(this.modeAttributeName, mode);
+      document.body.classList.toggle('app-theme-dark', resolvedTheme === 'dark');
+    }
   }
 
   private getSystemTheme(): 'light' | 'dark' {
     return this.systemMediaQuery.matches ? 'dark' : 'light';
+  }
+
+  private isValidMode(mode: string | null): mode is ThemeMode {
+    return mode === 'light' || mode === 'dark' || mode === 'system';
   }
 }

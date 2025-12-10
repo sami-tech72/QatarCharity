@@ -10,14 +10,14 @@
 
 .stepper-progress {
   height: 4px;
-  background: #f1f1f2;
+  background: var(--app-surface-muted);
   border-radius: 999px;
   overflow: hidden;
 }
 
 .stepper-progress-bar {
   height: 100%;
-  background: #0d6efd;
+  background: var(--app-primary);
   transition: width 0.3s ease;
 }
 
@@ -32,62 +32,62 @@
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem;
-  border: 1px solid #eef0f8;
+  border: 1px solid var(--app-border);
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .stepper-item.current {
-  border-color: #0d6efd;
-  background-color: #eef6ff;
+  border-color: var(--app-primary);
+  background-color: var(--app-soft-primary);
 }
 
 .stepper-item.completed {
-  border-color: #50cd89;
-  background-color: #ecfdf3;
+  border-color: var(--app-success);
+  background-color: var(--app-soft-success);
 }
 
 .stepper-item:hover {
-  border-color: #0d6efd;
+  border-color: var(--app-primary);
 }
 
 .stepper-icon {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #f5f8fa;
-  color: #181c32;
+  background: var(--app-surface-muted);
+  color: var(--app-text);
   display: grid;
   place-items: center;
   font-weight: 700;
 }
 
 .stepper-item.current .stepper-icon {
-  background: #0d6efd;
-  color: #fff;
+  background: var(--app-primary);
+  color: #ffffff;
 }
 
 .stepper-item.completed .stepper-icon {
-  background: #50cd89;
-  color: #fff;
+  background: var(--app-success);
+  color: #ffffff;
 }
 
 .stepper-title {
   font-weight: 700;
-  color: #181c32;
+  color: var(--app-text);
 }
 
 .stepper-desc {
-  color: #7e8299;
+  color: var(--app-muted);
   font-size: 0.9rem;
 }
 
 .criterion-card {
-  border: 1px solid #eef0f8;
+  border: 1px solid var(--app-border);
   border-radius: 0.75rem;
   padding: 1rem;
-  background: #fafbfc;
+  background: var(--app-surface-muted);
 }
 
 .criterion-actions {
@@ -96,10 +96,10 @@
 }
 
 .attachment-tile {
-  border: 1px dashed #d9d9e3;
+  border: 1px dashed var(--app-border);
   border-radius: 0.75rem;
   padding: 1rem;
-  background: #fcfcfd;
+  background: var(--app-surface);
   height: 100%;
 }
 

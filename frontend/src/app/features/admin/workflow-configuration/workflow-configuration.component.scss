@@ -3,15 +3,15 @@
 }
 
 .step-card {
-  border: 1px solid #eff2f5;
+  border: 1px solid var(--app-border);
   border-radius: 10px;
   padding: 1rem 1.25rem;
-  background: #fcfcfd;
+  background: var(--app-surface);
 }
 
 .step-pill {
-  background: #eef6ff;
-  color: #1d6fdb;
+  background: var(--app-soft-primary);
+  color: var(--app-primary);
   font-weight: 700;
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
@@ -19,17 +19,17 @@
 }
 
 .empty-state {
-  border: 1px dashed #d8dadd;
+  border: 1px dashed var(--app-border);
   padding: 1rem;
   border-radius: 10px;
-  background: #f8fafc;
+  background: var(--app-surface-muted);
   text-align: center;
 }
 
 .empty-state-table {
-  border: 1px dashed #e4e6ef;
+  border: 1px dashed var(--app-border);
   padding: 1.25rem;
   border-radius: 10px;
-  background: #fcfcfd;
+  background: var(--app-surface);
   text-align: center;
 }
