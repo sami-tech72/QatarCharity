@@ -49,6 +49,7 @@ public class GetContractReadyBidsQuery
                     entry.Rfx.Id,
                     entry.Rfx.ReferenceNumber,
                     entry.Rfx.Title,
+                    entry.Bid.SubmittedByUserId ?? string.Empty,
                     supplierName,
                     entry.Bid.BidAmount,
                     entry.Bid.Currency,

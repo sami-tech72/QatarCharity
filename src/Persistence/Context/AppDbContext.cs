@@ -21,6 +21,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ProcurementRoleTemplate> ProcurementRoleTemplates => Set<ProcurementRoleTemplate>();
     public DbSet<ProcurementRoleAvatar> ProcurementRoleAvatars => Set<ProcurementRoleAvatar>();
     public DbSet<ProcurementRolePermission> ProcurementRolePermissions => Set<ProcurementRolePermission>();
+    public DbSet<Contract> Contracts => Set<Contract>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

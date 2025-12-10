@@ -3,6 +3,7 @@ export interface ContractReadyBid {
   rfxId: string;
   referenceNumber: string;
   title: string;
+  supplierUserId: string;
   supplierName: string;
   bidAmount: number;
   currency: string;
@@ -15,4 +16,31 @@ export interface ContractManagementQuery {
   pageNumber: number;
   pageSize: number;
   search?: string;
+}
+
+export interface CreateContractPayload {
+  bidId: string;
+  rfxId: string;
+  title: string;
+  supplierName: string;
+  supplierUserId: string;
+  contractValue: number;
+  currency: string;
+  startDateUtc: string;
+  endDateUtc: string;
+  status: string;
+}
+
+export interface ContractResponse {
+  id: string;
+  bidId: string;
+  rfxId: string;
+  title: string;
+  supplierName: string;
+  contractValue: number;
+  currency: string;
+  startDateUtc: string;
+  endDateUtc: string;
+  status: string;
+  createdAtUtc: string;
 }

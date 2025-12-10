@@ -2,7 +2,12 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { ContractManagementQuery, ContractReadyBid } from '../../shared/models/contract-management.model';
+import {
+  ContractManagementQuery,
+  ContractReadyBid,
+  CreateContractPayload,
+  ContractResponse,
+} from '../../shared/models/contract-management.model';
 import { PagedResult } from '../../shared/models/pagination.model';
 import { ApiService } from './api.service';
 
@@ -20,6 +25,10 @@ export class ContractManagementService {
         },
       })
       .pipe(map((response) => this.unwrap(response)));
+  }
+
+  createContract(payload: CreateContractPayload): Observable<ContractResponse> {
+    return this.api.post<ContractResponse>('contracts', payload).pipe(map((response) => this.unwrap(response)));
   }
 
   private unwrap<T>(response: ApiResponse<T>): T {

@@ -1,6 +1,7 @@
 using Api.Models;
 using Application.DTOs.Common;
 using Application.DTOs.Contracts;
+using Application.Features.ContractManagement.Commands;
 using Application.Features.ContractManagement.Queries;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -14,11 +15,15 @@ namespace Api.Controllers;
 [Authorize(Roles = $"{Roles.Admin},{Roles.Procurement}")]
 public class ContractManagementController : ControllerBase
 {
+    private readonly CreateContractCommand _createContractCommand;
     private readonly GetContractReadyBidsQuery _getContractReadyBidsQuery;
 
-    public ContractManagementController(GetContractReadyBidsQuery getContractReadyBidsQuery)
+    public ContractManagementController(
+        GetContractReadyBidsQuery getContractReadyBidsQuery,
+        CreateContractCommand createContractCommand)
     {
         _getContractReadyBidsQuery = getContractReadyBidsQuery;
+        _createContractCommand = createContractCommand;
     }
 
     [HttpGet("ready")]
@@ -28,5 +33,19 @@ public class ContractManagementController : ControllerBase
         var result = await _getContractReadyBidsQuery.HandleAsync(query);
 
         return Ok(ApiResponse<PagedResult<ContractReadyBidResponse>>.Ok(result.Value!, "Approved bids ready for contract management retrieved."));
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(ApiResponse<ContractResponse>), StatusCodes.Status201Created)]
+    public async Task<ActionResult<ApiResponse<ContractResponse>>> CreateContract([FromBody] CreateContractRequest request)
+    {
+        var result = await _createContractCommand.HandleAsync(request);
+
+        if (!result.Success)
+        {
+            return BadRequest(ApiResponse<ContractResponse>.Fail(result.Error!, result.Message));
+        }
+
+        return StatusCode(StatusCodes.Status201Created, ApiResponse<ContractResponse>.Ok(result.Value!, "Contract created."));
     }
 }
