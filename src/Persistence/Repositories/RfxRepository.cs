@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Application.Interfaces.Repositories;
 using Domain.Entities;
 using RfxEntity = Domain.Entities.Rfx;
@@ -37,14 +38,12 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
             .Take(pageSize)
             .ToListAsync();
 
-        return results
-            .Select(entry => (entry.Bid, entry.Rfx))
-            .ToList();
+        return results.Select(entry => (entry.Bid, entry.Rfx)).ToList();
     }
 
-
-
-    public async Task<IReadOnlyList<RfxEntity>> GetRfxSummariesAsync(string? search, bool assignedOnly, string currentUserId, int pageNumber, int pageSize)
+    public async Task<IReadOnlyList<RfxEntity>> GetRfxSummariesAsync(
+        string? search, bool assignedOnly, string currentUserId,
+        int pageNumber, int pageSize)
     {
         var rfxQuery = dbContext.Rfxes
             .Include(rfx => rfx.Workflow)
@@ -53,17 +52,18 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
         if (assignedOnly)
         {
-            rfxQuery = rfxQuery.Where(rfx => rfx.CommitteeMembers.Any(member => member.UserId == currentUserId));
+            rfxQuery = rfxQuery.Where(rfx =>
+                rfx.CommitteeMembers.Any(member => member.UserId == currentUserId));
         }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var normalizedSearch = search.Trim();
+            var searchLower = search.Trim().ToLower();
 
             rfxQuery = rfxQuery.Where(rfx =>
-                (rfx.ReferenceNumber ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
-                (rfx.Title ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
-                (rfx.Category ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
+                (rfx.ReferenceNumber ?? "").ToLower().Contains(searchLower) ||
+                (rfx.Title ?? "").ToLower().Contains(searchLower) ||
+                (rfx.Category ?? "").ToLower().Contains(searchLower));
         }
 
         return await rfxQuery
@@ -79,17 +79,18 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
         if (assignedOnly)
         {
-            rfxQuery = rfxQuery.Where(rfx => rfx.CommitteeMembers.Any(member => member.UserId == currentUserId));
+            rfxQuery = rfxQuery.Where(rfx =>
+                rfx.CommitteeMembers.Any(member => member.UserId == currentUserId));
         }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var normalizedSearch = search.Trim();
+            var searchLower = search.Trim().ToLower();
 
             rfxQuery = rfxQuery.Where(rfx =>
-                (rfx.ReferenceNumber ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
-                (rfx.Title ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
-                (rfx.Category ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
+                (rfx.ReferenceNumber ?? "").ToLower().Contains(searchLower) ||
+                (rfx.Title ?? "").ToLower().Contains(searchLower) ||
+                (rfx.Category ?? "").ToLower().Contains(searchLower));
         }
 
         return await rfxQuery.CountAsync();
@@ -108,10 +109,10 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
     public Task<RfxEntity?> GetRfxWithEvaluationAsync(Guid id)
     {
         return dbContext.Rfxes
-            .Include(entity => entity.Workflow)
-            .Include(entity => entity.EvaluationCriteria)
-            .Include(entity => entity.CommitteeMembers)
-            .FirstOrDefaultAsync(entity => entity.Id == id);
+            .Include(e => e.Workflow)
+            .Include(e => e.EvaluationCriteria)
+            .Include(e => e.CommitteeMembers)
+            .FirstOrDefaultAsync(e => e.Id == id);
     }
 
     public async Task AddRfxAsync(RfxEntity rfx)
@@ -119,34 +120,27 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         await dbContext.Rfxes.AddAsync(rfx);
     }
 
-    public Task SaveChangesAsync()
-    {
-        return dbContext.SaveChangesAsync();
-    }
+    public Task SaveChangesAsync() => dbContext.SaveChangesAsync();
 
     public Task<SupplierBid?> GetBidAsync(Guid rfxId, Guid bidId)
     {
-        return dbContext.SupplierBids.FirstOrDefaultAsync(b => b.Id == bidId && b.RfxId == rfxId);
+        return dbContext.SupplierBids
+            .FirstOrDefaultAsync(b => b.Id == bidId && b.RfxId == rfxId);
     }
 
     public async Task<string> GenerateReferenceNumberAsync()
     {
         var now = DateTime.UtcNow;
-        var count = await dbContext.Rfxes.CountAsync(rfx => rfx.CreatedAt.Year == now.Year);
+        var count = await dbContext.Rfxes.CountAsync(r => r.CreatedAt.Year == now.Year);
         return $"RFx-{now:yyyy}-{count + 1:D4}";
     }
 
     public async Task<List<string>> GetMissingCommitteeMemberIdsAsync(IEnumerable<string> committeeMemberIds)
     {
-        var ids = committeeMemberIds
-            .Where(id => !string.IsNullOrWhiteSpace(id))
-            .Distinct()
-            .ToList();
+        var ids = committeeMemberIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToList();
 
-        if (ids.Count == 0)
-        {
+        if (!ids.Any())
             return new List<string>();
-        }
 
         var existingIds = await dbContext.Users
             .AsNoTracking()
@@ -159,15 +153,10 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
     public async Task<List<RfxCommitteeMember>> BuildCommitteeMembersAsync(IEnumerable<string> committeeMemberIds)
     {
-        var ids = committeeMemberIds
-            .Where(id => !string.IsNullOrWhiteSpace(id))
-            .Distinct()
-            .ToList();
+        var ids = committeeMemberIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToList();
 
-        if (ids.Count == 0)
-        {
+        if (!ids.Any())
             return new List<RfxCommitteeMember>();
-        }
 
         var users = await dbContext.Users
             .AsNoTracking()
@@ -179,7 +168,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
-            DisplayName = user.DisplayName ?? user.Email ?? user.UserName ?? string.Empty,
+            DisplayName = user.DisplayName ?? user.Email ?? user.UserName ?? ""
         }).ToList();
     }
 
@@ -194,8 +183,8 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         var query = BuildPublishedRfxQuery(search);
 
         return await query
-            .OrderBy(rfx => rfx.SubmissionDeadline)
-            .ThenBy(rfx => rfx.Title)
+            .OrderBy(r => r.SubmissionDeadline)
+            .ThenBy(r => r.Title)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -205,8 +194,9 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
     {
         return await dbContext.Rfxes
             .AsNoTracking()
-            .FirstOrDefaultAsync(rfx =>
-                rfx.Id == rfxId && string.Equals(rfx.Status, "published", StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefaultAsync(r =>
+                r.Id == rfxId &&
+                r.Status.ToLower() == "published");
     }
 
     public async Task AddSupplierBidAsync(SupplierBid bid)
@@ -214,7 +204,6 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         dbContext.SupplierBids.Add(bid);
         await Task.CompletedTask;
     }
-
 
     public Task AddBidReviewAsync(SupplierBidReview review)
     {
@@ -239,87 +228,84 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
     public async Task<Dictionary<Guid, List<SupplierBidReview>>> GetBidReviewsAsync(IEnumerable<Guid> bidIds)
     {
-        var normalizedIds = bidIds
-            .Where(id => id != Guid.Empty)
-            .Distinct()
-            .ToList();
+        var ids = bidIds.Where(id => id != Guid.Empty).Distinct().ToList();
 
-        if (normalizedIds.Count == 0)
-        {
+        if (!ids.Any())
             return new Dictionary<Guid, List<SupplierBidReview>>();
-        }
 
         var reviews = await dbContext.SupplierBidReviews
             .AsNoTracking()
-            .Where(r => normalizedIds.Contains(r.BidId))
+            .Where(r => ids.Contains(r.BidId))
             .OrderByDescending(r => r.ReviewedAtUtc)
             .ToListAsync();
 
-        return reviews
-            .GroupBy(r => r.BidId)
-            .ToDictionary(group => group.Key, group => group.ToList());
+        return reviews.GroupBy(r => r.BidId)
+                      .ToDictionary(g => g.Key, g => g.ToList());
     }
 
     private IQueryable<RfxEntity> BuildPublishedRfxQuery(string? search)
     {
-        var rfxQuery = dbContext.Rfxes
+        var query = dbContext.Rfxes
             .AsNoTracking()
-            .Where(rfx => rfx.Status != null && rfx.Status.Equals("published", StringComparison.OrdinalIgnoreCase));
+            .Where(r => r.Status != null && r.Status.ToLower() == "published");
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            rfxQuery = rfxQuery.Where(rfx =>
-                (rfx.ReferenceNumber ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                (rfx.Title ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                (rfx.Category ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase));
+            var s = search.ToLower();
+
+            query = query.Where(r =>
+                (r.ReferenceNumber ?? "").ToLower().Contains(s) ||
+                (r.Title ?? "").ToLower().Contains(s) ||
+                (r.Category ?? "").ToLower().Contains(s));
         }
 
-        return rfxQuery;
+        return query;
     }
 
     private IQueryable<BidWithRfx> BuildBidQuery(string? search, string? submittedByUserId, string? evaluationStatus, bool excludeWithContract)
     {
-        var bidsQuery = dbContext.SupplierBids
+        var bids = dbContext.SupplierBids
             .AsNoTracking()
-            .Join(dbContext.Rfxes.AsNoTracking(), bid => bid.RfxId, rfx => rfx.Id, (bid, rfx) => new BidWithRfx
-            {
-                Bid = bid,
-                Rfx = rfx,
-            });
+            .Join(dbContext.Rfxes.AsNoTracking(),
+                bid => bid.RfxId,
+                rfx => rfx.Id,
+                (bid, rfx) => new BidWithRfx { Bid = bid, Rfx = rfx });
 
         if (excludeWithContract)
         {
-            bidsQuery = bidsQuery.Where(entry => !dbContext.Contracts.Any(contract => contract.BidId == entry.Bid.Id));
+            bids = bids.Where(entry =>
+                !dbContext.Contracts.Any(c => c.BidId == entry.Bid.Id));
         }
 
         if (!string.IsNullOrWhiteSpace(submittedByUserId))
         {
-            bidsQuery = bidsQuery.Where(entry => entry.Bid.SubmittedByUserId == submittedByUserId);
+            bids = bids.Where(entry => entry.Bid.SubmittedByUserId == submittedByUserId);
         }
 
         if (!string.IsNullOrWhiteSpace(evaluationStatus))
         {
-            var normalizedStatus = evaluationStatus.Trim();
-            bidsQuery = bidsQuery.Where(entry => string.Equals(entry.Bid.EvaluationStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase));
+            var evalLower = evaluationStatus.Trim().ToLower();
+
+            bids = bids.Where(entry =>
+                (entry.Bid.EvaluationStatus ?? "").ToLower() == evalLower);
         }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var normalizedSearch = search.Trim();
+            var s = search.ToLower();
 
-            bidsQuery = bidsQuery.Where(entry =>
-                (entry.Rfx.ReferenceNumber ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
-                (entry.Rfx.Title ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
-                (entry.Bid.EvaluationStatus ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
+            bids = bids.Where(entry =>
+                (entry.Rfx.ReferenceNumber ?? "").ToLower().Contains(s) ||
+                (entry.Rfx.Title ?? "").ToLower().Contains(s) ||
+                (entry.Bid.EvaluationStatus ?? "").ToLower().Contains(s));
         }
 
-        return bidsQuery;
+        return bids;
     }
 
     private sealed class BidWithRfx
     {
         public required SupplierBid Bid { get; init; }
-
         public required RfxEntity Rfx { get; init; }
     }
 }
