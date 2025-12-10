@@ -52,7 +52,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let contract of filteredReadyBids">
-            <td class="contract-number">{{ contract.referenceNumber }}</td>
+            <td class="contract-number">{{ contract.referenceNumber || 'Direct' }}</td>
             <td class="title">{{ contract.title }}</td>
             <td>{{ contract.supplierName }}</td>
             <td class="value">{{ contract.bidAmount | currency: contract.currency }}</td>
@@ -95,6 +95,21 @@
       <button class="btn-close" aria-label="Close" (click)="closeCreateModal()">×</button>
     </div>
     <form [formGroup]="createForm" (ngSubmit)="submitContract()">
+      <div class="mode-toggle" *ngIf="readyBids.length > 0">
+        <label>
+          <input type="radio" name="mode" [checked]="!directContract" (change)="setContractMode(false)" />
+          From approved bid
+        </label>
+        <label>
+          <input type="radio" name="mode" [checked]="directContract" (change)="setContractMode(true)" />
+          Direct contract (no tender)
+        </label>
+      </div>
+
+      <div class="mode-toggle info" *ngIf="readyBids.length === 0">
+        No approved bids are available. Capture a direct contract by entering supplier details manually.
+      </div>
+
       <div class="form-grid">
         <label class="form-field">
           <span>Contract Title *</span>
@@ -103,10 +118,20 @@
 
         <label class="form-field">
           <span>Supplier *</span>
-          <select formControlName="bidId" #bidSelect (change)="onBidSelected(bidSelect.value)">
-            <option value="" disabled>Select supplier</option>
-            <option *ngFor="let bid of readyBids" [value]="bid.bidId">{{ bid.supplierName }} - {{ bid.title }}</option>
-          </select>
+          <ng-container *ngIf="!directContract; else manualSupplier">
+            <select formControlName="bidId" #bidSelect (change)="onBidSelected(bidSelect.value)">
+              <option value="" disabled>Select supplier</option>
+              <option *ngFor="let bid of readyBids" [value]="bid.bidId">{{ bid.supplierName }} - {{ bid.title }}</option>
+            </select>
+          </ng-container>
+          <ng-template #manualSupplier>
+            <input type="text" formControlName="supplierName" placeholder="Enter supplier name" />
+          </ng-template>
+        </label>
+
+        <label class="form-field" *ngIf="directContract">
+          <span>Supplier User ID *</span>
+          <input type="text" formControlName="supplierUserId" placeholder="Supplier account ID" />
         </label>
 
         <label class="form-field">
@@ -123,9 +148,14 @@
           <span>End Date *</span>
           <input type="date" formControlName="endDateUtc" />
         </label>
+
+        <label class="form-field" *ngIf="directContract">
+          <span>Currency *</span>
+          <input type="text" formControlName="currency" placeholder="Enter currency (e.g. USD)" />
+        </label>
       </div>
 
-      <div class="inline-fields">
+      <div class="inline-fields" *ngIf="!directContract">
         <div>
           <label class="muted">Selected Supplier</label>
           <div class="pill">{{ selectedBid?.supplierName || 'Select a supplier' }}</div>
@@ -166,9 +196,9 @@
           <th>Status</th>
         </tr>
       </thead>
-      <tbody>
-        <tr *ngFor="let contract of filteredContracts">
-          <td class="contract-number">{{ contract.referenceNumber }}</td>
+        <tbody>
+          <tr *ngFor="let contract of filteredContracts">
+          <td class="contract-number">{{ contract.referenceNumber || 'Direct' }}</td>
           <td class="title">{{ contract.title }}</td>
           <td>{{ contract.supplierName }}</td>
           <td class="value">{{ contract.contractValue | currency: contract.currency }}</td>

@@ -82,12 +82,14 @@ export class MyContractsComponent implements OnInit {
 
   filterContracts(event: Event): void {
     const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
-    this.filteredContracts = this.contracts.filter(
-      (contract) =>
-        contract.referenceNumber.toLowerCase().includes(searchTerm) ||
+    this.filteredContracts = this.contracts.filter((contract) => {
+      const reference = contract.referenceNumber?.toLowerCase() ?? '';
+      return (
+        reference.includes(searchTerm) ||
         contract.title.toLowerCase().includes(searchTerm) ||
-        contract.supplierName.toLowerCase().includes(searchTerm),
-    );
+        contract.supplierName.toLowerCase().includes(searchTerm)
+      );
+    });
   }
 
   getStatusClass(status: string): string {

@@ -22,8 +22,13 @@ public class ContractRepository : IContractRepository
         await _dbContext.Contracts.AddAsync(contract);
     }
 
-    public async Task<bool> ExistsForBidAsync(Guid bidId)
+    public async Task<bool> ExistsForBidAsync(Guid? bidId)
     {
+        if (bidId is null)
+        {
+            return false;
+        }
+
         return await _dbContext.Contracts.AnyAsync(c => c.BidId == bidId);
     }
 
@@ -72,14 +77,17 @@ public class ContractRepository : IContractRepository
     {
         return await _dbContext.Contracts
             .Where(contract => contract.Id == contractId)
-            .Join(
+            .GroupJoin(
                 _dbContext.Rfxes,
                 contract => contract.RfxId,
                 rfx => rfx.Id,
-                (contract, rfx) => new ContractWithReference
+                (contract, rfxGroup) => new { contract, rfxGroup })
+            .SelectMany(
+                entry => entry.rfxGroup.DefaultIfEmpty(),
+                (entry, rfx) => new ContractWithReference
                 {
-                    Contract = contract,
-                    ReferenceNumber = rfx.ReferenceNumber ?? string.Empty,
+                    Contract = entry.contract,
+                    ReferenceNumber = rfx?.ReferenceNumber ?? string.Empty,
                 })
             .FirstOrDefaultAsync();
     }
@@ -92,14 +100,17 @@ public class ContractRepository : IContractRepository
     private IQueryable<ContractWithReference> BuildContractsQuery(string? search, string? supplierUserId)
     {
         var query = _dbContext.Contracts
-            .Join(
+            .GroupJoin(
                 _dbContext.Rfxes,
                 contract => contract.RfxId,
                 rfx => rfx.Id,
-                (contract, rfx) => new ContractWithReference
+                (contract, rfxGroup) => new { contract, rfxGroup })
+            .SelectMany(
+                entry => entry.rfxGroup.DefaultIfEmpty(),
+                (entry, rfx) => new ContractWithReference
                 {
-                    Contract = contract,
-                    ReferenceNumber = rfx.ReferenceNumber ?? string.Empty,
+                    Contract = entry.contract,
+                    ReferenceNumber = rfx?.ReferenceNumber ?? string.Empty,
                 })
             .AsQueryable();
 

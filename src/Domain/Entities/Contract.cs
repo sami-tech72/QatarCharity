@@ -6,9 +6,9 @@ public class Contract
 {
     public Guid Id { get; set; }
 
-    public Guid BidId { get; set; }
+    public Guid? BidId { get; set; }
 
-    public Guid RfxId { get; set; }
+    public Guid? RfxId { get; set; }
 
     public string Title { get; set; } = default!;
 

@@ -11,8 +11,8 @@ public record SupplierContractQueryParameters
 
 public record SupplierContractResponse(
     Guid Id,
-    Guid BidId,
-    Guid RfxId,
+    Guid? BidId,
+    Guid? RfxId,
     string ReferenceNumber,
     string Title,
     string SupplierName,

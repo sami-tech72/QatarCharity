@@ -26,27 +26,35 @@ public class CreateContractCommand
             return Result<ContractResponse>.Fail("invalid_request", validationError);
         }
 
-        var rfx = await _rfxRepository.GetRfxByIdAsync(request.RfxId);
-        if (rfx is null)
-        {
-            return Result<ContractResponse>.Fail("not_found", "The RFx referenced by this bid could not be found.");
-        }
+        var normalizedBidId = request.BidId == Guid.Empty ? null : request.BidId;
+        var normalizedRfxId = request.RfxId == Guid.Empty ? null : request.RfxId;
+        var isDirectContract = request.IsDirectContract || normalizedBidId is null || normalizedRfxId is null;
 
-        var bid = await _rfxRepository.GetBidAsync(request.RfxId, request.BidId);
-        if (bid is null)
+        RfxEntity? rfx = null;
+        if (!isDirectContract)
         {
-            return Result<ContractResponse>.Fail("not_found", "The selected bid could not be found for this RFx.");
-        }
+            rfx = await _rfxRepository.GetRfxByIdAsync(normalizedRfxId!.Value);
+            if (rfx is null)
+            {
+                return Result<ContractResponse>.Fail("not_found", "The RFx referenced by this bid could not be found.");
+            }
 
-        if (!string.Equals(bid.EvaluationStatus, "approved", StringComparison.OrdinalIgnoreCase))
-        {
-            return Result<ContractResponse>.Fail("invalid_status", "Only approved bids can be converted into contracts.");
-        }
+            var bid = await _rfxRepository.GetBidAsync(normalizedRfxId!.Value, normalizedBidId!.Value);
+            if (bid is null)
+            {
+                return Result<ContractResponse>.Fail("not_found", "The selected bid could not be found for this RFx.");
+            }
 
-        var exists = await _contractRepository.ExistsForBidAsync(request.BidId);
-        if (exists)
-        {
-            return Result<ContractResponse>.Fail("duplicate", "A contract already exists for this bid.");
+            if (!string.Equals(bid.EvaluationStatus, "approved", StringComparison.OrdinalIgnoreCase))
+            {
+                return Result<ContractResponse>.Fail("invalid_status", "Only approved bids can be converted into contracts.");
+            }
+
+            var exists = await _contractRepository.ExistsForBidAsync(normalizedBidId);
+            if (exists)
+            {
+                return Result<ContractResponse>.Fail("duplicate", "A contract already exists for this bid.");
+            }
         }
 
         var normalizedCurrency = request.Currency.Trim();
@@ -55,8 +63,8 @@ public class CreateContractCommand
         var contract = new Contract
         {
             Id = Guid.NewGuid(),
-            BidId = request.BidId,
-            RfxId = request.RfxId,
+            BidId = normalizedBidId,
+            RfxId = normalizedRfxId,
             Title = request.Title.Trim(),
             SupplierName = request.SupplierName.Trim(),
             SupplierUserId = normalizedSupplierId,
@@ -75,7 +83,7 @@ public class CreateContractCommand
             contract.Id,
             contract.BidId,
             contract.RfxId,
-            rfx.ReferenceNumber ?? string.Empty,
+            rfx?.ReferenceNumber ?? string.Empty,
             contract.Title,
             contract.SupplierName,
             contract.SupplierUserId,
@@ -93,9 +101,18 @@ public class CreateContractCommand
 
     private static string? ValidateRequest(CreateContractRequest request)
     {
-        if (request.BidId == Guid.Empty || request.RfxId == Guid.Empty)
+        var hasBid = request.BidId.HasValue && request.BidId.Value != Guid.Empty;
+        var hasRfx = request.RfxId.HasValue && request.RfxId.Value != Guid.Empty;
+        var isDirect = request.IsDirectContract || !hasBid || !hasRfx;
+
+        if (!isDirect && (!hasBid || !hasRfx))
         {
             return "A valid bid and RFx reference are required.";
+        }
+
+        if (isDirect && string.IsNullOrWhiteSpace(request.SupplierUserId))
+        {
+            return "Supplier user reference is required for direct contracts.";
         }
 
         if (string.IsNullOrWhiteSpace(request.Title))

@@ -20,6 +20,7 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   contracts: ContractRecord[] = [];
   filteredContracts: ContractRecord[] = [];
   selectedBid?: ContractReadyBid;
+  directContract = false;
   searchTerm = '';
   summary = {
     total: 0,
@@ -41,8 +42,9 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
       title: ['', [Validators.required, Validators.maxLength(200)]],
       bidId: ['', Validators.required],
       rfxId: ['', Validators.required],
+      directContract: [false],
       supplierName: [{ value: '', disabled: true }, Validators.required],
-      supplierUserId: ['', Validators.required],
+      supplierUserId: [{ value: '', disabled: true }, Validators.required],
       contractValue: [0, [Validators.required, Validators.min(0.01)]],
       currency: [{ value: '', disabled: true }, Validators.required],
       startDateUtc: ['', Validators.required],
@@ -109,14 +111,12 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   }
 
   openCreateModal(bid?: ContractReadyBid): void {
-    if (!this.readyBids.length) {
-      this.notification.error('No approved bids are available to create a contract.');
-      return;
-    }
+    const creatingDirectly = !this.readyBids.length;
+    const preselected = creatingDirectly ? undefined : bid ?? this.readyBids[0];
 
-    const preselected = bid ?? this.readyBids[0];
-    this.createForm.reset();
+    this.createForm.reset({ directContract: creatingDirectly });
     this.selectedBid = undefined;
+    this.setContractMode(creatingDirectly);
 
     if (preselected) {
       this.onBidSelected(preselected.bidId);
@@ -133,10 +133,49 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
     console.log('closeCreateModal called');
     this.showCreateModal = false;
     this.selectedBid = undefined;
+    this.directContract = false;
     this.createForm.reset();
   }
 
+  setContractMode(isDirect: boolean): void {
+    this.directContract = isDirect;
+    this.createForm.get('directContract')?.setValue(isDirect, { emitEvent: false });
+
+    const bidIdControl = this.createForm.get('bidId');
+    const rfxIdControl = this.createForm.get('rfxId');
+    const supplierNameControl = this.createForm.get('supplierName');
+    const supplierUserIdControl = this.createForm.get('supplierUserId');
+    const currencyControl = this.createForm.get('currency');
+
+    if (isDirect) {
+      bidIdControl?.clearValidators();
+      rfxIdControl?.clearValidators();
+      supplierNameControl?.enable();
+      supplierUserIdControl?.enable();
+      currencyControl?.enable();
+      this.selectedBid = undefined;
+      bidIdControl?.setValue(null);
+      rfxIdControl?.setValue(null);
+      currencyControl?.setValue('');
+      supplierNameControl?.setValue('');
+      supplierUserIdControl?.setValue('');
+    } else {
+      bidIdControl?.setValidators([Validators.required]);
+      rfxIdControl?.setValidators([Validators.required]);
+      supplierNameControl?.disable();
+      supplierUserIdControl?.disable();
+      currencyControl?.disable();
+    }
+
+    bidIdControl?.updateValueAndValidity();
+    rfxIdControl?.updateValueAndValidity();
+    supplierNameControl?.updateValueAndValidity();
+    supplierUserIdControl?.updateValueAndValidity();
+    currencyControl?.updateValueAndValidity();
+  }
+
   onBidSelected(bidId: string): void {
+    this.setContractMode(false);
     const bid = this.readyBids.find((c) => c.bidId === bidId);
     if (!bid) {
       return;
@@ -150,17 +189,21 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
       supplierUserId: bid.supplierUserId,
       currency: bid.currency,
       contractValue: bid.bidAmount,
+      directContract: false,
     });
   }
 
   submitContract(): void {
-    if (this.createForm.invalid || !this.selectedBid) {
+    if (this.createForm.invalid || (!this.directContract && !this.selectedBid)) {
       this.createForm.markAllAsTouched();
       return;
     }
 
     const payload = {
       ...this.createForm.getRawValue(),
+      bidId: this.directContract ? null : this.createForm.value.bidId,
+      rfxId: this.directContract ? null : this.createForm.value.rfxId,
+      directContract: this.directContract,
       startDateUtc: new Date(this.createForm.value.startDateUtc).toISOString(),
       endDateUtc: new Date(this.createForm.value.endDateUtc).toISOString(),
     };

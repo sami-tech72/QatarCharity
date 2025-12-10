@@ -71,7 +71,7 @@
           </thead>
           <tbody>
             <tr *ngFor="let contract of filteredContracts">
-              <td class="fw-semibold text-primary">{{ contract.referenceNumber }}</td>
+              <td class="fw-semibold text-primary">{{ contract.referenceNumber || 'Direct' }}</td>
               <td>{{ contract.title }}</td>
               <td>{{ contract.contractValue | currency: contract.currency }}</td>
               <td>

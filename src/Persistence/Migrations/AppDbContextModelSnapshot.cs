@@ -28,7 +28,7 @@ namespace Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("BidId")
+                    b.Property<Guid?>("BidId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("ContractValue")
@@ -46,7 +46,7 @@ namespace Persistence.Migrations
                     b.Property<DateTime>("EndDateUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("RfxId")
+                    b.Property<Guid?>("RfxId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("StartDateUtc")

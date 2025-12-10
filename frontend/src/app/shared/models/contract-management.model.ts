@@ -19,8 +19,9 @@ export interface ContractManagementQuery {
 }
 
 export interface CreateContractPayload {
-  bidId: string;
-  rfxId: string;
+  bidId?: string | null;
+  rfxId?: string | null;
+  directContract?: boolean;
   title: string;
   supplierName: string;
   supplierUserId: string;
@@ -32,8 +33,8 @@ export interface CreateContractPayload {
 
 export interface ContractResponse {
   id: string;
-  bidId: string;
-  rfxId: string;
+  bidId?: string | null;
+  rfxId?: string | null;
   referenceNumber: string;
   title: string;
   supplierName: string;

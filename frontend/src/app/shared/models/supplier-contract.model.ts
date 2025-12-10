@@ -2,8 +2,8 @@ import { PagedResult } from './pagination.model';
 
 export interface SupplierContract {
   id: string;
-  bidId: string;
-  rfxId: string;
+  bidId?: string | null;
+  rfxId?: string | null;
   referenceNumber: string;
   title: string;
   supplierName: string;
