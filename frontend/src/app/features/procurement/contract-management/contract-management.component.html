@@ -103,7 +103,7 @@
 
         <label class="form-field">
           <span>Supplier *</span>
-          <select formControlName="bidId" (change)="onBidSelected($event.target.value)">
+          <select formControlName="bidId" #bidSelect (change)="onBidSelected(bidSelect.value)">
             <option value="" disabled>Select supplier</option>
             <option *ngFor="let bid of contracts" [value]="bid.bidId">{{ bid.supplierName }} - {{ bid.title }}</option>
           </select>
