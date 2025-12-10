@@ -237,6 +237,20 @@ public class UsersController : ControllerBase
                 details: BuildErrorDetails(roleResult)));
         }
 
+        if (request.Role == Roles.Supplier)
+        {
+            var supplierLinkResult = await EnsureSupplierProfileAsync(user, request.DisplayName ?? request.Email, request.Email);
+
+            if (!supplierLinkResult.Success)
+            {
+                await _userManager.DeleteAsync(user);
+
+                return BadRequest(ApiResponse<UserResponse>.Fail(
+                    supplierLinkResult.ErrorMessage ?? "Unable to link supplier profile.",
+                    errorCode: supplierLinkResult.ErrorCode ?? "users_supplier_link_failed"));
+            }
+        }
+
         var response = new UserResponse(
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
@@ -346,6 +360,18 @@ public class UsersController : ControllerBase
             }
         }
 
+        if (request.Role == Roles.Supplier)
+        {
+            var supplierLinkResult = await EnsureSupplierProfileAsync(user, request.DisplayName ?? request.Email, request.Email);
+
+            if (!supplierLinkResult.Success)
+            {
+                return BadRequest(ApiResponse<UserResponse>.Fail(
+                    supplierLinkResult.ErrorMessage ?? "Unable to link supplier profile.",
+                    errorCode: supplierLinkResult.ErrorCode ?? "users_supplier_link_failed"));
+            }
+        }
+
         var response = new UserResponse(
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
@@ -421,6 +447,112 @@ public class UsersController : ControllerBase
             .ToList();
 
         return new ProcurementUserRoleDto(template.Id, template.Name, permissions);
+    }
+
+    private async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> EnsureSupplierProfileAsync(
+        ApplicationUser user,
+        string? displayName,
+        string email)
+    {
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var existingSupplier = await _dbContext.Suppliers.FirstOrDefaultAsync(supplier =>
+            (!string.IsNullOrWhiteSpace(supplier.PortalUserEmail) &&
+             supplier.PortalUserEmail.ToLower() == normalizedEmail) ||
+            supplier.PortalUserId == user.Id);
+
+        var resolvedDisplayName = string.IsNullOrWhiteSpace(displayName)
+            ? email.Trim()
+            : displayName!.Trim();
+
+        if (existingSupplier is not null)
+        {
+            existingSupplier.HasPortalAccess = true;
+            existingSupplier.PortalUserEmail = email.Trim();
+            existingSupplier.PortalUserId = user.Id;
+
+            if (string.IsNullOrWhiteSpace(existingSupplier.CompanyName))
+            {
+                existingSupplier.CompanyName = resolvedDisplayName;
+            }
+
+            if (string.IsNullOrWhiteSpace(existingSupplier.PrimaryContactName))
+            {
+                existingSupplier.PrimaryContactName = resolvedDisplayName;
+            }
+
+            if (string.IsNullOrWhiteSpace(existingSupplier.PrimaryContactEmail))
+            {
+                existingSupplier.PrimaryContactEmail = email.Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(existingSupplier.PrimaryContactPhone))
+            {
+                existingSupplier.PrimaryContactPhone = "N/A";
+            }
+
+            if (string.IsNullOrWhiteSpace(existingSupplier.ContactPerson))
+            {
+                existingSupplier.ContactPerson = resolvedDisplayName;
+            }
+        }
+        else
+        {
+            var supplier = await BuildSupplierShellAsync(user, resolvedDisplayName, email.Trim());
+            await _dbContext.Suppliers.AddAsync(supplier);
+        }
+
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+            return (true, null, null);
+        }
+        catch (DbUpdateException)
+        {
+            return (false, "users_supplier_link_failed", "Unable to link the user to supplier management.");
+        }
+    }
+
+    private async Task<Supplier> BuildSupplierShellAsync(ApplicationUser user, string displayName, string email)
+    {
+        return new Supplier
+        {
+            Id = Guid.NewGuid(),
+            SupplierCode = await GenerateUniqueSupplierCodeAsync(),
+            CompanyName = displayName,
+            RegistrationNumber = "Pending",
+            PrimaryContactName = displayName,
+            PrimaryContactEmail = email,
+            PrimaryContactPhone = "N/A",
+            BusinessCategories = "General",
+            CompanyAddress = "Pending update",
+            Website = null,
+            YearEstablished = DateTime.UtcNow.Year,
+            NumberOfEmployees = 1,
+            UploadedDocuments = string.Empty,
+            Category = "General",
+            ContactPerson = displayName,
+            SubmissionDate = DateTime.UtcNow,
+            Status = SupplierStatus.Pending,
+            HasPortalAccess = true,
+            PortalUserEmail = email,
+            PortalUserId = user.Id,
+        };
+    }
+
+    private async Task<string> GenerateUniqueSupplierCodeAsync()
+    {
+        for (var attempt = 0; attempt < 10; attempt++)
+        {
+            var candidate = $"#SUB-{Random.Shared.Next(1000, 9999)}";
+            var exists = await _dbContext.Suppliers.AnyAsync(supplier => supplier.SupplierCode == candidate);
+
+            if (!exists)
+            {
+                return candidate;
+            }
+        }
+
+        throw new InvalidOperationException("Unable to generate a unique supplier code.");
     }
 
     private static Dictionary<string, object?> BuildErrorDetails(IdentityResult result)
