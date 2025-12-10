@@ -17,6 +17,10 @@ export class NotificationService {
     setTimeout(() => this.toastr.success(message, title, this.config), this.toastDelay);
   }
 
+  warning(message: string, title = 'Warning') {
+    setTimeout(() => this.toastr.warning(message, title, this.config), this.toastDelay);
+  }
+
   error(message: string, title = 'Error') {
     setTimeout(() => this.toastr.error(message, title, this.config), this.toastDelay);
   }
