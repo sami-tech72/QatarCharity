@@ -260,94 +260,91 @@
         </div>
           <!--end::Card header-->
           <!--begin::Card body-->
-          <div class="card-body py-4">
-            <!--begin::Table-->
-            <table
-              class="table align-middle table-row-dashed fs-6 gy-5"
-              id="kt_table_users"
-            >
-            <thead>
-              <tr
-                class="text-start text-muted fw-bold fs-7 text-uppercase gs-0"
-              >
-                <th class="min-w-125px">User</th>
-                <th class="min-w-125px">Role</th>
-                <th class="min-w-150px">Sub-role</th>
-                <th class="min-w-125px">Last login</th>
-                <th class="min-w-100px">Status</th>
-                <th class="text-end min-w-125px">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-600 fw-semibold">
-              <tr *ngIf="isLoading">
-                <td colspan="6" class="text-center py-10">
-                  <span class="spinner-border text-primary" role="status" aria-hidden="true"></span>
-                </td>
-              </tr>
-              <tr *ngIf="!isLoading && !users.length">
-                <td colspan="6" class="text-center py-10 text-muted">
-                  No users found.
-                </td>
-              </tr>
-              <tr *ngFor="let user of users; trackBy: trackById" class="align-middle">
-                <td class="d-flex align-items-center">
-                  <div class="d-flex flex-column">
-                    <span class="text-gray-800 text-hover-primary mb-1 fw-semibold">{{ user.displayName }}</span>
-                    <span class="text-muted">{{ user.email }}</span>
-                  </div>
-                </td>
-                <td>{{ user.role }}</td>
-                <td>{{ user.role === 'Procurement' ? user.procurementRole?.name || '—' : '—' }}</td>
-                <td>
-                  <span class="text-muted">—</span>
-                </td>
-                <td>
-                  <div class="badge badge-light fw-bold">Active</div>
-                </td>
-                <td class="text-end">
-                  <div class="dropdown">
-                    <button
-                      class="btn btn-light btn-active-light-primary btn-flex btn-center btn-sm dropdown-toggle"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      [disabled]="deletingIds.has(user.id)"
-                    >
-                      Actions
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                      <li>
-                        <button
-                          type="button"
-                          class="dropdown-item"
-                          data-bs-toggle="modal"
-                          data-bs-target="#kt_modal_add_user"
-                          (click)="startEdit(user)"
-                          [disabled]="deletingIds.has(user.id)"
-                        >
-                          Edit
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          type="button"
-                          class="dropdown-item"
-                          (click)="deleteUser(user)"
-                          [disabled]="deletingIds.has(user.id)"
-                        >
-                          <span *ngIf="!deletingIds.has(user.id)">Delete</span>
-                          <span *ngIf="deletingIds.has(user.id)">
-                            Deleting...
-                          </span>
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <!--end::Table-->
-          <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between pt-5 gap-4">
+            <div class="card-body py-4">
+              <!--begin::Table-->
+              <div class="app-table-wrapper">
+                <table class="table app-table align-middle table-row-dashed fs-6 gy-5" id="kt_table_users">
+                  <thead>
+                    <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                      <th class="min-w-125px">User</th>
+                      <th class="min-w-125px">Role</th>
+                      <th class="min-w-150px">Sub-role</th>
+                      <th class="min-w-125px">Last login</th>
+                      <th class="min-w-100px">Status</th>
+                      <th class="text-end min-w-125px">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-gray-600 fw-semibold">
+                    <tr *ngIf="isLoading">
+                      <td colspan="6" class="text-center py-10">
+                        <span class="spinner-border text-primary" role="status" aria-hidden="true"></span>
+                      </td>
+                    </tr>
+                    <tr *ngIf="!isLoading && !users.length">
+                      <td colspan="6" class="text-center py-10 text-muted">
+                        No users found.
+                      </td>
+                    </tr>
+                    <tr *ngFor="let user of users; trackBy: trackById" class="align-middle">
+                      <td class="d-flex align-items-center">
+                        <div class="d-flex flex-column">
+                          <span class="text-gray-800 text-hover-primary mb-1 fw-semibold">{{ user.displayName }}</span>
+                          <span class="text-muted">{{ user.email }}</span>
+                        </div>
+                      </td>
+                      <td>{{ user.role }}</td>
+                      <td>{{ user.role === 'Procurement' ? user.procurementRole?.name || '—' : '—' }}</td>
+                      <td>
+                        <span class="text-muted">—</span>
+                      </td>
+                      <td>
+                        <div class="badge badge-light fw-bold">Active</div>
+                      </td>
+                      <td class="text-end">
+                        <div class="dropdown">
+                          <button
+                            class="btn btn-light btn-active-light-primary btn-flex btn-center btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            [disabled]="deletingIds.has(user.id)"
+                          >
+                            Actions
+                          </button>
+                          <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                              <button
+                                type="button"
+                                class="dropdown-item"
+                                data-bs-toggle="modal"
+                                data-bs-target="#kt_modal_add_user"
+                                (click)="startEdit(user)"
+                                [disabled]="deletingIds.has(user.id)"
+                              >
+                                Edit
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                type="button"
+                                class="dropdown-item"
+                                (click)="deleteUser(user)"
+                                [disabled]="deletingIds.has(user.id)"
+                              >
+                                <span *ngIf="!deletingIds.has(user.id)">Delete</span>
+                                <span *ngIf="deletingIds.has(user.id)">
+                                  Deleting...
+                                </span>
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--end::Table-->
+              <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between pt-5 gap-4">
             <div class="d-flex align-items-center gap-3">
               <label class="form-label fw-semibold mb-0">Rows per page</label>
               <select

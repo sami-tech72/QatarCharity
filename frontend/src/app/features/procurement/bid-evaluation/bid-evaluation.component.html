@@ -47,8 +47,8 @@
 
       <div *ngIf="!bids.length && !loading" class="empty-state">No bids have been submitted yet.</div>
 
-      <div class="table-responsive" *ngIf="bids.length">
-        <table class="table align-middle">
+      <div class="table-responsive app-table-wrapper" *ngIf="bids.length">
+        <table class="table app-table align-middle">
           <thead>
             <tr>
               <th>Bid Number</th>
