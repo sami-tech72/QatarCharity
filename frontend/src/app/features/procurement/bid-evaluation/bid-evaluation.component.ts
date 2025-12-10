@@ -6,7 +6,7 @@ import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { BidEvaluationService } from '../../../core/services/bid-evaluation.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PagedResult } from '../../../shared/models/pagination.model';
-import { BidReview, EvaluateBidRequest, SupplierBidEvaluation } from '../../../shared/models/bid-evaluation.model';
+import { EvaluateBidRequest, SupplierBidEvaluation } from '../../../shared/models/bid-evaluation.model';
 
 @Component({
   selector: 'app-bid-evaluation',
@@ -60,26 +60,6 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
     return bid.id;
   }
 
-  trackByReview(_: number, review: BidReview): string {
-    return `${review.reviewerName}-${review.reviewedAtUtc}`;
-  }
-
-  reviewerNames(bid: SupplierBidEvaluation | null): string[] {
-    if (!bid?.reviews?.length) {
-      return [];
-    }
-
-    const names = new Set<string>();
-    bid.reviews.forEach((review) => {
-      const name = review.reviewerName?.trim();
-      if (name) {
-        names.add(name);
-      }
-    });
-
-    return Array.from(names.values());
-  }
-
   statusBadgeClass(status: string): string {
     switch (status) {
       case 'Approved':
@@ -107,11 +87,6 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
   openReviewModal(bid: SupplierBidEvaluation): void {
     this.selectBid(bid);
     this.reviewModalOpen = true;
-  }
-
-  viewBid(bid: SupplierBidEvaluation): void {
-    this.selectBid(bid);
-    this.reviewModalOpen = false;
   }
 
   closeReviewModal(): void {

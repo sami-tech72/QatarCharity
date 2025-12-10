@@ -56,7 +56,6 @@
               <th>RFx</th>
               <th>Bid Amount</th>
               <th>Status</th>
-              <th>Reviews</th>
               <th>Submitted</th>
               <th class="text-end">Actions</th>
             </tr>
@@ -82,19 +81,10 @@
               <td>
                 <span class="badge" [ngClass]="statusBadgeClass(bid.evaluationStatus)">{{ bid.evaluationStatus }}</span>
               </td>
-              <td>
-                <div class="fw-semibold">{{ bid.reviews?.length || 0 }} review(s)</div>
-                <div class="text-muted small" *ngIf="bid.reviews?.[0]">
-                  Last updated {{ bid.reviews[0].reviewedAtUtc | date: 'mediumDate' }}
-                </div>
-                <div class="text-muted small" *ngIf="reviewerNames(bid).length">
-                  Reviewers: {{ reviewerNames(bid).join(', ') }}
-                </div>
-              </td>
               <td>{{ bid.submittedAtUtc | date: 'mediumDate' }}</td>
               <td class="text-end">
                 <div class="btn-group" role="group">
-                  <button type="button" class="btn btn-light btn-sm" (click)="viewBid(bid)">
+                  <button type="button" class="btn btn-light btn-sm" (click)="openReviewModal(bid)">
                     View
                   </button>
                   <button type="button" class="btn btn-success btn-sm" (click)="openReviewModal(bid)">
@@ -135,41 +125,6 @@
             <p class="text-muted mb-2">{{ selectedBid?.proposalSummary }}</p>
             <div class="fw-semibold">Notes</div>
             <p class="text-muted mb-0">{{ selectedBid?.notes || 'No additional notes provided.' }}</p>
-          </div>
-
-          <div class="mb-4">
-            <div class="d-flex align-items-center justify-content-between gap-3 mb-2 flex-wrap">
-              <div class="fw-semibold mb-0">Review history</div>
-              <span class="badge badge-light-primary">{{ selectedBid?.reviews?.length || 0 }} recorded review(s)</span>
-            </div>
-
-            <p class="text-muted small mb-3">
-              Each reviewer logs their own decision; entries below are ordered from newest to oldest so you can quickly see the
-              latest consensus.
-            </p>
-
-            <div class="reviewer-overview" *ngIf="reviewerNames(selectedBid).length">
-              <div class="text-muted small">Reviewers involved</div>
-              <div class="chip-group">
-                <span class="chip" *ngFor="let reviewer of reviewerNames(selectedBid)">{{ reviewer }}</span>
-              </div>
-            </div>
-
-            <div *ngIf="selectedBid?.reviews?.length; else noReviews" class="review-history">
-              <div class="review-history__item" *ngFor="let review of selectedBid?.reviews; trackBy: trackByReview">
-                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                  <div>
-                    <div class="fw-semibold">{{ review.reviewerName }}</div>
-                    <div class="text-muted small">Reviewed {{ review.reviewedAtUtc | date: 'medium' }}</div>
-                  </div>
-                  <span class="badge" [ngClass]="statusBadgeClass(review.status)">{{ review.status }}</span>
-                </div>
-                <div class="text-muted mt-2" *ngIf="review.notes">{{ review.notes }}</div>
-              </div>
-            </div>
-            <ng-template #noReviews>
-              <div class="placeholder">No reviews have been submitted for this bid yet.</div>
-            </ng-template>
           </div>
 
           <form [formGroup]="reviewForm" (ngSubmit)="submitReview()" class="review-form">
@@ -213,134 +168,4 @@
       </div>
     </div>
   </div>
-
-  <section class="card detail-card" *ngIf="selectedBid">
-    <div class="card-header detail-card__header d-flex justify-content-between align-items-start flex-wrap gap-3">
-      <div>
-        <div class="text-muted small">Bid {{ selectedBid?.referenceNumber }}</div>
-        <h2 class="h5 mb-1">{{ selectedBid?.title }}</h2>
-        <div class="text-muted">Submitted by {{ selectedBid?.submittedBy }} on {{ selectedBid?.submittedAtUtc | date: 'medium' }}</div>
-      </div>
-      <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="badge" [ngClass]="statusBadgeClass(selectedBid?.evaluationStatus ?? '')">
-          {{ selectedBid?.evaluationStatus }}
-        </span>
-        <button type="button" class="btn btn-outline-primary btn-sm" (click)="openReviewModal(selectedBid!)">
-          Add / Update Review
-        </button>
-      </div>
-    </div>
-
-    <div class="card-body">
-      <div class="row g-4 detail-grid">
-        <div class="col-lg-7">
-          <div class="detail-card__section">
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-              <div>
-                <div class="fw-semibold">Bid details</div>
-                <div class="text-muted small">Key information for this supplier submission.</div>
-              </div>
-              <span class="badge badge-light-primary">{{ selectedBid?.reviews?.length || 0 }} recorded review(s)</span>
-            </div>
-
-            <div class="row g-3">
-              <div class="col-sm-6">
-                <div class="detail-label">Supplier</div>
-                <div class="fw-semibold">{{ selectedBid?.submittedBy }}</div>
-                <div class="text-muted small">{{ selectedBid?.submittedAtUtc | date: 'mediumDate' }}</div>
-              </div>
-              <div class="col-sm-6">
-                <div class="detail-label">Bid amount</div>
-                <div class="fw-semibold">{{ selectedBid?.bidAmount | number: '1.0-2' }} {{ selectedBid?.currency }}</div>
-                <div class="text-muted small">Delivery {{ selectedBid?.expectedDeliveryDate | date: 'mediumDate' }}</div>
-              </div>
-              <div class="col-sm-6">
-                <div class="detail-label">RFx</div>
-                <div class="fw-semibold">{{ selectedBid?.rfxId }}</div>
-                <div class="text-muted small">{{ selectedBid?.proposalSummary }}</div>
-              </div>
-              <div class="col-sm-6">
-                <div class="detail-label">Notes</div>
-                <div class="text-muted">{{ selectedBid?.notes || 'No additional notes provided.' }}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="detail-card__section">
-            <div class="fw-semibold mb-2">Review history</div>
-            <p class="text-muted small mb-3">
-              Reviews from multiple evaluators are listed newest first so you can see agreement and rationale at a glance.
-            </p>
-
-            <div class="reviewer-overview" *ngIf="reviewerNames(selectedBid).length">
-              <div class="text-muted small">Reviewers involved</div>
-              <div class="chip-group">
-                <span class="chip" *ngFor="let reviewer of reviewerNames(selectedBid)">{{ reviewer }}</span>
-              </div>
-            </div>
-
-            <div *ngIf="selectedBid?.reviews?.length; else noSelectedBidReviews" class="review-history">
-              <div class="review-history__item" *ngFor="let review of selectedBid?.reviews; trackBy: trackByReview">
-                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                  <div>
-                    <div class="fw-semibold">{{ review.reviewerName }}</div>
-                    <div class="text-muted small">Reviewed {{ review.reviewedAtUtc | date: 'medium' }}</div>
-                  </div>
-                  <span class="badge" [ngClass]="statusBadgeClass(review.status)">{{ review.status }}</span>
-                </div>
-                <div class="text-muted mt-2" *ngIf="review.notes">{{ review.notes }}</div>
-              </div>
-            </div>
-            <ng-template #noSelectedBidReviews>
-              <div class="placeholder">No reviews have been submitted for this bid yet.</div>
-            </ng-template>
-          </div>
-        </div>
-
-        <div class="col-lg-5">
-          <div class="detail-card__section sticky-column">
-            <div class="fw-semibold mb-2">Quick actions</div>
-            <p class="text-muted small mb-3">Document your decision and keep the review history up to date.</p>
-
-            <form [formGroup]="reviewForm" (ngSubmit)="submitReview()" class="review-form">
-              <div class="mb-3">
-                <label class="form-label" for="statusInline">Decision</label>
-                <select id="statusInline" class="form-select" formControlName="status">
-                  <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
-                </select>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" for="reviewedInline">Reviewed by</label>
-                <div class="form-control-plaintext fw-semibold">
-                  {{ selectedBid?.evaluatedBy || 'Not reviewed yet' }}
-                </div>
-                <div class="text-muted small" *ngIf="selectedBid?.evaluatedAtUtc">
-                  Updated {{ selectedBid?.evaluatedAtUtc | date: 'medium' }}
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" for="reviewNotesInline">Review notes</label>
-                <textarea
-                  id="reviewNotesInline"
-                  rows="5"
-                  class="form-control"
-                  placeholder="Document your evaluation, strengths and risks."
-                  formControlName="reviewNotes"
-                ></textarea>
-              </div>
-
-              <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-light" (click)="openReviewModal(selectedBid!)">Open full view</button>
-                <button type="submit" class="btn btn-primary" [disabled]="submitting || reviewForm.invalid">
-                  {{ submitting ? 'Saving...' : 'Save Review' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 </div>
