@@ -42,6 +42,14 @@ export class LayoutComponent implements AfterViewInit {
 
   session: UserSession | null = null;
 
+  isCustomizerOpen = false;
+
+  selectedPrimaryColor = this.getPrimaryColor();
+
+  selectedSkin: 'default' | 'bordered' = 'default';
+
+  isSemiDark = false;
+
   get sidebarMenu() {
     return this.authService.sidebarMenuForRole(this.currentRole, this.session);
   }
@@ -90,6 +98,25 @@ export class LayoutComponent implements AfterViewInit {
   changeTheme(mode: ThemeMode) {
     this.themeService.setMode(mode);
     this.scheduleLayoutInitialization();
+  }
+
+  toggleCustomizer(open?: boolean) {
+    this.isCustomizerOpen = open ?? !this.isCustomizerOpen;
+  }
+
+  setPrimaryColor(color: string) {
+    this.selectedPrimaryColor = color;
+    this.applyPrimaryColor(color);
+  }
+
+  setSkin(skin: 'default' | 'bordered') {
+    this.selectedSkin = skin;
+    document.body.classList.toggle('app-skin-bordered', skin === 'bordered');
+  }
+
+  toggleSemiDark(enabled: boolean) {
+    this.isSemiDark = enabled;
+    document.body.classList.toggle('app-semi-dark', enabled);
   }
 
   private updateActivePageTitle(url: string) {
@@ -162,5 +189,37 @@ export class LayoutComponent implements AfterViewInit {
     ktWindow.KTApp?.init?.();
     ktWindow.KTMenu?.init?.();
     ktWindow.KTAppSidebar?.init?.();
+  }
+
+  getPrimaryColor() {
+    const computedStyle = getComputedStyle(document.documentElement);
+    return computedStyle.getPropertyValue('--app-primary').trim() || '#0d6efd';
+  }
+
+  private applyPrimaryColor(color: string) {
+    const rgb = this.hexToRgb(color);
+
+    document.documentElement.style.setProperty('--app-primary', color);
+    document.documentElement.style.setProperty('--bs-primary', color);
+
+    if (rgb) {
+      document.documentElement.style.setProperty('--bs-primary-rgb', rgb.join(','));
+    }
+  }
+
+  private hexToRgb(hex: string): [number, number, number] | null {
+    const cleaned = hex.replace('#', '');
+
+    if (cleaned.length !== 6) {
+      return null;
+    }
+
+    const bigint = parseInt(cleaned, 16);
+
+    return [
+      (bigint >> 16) & 255,
+      (bigint >> 8) & 255,
+      bigint & 255,
+    ];
   }
 }
