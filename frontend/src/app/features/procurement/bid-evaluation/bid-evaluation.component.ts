@@ -109,6 +109,11 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
     this.reviewModalOpen = true;
   }
 
+  viewBid(bid: SupplierBidEvaluation): void {
+    this.selectBid(bid);
+    this.reviewModalOpen = false;
+  }
+
   closeReviewModal(): void {
     this.reviewModalOpen = false;
   }
