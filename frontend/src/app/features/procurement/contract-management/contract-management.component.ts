@@ -111,22 +111,32 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   }
 
   openCreateModal(bid?: ContractReadyBid): void {
-    this.showCreateModal = true;
+    console.log('openCreateModal called', { bidProvided: !!bid, readyBidsCount: this.readyBids.length });
     const preselected = bid ?? this.readyBids[0];
-    if (preselected) {
-      this.onBidSelected(preselected.bidId);
-      this.createForm.patchValue({
-        title: preselected.title,
-        contractValue: preselected.bidAmount,
-        status: 'Draft',
-      });
-    } else {
-      this.selectedBid = undefined;
-      this.createForm.reset({ status: 'Draft' });
+    try {
+      if (preselected) {
+        this.onBidSelected(preselected.bidId);
+        this.createForm.patchValue({
+          title: preselected.title,
+          contractValue: preselected.bidAmount,
+          status: 'Draft',
+        });
+      } else {
+        this.selectedBid = undefined;
+        this.createForm.reset({ status: 'Draft' });
+      }
+
+      // Only show the modal after the form is prepared successfully
+      this.showCreateModal = true;
+    } catch (err) {
+      console.error('Error preparing create form for modal:', err);
+      this.notification.error('Unable to open create contract dialog. See console for details.');
+      this.showCreateModal = false;
     }
   }
 
   closeCreateModal(): void {
+    console.log('closeCreateModal called');
     this.showCreateModal = false;
     this.selectedBid = undefined;
     this.createForm.reset({ status: 'Draft' });
