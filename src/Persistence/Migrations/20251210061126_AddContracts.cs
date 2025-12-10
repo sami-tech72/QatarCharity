@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -32,12 +32,6 @@ namespace Persistence.Migrations
                 {
                     table.PrimaryKey("PK_Contracts", x => x.Id);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Contracts_BidId",
-                table: "Contracts",
-                column: "BidId",
-                unique: true);
         }
 
         /// <inheritdoc />
