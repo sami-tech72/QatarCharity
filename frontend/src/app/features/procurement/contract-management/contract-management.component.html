@@ -69,15 +69,10 @@
                   <path d="M5 12h14"></path>
                 </svg>
               </button>
-              <button class="btn-icon" (click)="viewContract(contract)" title="View">
+              <button class="btn-icon" (click)="viewReadyBid(contract)" title="View bid details">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              </button>
-              <button class="btn-icon" (click)="editContract(contract)" title="Manage contract">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                 </svg>
               </button>
             </td>
@@ -193,6 +188,7 @@
           <th>Start</th>
           <th>End</th>
           <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -207,6 +203,14 @@
             <span class="status-badge" [ngClass]="getStatusClass(contract.status)">
               {{ contract.status }}
             </span>
+          </td>
+          <td class="actions">
+            <button class="btn-icon" (click)="viewExistingContract(contract)" title="View contract">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -231,5 +235,108 @@
 <ng-template #loadingStateTpl>
   <div class="loading-state">Loading contract-ready bids...</div>
 </ng-template>
+
+<div class="contract-view-overlay" *ngIf="viewingContract">
+  <div class="contract-view">
+    <div class="view-header">
+      <div>
+        <p class="muted">{{ viewingContract.type === 'readyBid' ? 'Bid ready for contracting' : 'Contract reference' }}</p>
+        <h3>{{ viewingContract.data.referenceNumber || 'Direct contract' }}</h3>
+        <p class="view-subtitle">{{ viewingContract.data.title }}</p>
+      </div>
+      <button class="btn-close" aria-label="Close" (click)="closeContractView()">×</button>
+    </div>
+
+    <div class="view-grid">
+      <div class="view-card">
+        <p class="muted">Supplier</p>
+        <h4>{{ viewingContract.data.supplierName }}</h4>
+        <p class="detail-helper">User ID: {{ viewingContract.data.supplierUserId || 'N/A' }}</p>
+      </div>
+
+      <div class="view-card">
+        <p class="muted">Value</p>
+        <h4>
+          {{ viewingContract.type === 'readyBid' ? (viewingContract.data.bidAmount | currency: viewingContract.data.currency) : (viewingContract.data.contractValue | currency: viewingContract.data.currency) }}
+        </h4>
+        <p class="detail-helper">Currency: {{ viewingContract.data.currency || 'N/A' }}</p>
+      </div>
+
+      <div class="view-card">
+        <p class="muted">Status</p>
+        <span class="status-badge" [ngClass]="getStatusClass(viewingContract.type === 'readyBid' ? viewingContract.data.evaluationStatus : viewingContract.data.status)">
+          {{ viewingContract.type === 'readyBid' ? viewingContract.data.evaluationStatus : viewingContract.data.status }}
+        </span>
+        <p class="detail-helper" *ngIf="viewingContract.type === 'contract'">Created: {{ viewingContract.data.createdAtUtc | date: 'medium' }}</p>
+        <p class="detail-helper" *ngIf="viewingContract.type === 'readyBid'">Submitted: {{ viewingContract.data.submittedAtUtc | date: 'medium' }}</p>
+      </div>
+    </div>
+
+    <div class="view-details" *ngIf="viewingContract.type === 'contract'">
+      <div class="view-row">
+        <div>
+          <p class="muted">Start date</p>
+          <strong>{{ viewingContract.data.startDateUtc | date: 'longDate' }}</strong>
+        </div>
+        <div>
+          <p class="muted">End date</p>
+          <strong>{{ viewingContract.data.endDateUtc | date: 'longDate' }}</strong>
+        </div>
+        <div>
+          <p class="muted">Supplier signature</p>
+          <strong>{{ viewingContract.data.supplierSignature ? 'Signed' : 'Pending signature' }}</strong>
+          <p class="detail-helper" *ngIf="viewingContract.data.supplierSignedAtUtc">{{ viewingContract.data.supplierSignedAtUtc | date: 'medium' }}</p>
+        </div>
+      </div>
+
+      <div class="view-row">
+        <div>
+          <p class="muted">RFX ID</p>
+          <strong>{{ viewingContract.data.rfxId || 'N/A' }}</strong>
+        </div>
+        <div>
+          <p class="muted">Bid ID</p>
+          <strong>{{ viewingContract.data.bidId || 'N/A' }}</strong>
+        </div>
+        <div>
+          <p class="muted">Reference</p>
+          <strong>{{ viewingContract.data.referenceNumber || 'Direct' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="view-details" *ngIf="viewingContract.type === 'readyBid'">
+      <div class="view-row">
+        <div>
+          <p class="muted">RFX ID</p>
+          <strong>{{ viewingContract.data.rfxId }}</strong>
+        </div>
+        <div>
+          <p class="muted">Bid ID</p>
+          <strong>{{ viewingContract.data.bidId }}</strong>
+        </div>
+        <div>
+          <p class="muted">Reference</p>
+          <strong>{{ viewingContract.data.referenceNumber || 'Direct' }}</strong>
+        </div>
+      </div>
+
+      <div class="view-row">
+        <div>
+          <p class="muted">Evaluation status</p>
+          <strong>{{ viewingContract.data.evaluationStatus }}</strong>
+        </div>
+        <div>
+          <p class="muted">Submitted</p>
+          <strong>{{ viewingContract.data.submittedAtUtc | date: 'medium' }}</strong>
+        </div>
+        <div>
+          <p class="muted">Last evaluated</p>
+          <strong>{{ viewingContract.data.evaluatedAtUtc ? (viewingContract.data.evaluatedAtUtc | date: 'medium') : 'Not yet evaluated' }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 </div>

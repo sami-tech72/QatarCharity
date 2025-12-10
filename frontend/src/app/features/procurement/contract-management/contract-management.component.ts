@@ -22,6 +22,7 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   selectedBid?: ContractReadyBid;
   directContract = false;
   searchTerm = '';
+  viewingContract?: { type: 'readyBid'; data: ContractReadyBid } | { type: 'contract'; data: ContractRecord };
   summary = {
     total: 0,
     approved: 0,
@@ -231,12 +232,16 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
       });
   }
 
-  viewContract(contract: ContractReadyBid): void {
-    this.notification.info(`View contract for ${contract.supplierName} - ${contract.referenceNumber}`);
+  viewReadyBid(contract: ContractReadyBid): void {
+    this.viewingContract = { type: 'readyBid', data: contract };
   }
 
-  editContract(contract: ContractReadyBid): void {
-    this.notification.info(`Manage contract for ${contract.supplierName} (bid ${contract.referenceNumber}).`);
+  viewExistingContract(contract: ContractRecord): void {
+    this.viewingContract = { type: 'contract', data: contract };
+  }
+
+  closeContractView(): void {
+    this.viewingContract = undefined;
   }
 
   getStatusClass(status: string): string {
