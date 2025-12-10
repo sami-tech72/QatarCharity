@@ -37,7 +37,7 @@ public class ContractConfiguration : IEntityTypeConfiguration<Contract>
             .IsRequired();
 
         builder.Property(c => c.SupplierSignature)
-            .HasMaxLength(2000);
+            .HasColumnType("nvarchar(max)");
 
         builder.Property(c => c.SupplierSignedAtUtc);
 
