@@ -61,16 +61,24 @@
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h5 class="card-title mb-0 fw-bold">All Bids</h5>
         <div class="search-box" style="width: 300px;">
-          <input type="text" class="form-control" placeholder="Search bids..." (input)="filterBids($event)">
+          <input type="text" class="form-control" placeholder="Search bids..." (input)="onSearchChange($event)" [value]="searchTerm">
         </div>
       </div>
 
+      <div *ngIf="loading" class="text-center py-5 text-muted">
+        Loading bids...
+      </div>
+
+      <div *ngIf="!loading && errorMessage" class="alert alert-danger" role="alert">
+        {{ errorMessage }}
+      </div>
+
       <!-- Bids Table -->
-      <div class="table-responsive">
+      <div class="table-responsive" *ngIf="!loading && bids.length > 0">
         <table class="table table-hover">
           <thead class="table-light">
             <tr>
-              <th class="fw-semibold">Bid Number</th>
+              <th class="fw-semibold">RFx Number</th>
               <th class="fw-semibold">RFx Title</th>
               <th class="fw-semibold">Bid Amount</th>
               <th class="fw-semibold">Status</th>
@@ -79,19 +87,19 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let bid of filteredBids">
-              <td class="fw-semibold text-primary">{{ bid.bidNumber }}</td>
+            <tr *ngFor="let bid of bids">
+              <td class="fw-semibold text-primary">{{ bid.referenceNumber }}</td>
               <td>
-                <div>{{ bid.rfxTitle }}</div>
-                <small class="text-muted">{{ bid.rfxNumber }}</small>
+                <div>{{ bid.title }}</div>
+                <small class="text-muted">{{ bid.rfxId }}</small>
               </td>
-              <td class="fw-semibold">{{ bid.bidAmount | currency }}</td>
+              <td class="fw-semibold">{{ bid.bidAmount | currency: bid.currency }}</td>
               <td>
-                <span class="badge" [ngClass]="getStatusClass(bid.status)">
-                  {{ bid.status }}
+                <span class="badge" [ngClass]="getStatusClass(bid.evaluationStatus)">
+                  {{ bid.evaluationStatus }}
                 </span>
               </td>
-              <td>{{ bid.submittedDate | date: 'M/d/y' }}</td>
+              <td>{{ bid.submittedAtUtc | date: 'M/d/y' }}</td>
               <td class="text-end">
                 <button class="btn btn-sm btn-link text-primary p-0" title="View" (click)="viewBid(bid)">
                   <i class="bi bi-eye"></i>
@@ -103,9 +111,79 @@
       </div>
 
       <!-- Empty State -->
-      <div *ngIf="filteredBids.length === 0" class="text-center py-5">
+      <div *ngIf="!loading && bids.length === 0" class="text-center py-5">
         <p class="text-muted">No bids found</p>
       </div>
     </div>
+  </div>
+
+  <!-- Bid Details Modal -->
+  <div *ngIf="selectedBid" class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title mb-0">Bid Details</h5>
+            <small class="text-muted">{{ selectedBid?.title }}</small>
+          </div>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeDetails()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <p class="text-muted small mb-1">RFx Number</p>
+              <p class="fw-semibold mb-0">{{ selectedBid?.referenceNumber }}</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <p class="text-muted small mb-1">Submitted On</p>
+              <p class="fw-semibold mb-0">{{ selectedBid?.submittedAtUtc | date: 'M/d/y, h:mm a' }}</p>
+            </div>
+          </div>
+
+          <div class="row g-4 mt-1">
+            <div class="col-md-4">
+              <p class="text-muted small mb-1">Bid Amount</p>
+              <p class="fw-semibold mb-0">{{ selectedBid?.bidAmount | currency: selectedBid?.currency }}</p>
+            </div>
+            <div class="col-md-4">
+              <p class="text-muted small mb-1">Status</p>
+              <span class="badge" [ngClass]="getStatusClass(selectedBid?.evaluationStatus || '')">
+                {{ selectedBid?.evaluationStatus }}
+              </span>
+            </div>
+            <div class="col-md-4">
+              <p class="text-muted small mb-1">Expected Delivery</p>
+              <p class="fw-semibold mb-0">{{ selectedBid?.expectedDeliveryDate || '—' }}</p>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <p class="text-muted small mb-1">Proposal Summary</p>
+            <p class="mb-0">{{ selectedBid?.proposalSummary || 'No summary provided.' }}</p>
+          </div>
+
+          <div class="row g-4 mt-1">
+            <div class="col-md-6">
+              <p class="text-muted small mb-1">Evaluation Notes</p>
+              <p class="mb-0">{{ selectedBid?.evaluationNotes || 'No evaluation notes yet.' }}</p>
+            </div>
+            <div class="col-md-3">
+              <p class="text-muted small mb-1">Evaluated By</p>
+              <p class="mb-0">{{ selectedBid?.evaluatedBy || 'Pending' }}</p>
+            </div>
+            <div class="col-md-3">
+              <p class="text-muted small mb-1">Evaluated On</p>
+              <p class="mb-0">{{ selectedBid?.evaluatedAtUtc ? (selectedBid?.evaluatedAtUtc | date: 'M/d/y') : 'Pending' }}</p>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <p class="text-muted small mb-1">Supplier Notes</p>
+            <p class="mb-0">{{ selectedBid?.notes || 'No additional notes provided.' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade show" (click)="closeDetails()"></div>
   </div>
 </div>

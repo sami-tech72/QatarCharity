@@ -19,15 +19,36 @@ public class SupplierRfxController : ControllerBase
     private readonly GetPublishedRfxListQuery _getPublishedRfxListQuery;
     private readonly GetPublishedRfxByIdQuery _getPublishedRfxByIdQuery;
     private readonly SubmitBidCommand _submitBidCommand;
+    private readonly GetSupplierBidsQuery _getSupplierBidsQuery;
 
     public SupplierRfxController(
         GetPublishedRfxListQuery getPublishedRfxListQuery,
         GetPublishedRfxByIdQuery getPublishedRfxByIdQuery,
-        SubmitBidCommand submitBidCommand)
+        SubmitBidCommand submitBidCommand,
+        GetSupplierBidsQuery getSupplierBidsQuery)
     {
         _getPublishedRfxListQuery = getPublishedRfxListQuery;
         _getPublishedRfxByIdQuery = getPublishedRfxByIdQuery;
         _submitBidCommand = submitBidCommand;
+        _getSupplierBidsQuery = getSupplierBidsQuery;
+    }
+
+    [HttpGet("bids")]
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<SupplierBidResponse>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<PagedResult<SupplierBidResponse>>>> GetMyBids([FromQuery] SupplierBidQueryParameters query)
+    {
+        var currentUserId = User?.FindFirst("sub")?.Value ?? User?.Identity?.Name ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(currentUserId))
+        {
+            return Unauthorized(ApiResponse<PagedResult<SupplierBidResponse>>.Fail("Unauthorized", "auth_invalid_token"));
+        }
+
+        query.SubmittedByUserId = currentUserId;
+
+        var result = await _getSupplierBidsQuery.HandleAsync(query);
+
+        return Ok(ApiResponse<PagedResult<SupplierBidResponse>>.Ok(result.Value!, "Supplier bids retrieved successfully."));
     }
 
     [HttpGet("published")]

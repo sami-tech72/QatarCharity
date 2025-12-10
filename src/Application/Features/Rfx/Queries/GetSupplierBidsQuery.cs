@@ -30,8 +30,8 @@ public class GetSupplierBidsQuery
         var pageNumber = query.PageNumber <= 0 ? 1 : query.PageNumber;
         var search = query.Search?.Trim().ToLowerInvariant();
 
-        var totalCount = await _repository.CountSupplierBidsAsync(search);
-        var results = await _repository.GetSupplierBidsAsync(search, pageNumber, pageSize);
+        var totalCount = await _repository.CountSupplierBidsAsync(search, query.SubmittedByUserId);
+        var results = await _repository.GetSupplierBidsAsync(search, query.SubmittedByUserId, pageNumber, pageSize);
 
         var bidIds = results
             .Where(entry => entry.Bid != null)

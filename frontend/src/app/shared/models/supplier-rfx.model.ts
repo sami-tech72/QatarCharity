@@ -4,6 +4,12 @@ export interface SupplierRfxQueryRequest {
   search?: string;
 }
 
+export interface SupplierBidQueryRequest {
+  pageNumber: number;
+  pageSize: number;
+  search?: string;
+}
+
 export interface SupplierBidRequest {
   bidAmount: number | null;
   currency: string;
@@ -34,6 +40,24 @@ export interface SupplierRfx {
   requiredDocuments: string[];
   requiredDetails: string[];
   requiredInputs: string[];
+}
+
+export interface SupplierBidSummary {
+  id: string;
+  rfxId: string;
+  referenceNumber: string;
+  title: string;
+  submittedBy: string;
+  bidAmount: number;
+  currency: string;
+  expectedDeliveryDate?: string;
+  proposalSummary: string;
+  notes?: string;
+  submittedAtUtc: string;
+  evaluationStatus: string;
+  evaluationNotes?: string;
+  evaluatedAtUtc?: string;
+  evaluatedBy?: string;
 }
 
 export interface BidDocumentSubmission {
