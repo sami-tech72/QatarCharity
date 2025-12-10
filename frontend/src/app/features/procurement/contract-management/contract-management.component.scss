@@ -217,24 +217,25 @@
   font-weight: 600;
   text-transform: capitalize;
 
-  &.status-active {
+  &.status-approved {
     background-color: #ecfdf5;
     color: #059669;
   }
 
-  &.status-inactive {
-    background-color: #f3f4f6;
-    color: #6b7280;
+  &.status-recommended {
+    background-color: #e0f2fe;
+    color: #0369a1;
   }
 
-  &.status-expired {
-    background-color: #fef2f2;
-    color: #dc2626;
-  }
-
-  &.status-pending {
+  &.status-under-review,
+  &.status-pending-review {
     background-color: #fef3c7;
     color: #b45309;
+  }
+
+  &.status-rejected {
+    background-color: #fef2f2;
+    color: #dc2626;
   }
 }
 
@@ -268,6 +269,13 @@
   text-align: center;
   color: #6b7280;
   font-size: 0.875rem;
+}
+
+.loading-state {
+  padding: 3rem;
+  text-align: center;
+  color: #4b5563;
+  font-weight: 600;
 }
 
 // Responsive Design

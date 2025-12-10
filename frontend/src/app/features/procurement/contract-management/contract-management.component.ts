@@ -1,16 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
 
-interface Contract {
-  id: string;
-  contractNumber: string;
-  title: string;
-  supplier: string;
-  value: number;
-  status: 'active' | 'inactive' | 'expired' | 'pending';
-  startDate: string;
-  endDate: string;
-}
+import { ContractManagementService } from '../../../core/services/contract-management.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { ContractReadyBid } from '../../../shared/models/contract-management.model';
 
 @Component({
   selector: 'app-contract-management',
@@ -19,51 +13,78 @@ interface Contract {
   templateUrl: './contract-management.component.html',
   styleUrl: './contract-management.component.scss',
 })
-export class ContractManagementComponent {
-  totalContracts = 1;
-  activeContracts = 1;
-  totalValue = '$150,000';
-  expiringContracts = 3;
-  searchQuery = '';
+export class ContractManagementComponent implements OnInit, OnDestroy {
+  contracts: ContractReadyBid[] = [];
+  filteredContracts: ContractReadyBid[] = [];
+  summary = {
+    total: 0,
+    approved: 0,
+    totalValue: 0,
+  };
+  loading = false;
 
-  contracts: Contract[] = [
-    {
-      id: '1',
-      contractNumber: 'CTR-00001',
-      title: 'Cloud Services Agreement',
-      supplier: 'ACME Corporation',
-      value: 150000,
-      status: 'active',
-      startDate: '12/1/2025',
-      endDate: '12/1/2026'
-    }
-  ];
+  private readonly destroy$ = new Subject<void>();
 
-  filteredContracts = this.contracts;
+  constructor(
+    private readonly contractManagementService: ContractManagementService,
+    private readonly notification: NotificationService,
+  ) {}
 
-  onSearch(event: Event) {
-    const query = (event.target as HTMLInputElement).value.toLowerCase();
-    this.searchQuery = query;
-    this.filteredContracts = this.contracts.filter(contract =>
-      contract.contractNumber.toLowerCase().includes(query) ||
-      contract.title.toLowerCase().includes(query) ||
-      contract.supplier.toLowerCase().includes(query)
+  ngOnInit(): void {
+    this.loadContracts();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onSearch(event: Event): void {
+    const query = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.filteredContracts = this.contracts.filter((contract) =>
+      `${contract.referenceNumber} ${contract.title} ${contract.supplierName}`.toLowerCase().includes(query),
     );
   }
 
-  createContract() {
-    console.log('Create new contract');
+  loadContracts(search?: string): void {
+    this.loading = true;
+    this.contractManagementService
+      .loadReadyBids({ pageNumber: 1, pageSize: 50, search })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.contracts = result.items || [];
+          this.filteredContracts = [...this.contracts];
+          this.summary = {
+            total: result.totalCount,
+            approved: result.totalCount,
+            totalValue: this.contracts.reduce((sum, contract) => sum + contract.bidAmount, 0),
+          };
+          this.loading = false;
+        },
+        error: (error) => {
+          this.notification.error(error.message || 'Unable to load contract-ready bids.');
+          this.contracts = [];
+          this.filteredContracts = [];
+          this.summary = { total: 0, approved: 0, totalValue: 0 };
+          this.loading = false;
+        },
+      });
   }
 
-  viewContract(contract: Contract) {
-    console.log('View contract:', contract);
+  createContract(): void {
+    this.notification.info('Contract creation flow coming soon.');
   }
 
-  editContract(contract: Contract) {
-    console.log('Edit contract:', contract);
+  viewContract(contract: ContractReadyBid): void {
+    this.notification.info(`View contract for ${contract.supplierName} - ${contract.referenceNumber}`);
+  }
+
+  editContract(contract: ContractReadyBid): void {
+    this.notification.info(`Manage contract for ${contract.supplierName} (bid ${contract.referenceNumber}).`);
   }
 
   getStatusClass(status: string): string {
-    return `status-${status}`;
+    return `status-${status?.toLowerCase().replace(/\s+/g, '-')}`;
   }
 }

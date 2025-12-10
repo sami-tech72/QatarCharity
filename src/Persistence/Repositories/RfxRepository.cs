@@ -11,16 +11,16 @@ namespace Persistence.Repositories;
 
 public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 {
-    public async Task<int> CountSupplierBidsAsync(string? search, string? submittedByUserId = null)
+    public async Task<int> CountSupplierBidsAsync(string? search, string? submittedByUserId = null, string? evaluationStatus = null)
     {
-        var bidsQuery = BuildBidQuery(search, submittedByUserId);
+        var bidsQuery = BuildBidQuery(search, submittedByUserId, evaluationStatus);
         return await bidsQuery.CountAsync();
     }
 
     public async Task<IReadOnlyList<(SupplierBid Bid, RfxEntity Rfx)>> GetSupplierBidsAsync(
-        string? search, string? submittedByUserId, int pageNumber, int pageSize)
+        string? search, string? submittedByUserId, int pageNumber, int pageSize, string? evaluationStatus = null)
     {
-        var query = BuildBidQuery(search, submittedByUserId);
+        var query = BuildBidQuery(search, submittedByUserId, evaluationStatus);
 
         var results = await query
             .OrderByDescending(x => x.Bid.SubmittedAtUtc)
@@ -264,7 +264,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return rfxQuery;
     }
 
-    private IQueryable<BidWithRfx> BuildBidQuery(string? search, string? submittedByUserId)
+    private IQueryable<BidWithRfx> BuildBidQuery(string? search, string? submittedByUserId, string? evaluationStatus)
     {
         var bidsQuery = dbContext.SupplierBids
             .AsNoTracking()
@@ -277,6 +277,12 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         if (!string.IsNullOrWhiteSpace(submittedByUserId))
         {
             bidsQuery = bidsQuery.Where(entry => entry.Bid.SubmittedByUserId == submittedByUserId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(evaluationStatus))
+        {
+            var normalizedStatus = evaluationStatus.Trim().ToLower();
+            bidsQuery = bidsQuery.Where(entry => (entry.Bid.EvaluationStatus ?? string.Empty).ToLower() == normalizedStatus);
         }
 
         if (!string.IsNullOrWhiteSpace(search))

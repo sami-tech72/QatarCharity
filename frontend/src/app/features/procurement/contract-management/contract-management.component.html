@@ -1,9 +1,8 @@
-<div class="contract-management">
-  <!-- Header -->
+<div class="contract-management" *ngIf="!loading; else loadingState">
   <div class="header-section">
-    <div class="header-left">
-      <h1>Contract Management</h1>
-      <p class="header-subtitle">Manage and track all procurement contracts</p>
+    <div>
+      <h1 class="page-title">Contract Management</h1>
+      <p class="header-subtitle">Approved supplier bids ready to move into contracting</p>
     </div>
     <button class="btn-create" (click)="createContract()">
       <span class="icon">+</span>
@@ -11,71 +10,58 @@
     </button>
   </div>
 
-  <!-- Stats Cards -->
   <div class="stats-container">
     <div class="stat-card">
-      <label class="stat-label">Total Contracts</label>
-      <div class="stat-value">{{ totalContracts }}</div>
-    </div>
-    <div class="stat-card">
-      <label class="stat-label">Active</label>
-      <div class="stat-value">{{ activeContracts }}</div>
+      <label class="stat-label">Approved Bids</label>
+      <div class="stat-value">{{ summary.approved }}</div>
     </div>
     <div class="stat-card">
       <label class="stat-label">Total Value</label>
-      <div class="stat-value">{{ totalValue }}</div>
+      <div class="stat-value">{{ summary.totalValue | currency }}</div>
     </div>
     <div class="stat-card">
-      <label class="stat-label">Expiring Soon</label>
-      <div class="stat-value">{{ expiringContracts }}</div>
+      <label class="stat-label">Records Loaded</label>
+      <div class="stat-value">{{ summary.total }}</div>
     </div>
   </div>
 
-  <!-- Contracts Table Section -->
   <div class="table-section">
     <div class="table-header">
-      <h2>All Contracts</h2>
+      <h2>Approved supplier bids</h2>
       <div class="search-box">
         <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.35-4.35"></path>
         </svg>
-        <input 
-          type="text" 
-          placeholder="Search contracts..." 
-          (input)="onSearch($event)"
-          [value]="searchQuery"
-        >
+        <input type="text" placeholder="Search by reference, title, or supplier" (input)="onSearch($event)" />
       </div>
     </div>
 
-    <div class="table-wrapper">
+    <div class="table-wrapper" *ngIf="filteredContracts.length > 0; else emptyState">
       <table class="contracts-table">
         <thead>
           <tr>
-            <th>Contract Number</th>
+            <th>Reference</th>
             <th>Title</th>
             <th>Supplier</th>
-            <th>Value</th>
+            <th>Bid Amount</th>
+            <th>Submitted</th>
             <th>Status</th>
-            <th>Start Date</th>
-            <th>End Date</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let contract of filteredContracts">
-            <td class="contract-number">{{ contract.contractNumber }}</td>
+            <td class="contract-number">{{ contract.referenceNumber }}</td>
             <td class="title">{{ contract.title }}</td>
-            <td>{{ contract.supplier }}</td>
-            <td class="value">${{ contract.value | number }}</td>
+            <td>{{ contract.supplierName }}</td>
+            <td class="value">{{ contract.bidAmount | currency: contract.currency }}</td>
+            <td>{{ contract.submittedAtUtc | date: 'mediumDate' }}</td>
             <td>
-              <span class="status-badge" [ngClass]="getStatusClass(contract.status)">
-                {{ contract.status }}
+              <span class="status-badge" [ngClass]="getStatusClass(contract.evaluationStatus)">
+                {{ contract.evaluationStatus }}
               </span>
             </td>
-            <td>{{ contract.startDate }}</td>
-            <td>{{ contract.endDate }}</td>
             <td class="actions">
               <button class="btn-icon" (click)="viewContract(contract)" title="View">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -83,7 +69,7 @@
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
               </button>
-              <button class="btn-icon" (click)="editContract(contract)" title="Edit">
+              <button class="btn-icon" (click)="editContract(contract)" title="Manage contract">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                 </svg>
@@ -92,9 +78,17 @@
           </tr>
         </tbody>
       </table>
-      <div *ngIf="filteredContracts.length === 0" class="no-results">
-        <p>No contracts found</p>
-      </div>
     </div>
   </div>
 </div>
+
+<ng-template #emptyState>
+  <div class="no-results">
+    <p>No approved bids are ready for contract management.</p>
+    <p class="muted">Approve a supplier bid to begin the contracting process.</p>
+  </div>
+</ng-template>
+
+<ng-template #loadingState>
+  <div class="loading-state">Loading contract-ready bids...</div>
+</ng-template>
