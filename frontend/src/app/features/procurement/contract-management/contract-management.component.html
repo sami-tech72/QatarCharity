@@ -1,4 +1,4 @@
-<div class="contract-management" *ngIf="!loading; else loadingState">
+<div class="contract-management" *ngIf="!loading; else loadingStateTpl">
   <div class="header-section">
     <div>
       <h1 class="page-title">Contract Management</h1>
@@ -228,7 +228,7 @@
   </div>
 </ng-template>
 
-<ng-template #loadingState>
+<ng-template #loadingStateTpl>
   <div class="loading-state">Loading contract-ready bids...</div>
 </ng-template>
 
