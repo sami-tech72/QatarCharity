@@ -50,6 +50,8 @@ export class MyBidsComponent implements OnInit {
 
   constructor(private readonly supplierRfxService: SupplierRfxService) {}
 
+  selectedBid: SupplierBidSummary | null = null;
+
   ngOnInit(): void {
     this.loadBids();
   }
@@ -87,8 +89,11 @@ export class MyBidsComponent implements OnInit {
   }
 
   viewBid(bid: SupplierBidSummary): void {
-    console.log('View bid:', bid);
-    // Handle navigation to bid details
+    this.selectedBid = bid;
+  }
+
+  closeDetails(): void {
+    this.selectedBid = null;
   }
 
   private loadBids(): void {
