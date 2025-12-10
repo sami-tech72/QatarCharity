@@ -136,7 +136,9 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
         next: (result: PagedResult<SupplierBidEvaluation>) => {
           this.bids = result.items.map((bid) => ({
             ...bid,
-            reviews: bid.reviews || [],
+            reviews: (bid.reviews || []).sort(
+              (a, b) => new Date(b.reviewedAtUtc).getTime() - new Date(a.reviewedAtUtc).getTime(),
+            ),
             evaluationStatus: bid.evaluationStatus || 'Pending Review',
           }));
           this.total = result.totalCount;
@@ -162,14 +164,14 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
   private updateSummary(): void {
     const summary = this.bids.reduce(
       (acc, bid) => {
-        const status = bid.evaluationStatus || 'Pending Review';
+        const latestStatus = this.deriveBidStatus(bid);
         acc.total += 1;
 
-        if (status === 'Pending Review') {
+        if (latestStatus === 'Pending Review') {
           acc.pendingReview += 1;
-        } else if (status === 'Under Review') {
+        } else if (latestStatus === 'Under Review' || latestStatus === 'Needs Clarification') {
           acc.underReview += 1;
-        } else if (status === 'Approved' || status === 'Recommended') {
+        } else if (latestStatus === 'Approved' || latestStatus === 'Recommended') {
           acc.approved += 1;
         }
 
@@ -178,6 +180,17 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
       { total: 0, pendingReview: 0, underReview: 0, approved: 0 },
     );
 
-    this.summary = summary;
+    this.summary = {
+      ...summary,
+      total: this.total || summary.total,
+    };
+  }
+
+  private deriveBidStatus(bid: SupplierBidEvaluation): string {
+    if (!bid.reviews || bid.reviews.length === 0) {
+      return 'Pending Review';
+    }
+
+    return bid.reviews[0].status || 'Pending Review';
   }
 }
