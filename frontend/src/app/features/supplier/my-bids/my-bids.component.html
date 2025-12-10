@@ -124,7 +124,7 @@
         <div class="modal-header">
           <div>
             <h5 class="modal-title mb-0">Bid Details</h5>
-            <small class="text-muted">{{ selectedBid?.title }}</small>
+            <small class="text-muted">{{ selectedBid.title }}</small>
           </div>
           <button type="button" class="btn-close" aria-label="Close" (click)="closeDetails()"></button>
         </div>
@@ -132,54 +132,54 @@
           <div class="row g-4">
             <div class="col-md-6">
               <p class="text-muted small mb-1">RFx Number</p>
-              <p class="fw-semibold mb-0">{{ selectedBid?.referenceNumber }}</p>
+              <p class="fw-semibold mb-0">{{ selectedBid.referenceNumber }}</p>
             </div>
             <div class="col-md-6 text-md-end">
               <p class="text-muted small mb-1">Submitted On</p>
-              <p class="fw-semibold mb-0">{{ selectedBid?.submittedAtUtc | date: 'M/d/y, h:mm a' }}</p>
+              <p class="fw-semibold mb-0">{{ selectedBid.submittedAtUtc | date: 'M/d/y, h:mm a' }}</p>
             </div>
           </div>
 
           <div class="row g-4 mt-1">
             <div class="col-md-4">
               <p class="text-muted small mb-1">Bid Amount</p>
-              <p class="fw-semibold mb-0">{{ selectedBid?.bidAmount | currency: selectedBid?.currency }}</p>
+              <p class="fw-semibold mb-0">{{ selectedBid.bidAmount | currency: selectedBid.currency }}</p>
             </div>
             <div class="col-md-4">
               <p class="text-muted small mb-1">Status</p>
-              <span class="badge" [ngClass]="getStatusClass(selectedBid?.evaluationStatus || '')">
-                {{ selectedBid?.evaluationStatus }}
+              <span class="badge" [ngClass]="getStatusClass(selectedBid.evaluationStatus || '')">
+                {{ selectedBid.evaluationStatus }}
               </span>
             </div>
             <div class="col-md-4">
               <p class="text-muted small mb-1">Expected Delivery</p>
-              <p class="fw-semibold mb-0">{{ selectedBid?.expectedDeliveryDate || '—' }}</p>
+              <p class="fw-semibold mb-0">{{ selectedBid.expectedDeliveryDate || '—' }}</p>
             </div>
           </div>
 
           <div class="mt-4">
             <p class="text-muted small mb-1">Proposal Summary</p>
-            <p class="mb-0">{{ selectedBid?.proposalSummary || 'No summary provided.' }}</p>
+            <p class="mb-0">{{ selectedBid.proposalSummary || 'No summary provided.' }}</p>
           </div>
 
           <div class="row g-4 mt-1">
             <div class="col-md-6">
               <p class="text-muted small mb-1">Evaluation Notes</p>
-              <p class="mb-0">{{ selectedBid?.evaluationNotes || 'No evaluation notes yet.' }}</p>
+              <p class="mb-0">{{ selectedBid.evaluationNotes || 'No evaluation notes yet.' }}</p>
             </div>
             <div class="col-md-3">
               <p class="text-muted small mb-1">Evaluated By</p>
-              <p class="mb-0">{{ selectedBid?.evaluatedBy || 'Pending' }}</p>
+              <p class="mb-0">{{ selectedBid.evaluatedBy || 'Pending' }}</p>
             </div>
             <div class="col-md-3">
               <p class="text-muted small mb-1">Evaluated On</p>
-              <p class="mb-0">{{ selectedBid?.evaluatedAtUtc ? (selectedBid?.evaluatedAtUtc | date: 'M/d/y') : 'Pending' }}</p>
+              <p class="mb-0">{{ selectedBid.evaluatedAtUtc ? (selectedBid.evaluatedAtUtc | date: 'M/d/y') : 'Pending' }}</p>
             </div>
           </div>
 
           <div class="mt-4">
             <p class="text-muted small mb-1">Supplier Notes</p>
-            <p class="mb-0">{{ selectedBid?.notes || 'No additional notes provided.' }}</p>
+            <p class="mb-0">{{ selectedBid.notes || 'No additional notes provided.' }}</p>
           </div>
         </div>
       </div>

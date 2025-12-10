@@ -11,16 +11,16 @@ namespace Persistence.Repositories;
 
 public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 {
-    public async Task<int> CountSupplierBidsAsync(string? search, string? submittedByUserId = null)
+    public async Task<int> CountSupplierBidsAsync(string? search, string? submittedByUserId = null, string? evaluationStatus = null)
     {
-        var bidsQuery = BuildBidQuery(search, submittedByUserId);
+        var bidsQuery = BuildBidQuery(search, submittedByUserId, evaluationStatus);
         return await bidsQuery.CountAsync();
     }
 
     public async Task<IReadOnlyList<(SupplierBid Bid, RfxEntity Rfx)>> GetSupplierBidsAsync(
-        string? search, string? submittedByUserId, int pageNumber, int pageSize)
+        string? search, string? submittedByUserId, int pageNumber, int pageSize, string? evaluationStatus = null)
     {
-        var query = BuildBidQuery(search, submittedByUserId);
+        var query = BuildBidQuery(search, submittedByUserId, evaluationStatus);
 
         var results = await query
             .OrderByDescending(x => x.Bid.SubmittedAtUtc)
@@ -49,10 +49,12 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
         if (!string.IsNullOrWhiteSpace(search))
         {
+            var normalizedSearch = search.Trim().ToLower();
+
             rfxQuery = rfxQuery.Where(rfx =>
-                rfx.ReferenceNumber.ToLower().Contains(search) ||
-                rfx.Title.ToLower().Contains(search) ||
-                rfx.Category.ToLower().Contains(search));
+                (rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(normalizedSearch) ||
+                (rfx.Title ?? string.Empty).ToLower().Contains(normalizedSearch) ||
+                (rfx.Category ?? string.Empty).ToLower().Contains(normalizedSearch));
         }
 
         return await rfxQuery
@@ -73,10 +75,12 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
         if (!string.IsNullOrWhiteSpace(search))
         {
+            var normalizedSearch = search.Trim().ToLower();
+
             rfxQuery = rfxQuery.Where(rfx =>
-                rfx.ReferenceNumber.ToLower().Contains(search) ||
-                rfx.Title.ToLower().Contains(search) ||
-                rfx.Category.ToLower().Contains(search));
+                (rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(normalizedSearch) ||
+                (rfx.Title ?? string.Empty).ToLower().Contains(normalizedSearch) ||
+                (rfx.Category ?? string.Empty).ToLower().Contains(normalizedSearch));
         }
 
         return await rfxQuery.CountAsync();
@@ -193,7 +197,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return await dbContext.Rfxes
             .AsNoTracking()
             .FirstOrDefaultAsync(rfx =>
-                rfx.Id == rfxId && rfx.Status != null && rfx.Status.ToLower() == "published");
+                rfx.Id == rfxId && (rfx.Status ?? string.Empty).ToLower() == "published");
     }
 
     public async Task AddSupplierBidAsync(SupplierBid bid)
@@ -264,7 +268,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return rfxQuery;
     }
 
-    private IQueryable<BidWithRfx> BuildBidQuery(string? search, string? submittedByUserId)
+    private IQueryable<BidWithRfx> BuildBidQuery(string? search, string? submittedByUserId, string? evaluationStatus)
     {
         var bidsQuery = dbContext.SupplierBids
             .AsNoTracking()
@@ -279,12 +283,20 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
             bidsQuery = bidsQuery.Where(entry => entry.Bid.SubmittedByUserId == submittedByUserId);
         }
 
+        if (!string.IsNullOrWhiteSpace(evaluationStatus))
+        {
+            var normalizedStatus = evaluationStatus.Trim().ToLower();
+            bidsQuery = bidsQuery.Where(entry => (entry.Bid.EvaluationStatus ?? string.Empty).ToLower() == normalizedStatus);
+        }
+
         if (!string.IsNullOrWhiteSpace(search))
         {
+            var normalizedSearch = search.Trim().ToLower();
+
             bidsQuery = bidsQuery.Where(entry =>
-                (entry.Rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(search) ||
-                (entry.Rfx.Title ?? string.Empty).ToLower().Contains(search) ||
-                (entry.Bid.EvaluationStatus ?? string.Empty).ToLower().Contains(search));
+                (entry.Rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(normalizedSearch) ||
+                (entry.Rfx.Title ?? string.Empty).ToLower().Contains(normalizedSearch) ||
+                (entry.Bid.EvaluationStatus ?? string.Empty).ToLower().Contains(normalizedSearch));
         }
 
         return bidsQuery;

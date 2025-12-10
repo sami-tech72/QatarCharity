@@ -1,3 +1,5 @@
+using Application.Features.ContractManagement.Commands;
+using Application.Features.ContractManagement.Queries;
 using Application.Features.Rfx.Commands;
 using Application.Features.Rfx.Queries;
 using Application.Features.Suppliers.Commands;
@@ -20,6 +22,9 @@ public static class DependencyInjection
         services.AddScoped<GetPublishedRfxListQuery>();
         services.AddScoped<GetPublishedRfxByIdQuery>();
         services.AddScoped<SubmitBidCommand>();
+        services.AddScoped<GetContractReadyBidsQuery>();
+        services.AddScoped<GetContractsQuery>();
+        services.AddScoped<CreateContractCommand>();
 
         services.AddScoped<GetSuppliersQuery>();
         services.AddScoped<CreateSupplierCommand>();
