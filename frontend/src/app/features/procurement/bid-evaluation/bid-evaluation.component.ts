@@ -134,7 +134,11 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (result: PagedResult<SupplierBidEvaluation>) => {
-          this.bids = result.items;
+          this.bids = result.items.map((bid) => ({
+            ...bid,
+            reviews: bid.reviews || [],
+            evaluationStatus: bid.evaluationStatus || 'Pending Review',
+          }));
           this.total = result.totalCount;
           this.updateSummary();
           this.loading = false;
@@ -156,15 +160,24 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
   }
 
   private updateSummary(): void {
-    const pendingReview = this.bids.filter((bid) => bid.evaluationStatus === 'Pending Review').length;
-    const underReview = this.bids.filter((bid) => bid.evaluationStatus === 'Under Review').length;
-    const approved = this.bids.filter((bid) => bid.evaluationStatus === 'Approved' || bid.evaluationStatus === 'Recommended').length;
+    const summary = this.bids.reduce(
+      (acc, bid) => {
+        const status = bid.evaluationStatus || 'Pending Review';
+        acc.total += 1;
 
-    this.summary = {
-      total: this.total,
-      pendingReview,
-      underReview,
-      approved,
-    };
+        if (status === 'Pending Review') {
+          acc.pendingReview += 1;
+        } else if (status === 'Under Review') {
+          acc.underReview += 1;
+        } else if (status === 'Approved' || status === 'Recommended') {
+          acc.approved += 1;
+        }
+
+        return acc;
+      },
+      { total: 0, pendingReview: 0, underReview: 0, approved: 0 },
+    );
+
+    this.summary = summary;
   }
 }
