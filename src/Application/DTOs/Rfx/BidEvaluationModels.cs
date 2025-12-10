@@ -15,7 +15,8 @@ public record SupplierBidResponse(
     string EvaluationStatus,
     string? EvaluationNotes,
     DateTime? EvaluatedAtUtc,
-    string? EvaluatedBy);
+    string? EvaluatedBy,
+    IReadOnlyCollection<BidReviewResponse> Reviews);
 
 public record EvaluateBidRequest(string Status, string? ReviewNotes);
 
@@ -27,3 +28,10 @@ public class SupplierBidQueryParameters
 
     public string? Search { get; set; } = string.Empty;
 }
+
+
+public record BidReviewResponse(
+    string ReviewerName,
+    string Status,
+    string? Notes,
+    DateTime ReviewedAtUtc);

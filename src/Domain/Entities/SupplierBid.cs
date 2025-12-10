@@ -1,4 +1,4 @@
-namespace Domain.Entities;
+﻿namespace Domain.Entities;
 
 public class SupplierBid
 {
@@ -23,6 +23,7 @@ public class SupplierBid
 
     public DateTime SubmittedAtUtc { get; set; } = DateTime.UtcNow;
 
+    // Overall / final evaluation for the bid (as a whole)
     public string EvaluationStatus { get; set; } = "Pending Review";
 
     public string? EvaluationNotes { get; set; }
@@ -30,4 +31,6 @@ public class SupplierBid
     public DateTime? EvaluatedAtUtc { get; set; }
 
     public string? EvaluatedByUserId { get; set; }
+
+    public ICollection<SupplierBidReview> Reviews { get; set; } = new List<SupplierBidReview>();
 }

@@ -1,16 +1,39 @@
-using Application.DTOs.Common;
+﻿using Application.DTOs.Common;
 using Application.DTOs.Rfx;
 using Domain.Entities;
 using RfxEntity = Domain.Entities.Rfx;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Application.Features.Rfx.Common;
 
 internal static class RfxMapping
 {
-    public static SupplierBidResponse BuildBidResponse(SupplierBid bid, RfxEntity rfx, IReadOnlyDictionary<string, string> userLookup)
+    public static SupplierBidResponse BuildBidResponse(
+        SupplierBid bid,
+        RfxEntity rfx,
+        IReadOnlyDictionary<string, string> userLookup,
+        IReadOnlyCollection<SupplierBidReview>? reviews = null) // 🔥 NEW param
     {
         userLookup.TryGetValue(bid.SubmittedByUserId, out var submittedBy);
         userLookup.TryGetValue(bid.EvaluatedByUserId ?? string.Empty, out var evaluatedBy);
+
+        var reviewEntities = reviews ?? Array.Empty<SupplierBidReview>();
+
+        var reviewDtos = reviewEntities
+            .OrderByDescending(r => r.ReviewedAtUtc)
+            .Select(r =>
+            {
+                userLookup.TryGetValue(r.ReviewerUserId, out var reviewerName);
+
+                return new BidReviewResponse(
+                    reviewerName ?? r.ReviewerUserId,
+                    r.Status,
+                    r.Notes,
+                    r.ReviewedAtUtc);
+            })
+            .ToList();
 
         return new SupplierBidResponse(
             bid.Id,
@@ -27,7 +50,8 @@ internal static class RfxMapping
             bid.EvaluationStatus,
             bid.EvaluationNotes,
             bid.EvaluatedAtUtc,
-            evaluatedBy);
+            evaluatedBy,
+            reviewDtos);
     }
 
     public static RfxDetailResponse MapToDetailResponse(RfxEntity rfx, string? workflowName)

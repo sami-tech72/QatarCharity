@@ -1,4 +1,4 @@
-using Application.DTOs.Common;
+﻿using Application.DTOs.Common;
 using Application.DTOs.Rfx;
 using Domain.Entities;
 using RfxEntity = Domain.Entities.Rfx;
@@ -24,4 +24,8 @@ public interface IRfxRepository
     Task<IReadOnlyList<RfxEntity>> GetPublishedRfxAsync(string? search, int pageNumber, int pageSize);
     Task<RfxEntity?> GetPublishedRfxByIdAsync(Guid rfxId);
     Task AddSupplierBidAsync(SupplierBid bid);
+
+    Task AddBidReviewAsync(SupplierBidReview review);
+    Task<List<SupplierBidReview>> GetBidReviewsAsync(Guid bidId);
+    Task<SupplierBidReview?> GetBidReviewForUserAsync(Guid bidId, string userId);
 }

@@ -72,7 +72,11 @@ namespace Persistence.Migrations
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DocumentsJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     InputsJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SubmittedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    SubmittedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EvaluationStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EvaluationNotes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EvaluatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EvaluatedByUserId = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -194,6 +198,28 @@ namespace Persistence.Migrations
                         name: "FK_ProcurementRolePermissions_ProcurementRoleTemplates_ProcurementRoleTemplateId",
                         column: x => x.ProcurementRoleTemplateId,
                         principalTable: "ProcurementRoleTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SupplierBidReviews",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    BidId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ReviewerUserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReviewedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SupplierBidReviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SupplierBidReviews_SupplierBids_BidId",
+                        column: x => x.BidId,
+                        principalTable: "SupplierBids",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -516,6 +542,11 @@ namespace Persistence.Migrations
                 column: "RfxId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SupplierBidReviews_BidId",
+                table: "SupplierBidReviews",
+                column: "BidId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Suppliers_PortalUserEmail",
                 table: "Suppliers",
                 column: "PortalUserEmail",
@@ -584,7 +615,7 @@ namespace Persistence.Migrations
                 name: "RfxEvaluationCriteria");
 
             migrationBuilder.DropTable(
-                name: "SupplierBids");
+                name: "SupplierBidReviews");
 
             migrationBuilder.DropTable(
                 name: "Suppliers");
@@ -600,6 +631,9 @@ namespace Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "Rfxes");
+
+            migrationBuilder.DropTable(
+                name: "SupplierBids");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

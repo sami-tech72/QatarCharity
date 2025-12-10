@@ -4,6 +4,9 @@ using Application.Features.Rfx.Common;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Application.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Application.Features.Rfx.Queries;
 
@@ -41,6 +44,7 @@ public class GetSupplierBidsQuery
         var userLookup = await _userDirectoryService.GetUserNamesAsync(userIds);
 
         var bidResponses = results
+            // list view: we don't need full reviews, so pass only basic info
             .Select(entry => RfxMapping.BuildBidResponse(entry.Bid!, entry.Rfx!, userLookup))
             .ToList();
 
