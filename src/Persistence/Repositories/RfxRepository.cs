@@ -18,7 +18,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
     }
 
     public async Task<IReadOnlyList<(SupplierBid Bid, RfxEntity Rfx)>> GetSupplierBidsAsync(
-    string? search, string? submittedByUserId, int pageNumber, int pageSize)
+        string? search, string? submittedByUserId, int pageNumber, int pageSize)
     {
         var query = BuildBidQuery(search, submittedByUserId);
 
@@ -28,7 +28,9 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
             .Take(pageSize)
             .ToListAsync();
 
-        return results.ToList();
+        return results
+            .Select(entry => (entry.Bid, entry.Rfx))
+            .ToList();
     }
 
 
@@ -262,11 +264,11 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return rfxQuery;
     }
 
-    private IQueryable<(SupplierBid Bid, RfxEntity Rfx)> BuildBidQuery(string? search, string? submittedByUserId)
+    private IQueryable<BidWithRfx> BuildBidQuery(string? search, string? submittedByUserId)
     {
         var bidsQuery = dbContext.SupplierBids
             .AsNoTracking()
-            .Join(dbContext.Rfxes.AsNoTracking(), bid => bid.RfxId, rfx => rfx.Id, (bid, rfx) => new
+            .Join(dbContext.Rfxes.AsNoTracking(), bid => bid.RfxId, rfx => rfx.Id, (bid, rfx) => new BidWithRfx
             {
                 Bid = bid,
                 Rfx = rfx,
@@ -285,6 +287,13 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
                 (entry.Bid.EvaluationStatus ?? string.Empty).ToLower().Contains(search));
         }
 
-        return bidsQuery.Select(entry => new ValueTuple<SupplierBid, RfxEntity>(entry.Bid, entry.Rfx));
+        return bidsQuery;
+    }
+
+    private sealed class BidWithRfx
+    {
+        public required SupplierBid Bid { get; init; }
+
+        public required RfxEntity Rfx { get; init; }
     }
 }
