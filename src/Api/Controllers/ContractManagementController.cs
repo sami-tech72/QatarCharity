@@ -3,6 +3,7 @@ using Application.DTOs.Common;
 using Application.DTOs.Contracts;
 using Application.Features.ContractManagement.Commands;
 using Application.Features.ContractManagement.Queries;
+using Api.Authorization;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -30,6 +31,7 @@ public class ContractManagementController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = ProcurementPolicies.ContractManagementRead)]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<ContractResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<PagedResult<ContractResponse>>>> GetContracts([FromQuery] ContractReadyQueryParameters query)
     {
@@ -39,6 +41,7 @@ public class ContractManagementController : ControllerBase
     }
 
     [HttpGet("ready")]
+    [Authorize(Policy = ProcurementPolicies.ContractManagementRead)]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<ContractReadyBidResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<PagedResult<ContractReadyBidResponse>>>> GetContractReadyBids([FromQuery] ContractReadyQueryParameters query)
     {
@@ -48,6 +51,7 @@ public class ContractManagementController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = ProcurementPolicies.ContractManagementCreate)]
     [ProducesResponseType(typeof(ApiResponse<ContractResponse>), StatusCodes.Status201Created)]
     public async Task<ActionResult<ApiResponse<ContractResponse>>> CreateContract([FromBody] CreateContractRequest request)
     {
