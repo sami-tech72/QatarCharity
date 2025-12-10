@@ -56,6 +56,7 @@
               <th>RFx</th>
               <th>Bid Amount</th>
               <th>Status</th>
+              <th>Reviews</th>
               <th>Submitted</th>
               <th class="text-end">Actions</th>
             </tr>
@@ -80,6 +81,12 @@
               </td>
               <td>
                 <span class="badge" [ngClass]="statusBadgeClass(bid.evaluationStatus)">{{ bid.evaluationStatus }}</span>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ bid.reviews?.length || 0 }} review(s)</div>
+                <div class="text-muted small" *ngIf="bid.reviews?.[0]">
+                  Last updated {{ bid.reviews[0].reviewedAtUtc | date: 'mediumDate' }}
+                </div>
               </td>
               <td>{{ bid.submittedAtUtc | date: 'mediumDate' }}</td>
               <td class="text-end">
@@ -125,6 +132,29 @@
             <p class="text-muted mb-2">{{ selectedBid?.proposalSummary }}</p>
             <div class="fw-semibold">Notes</div>
             <p class="text-muted mb-0">{{ selectedBid?.notes || 'No additional notes provided.' }}</p>
+          </div>
+
+          <div class="mb-4">
+            <div class="d-flex align-items-center justify-content-between gap-3 mb-2 flex-wrap">
+              <div class="fw-semibold mb-0">Review history</div>
+              <span class="badge badge-light-primary">{{ selectedBid?.reviews?.length || 0 }} recorded review(s)</span>
+            </div>
+
+            <div *ngIf="selectedBid?.reviews?.length; else noReviews" class="review-history">
+              <div class="review-history__item" *ngFor="let review of selectedBid?.reviews; trackBy: trackByReview">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                  <div>
+                    <div class="fw-semibold">{{ review.reviewerName }}</div>
+                    <div class="text-muted small">Reviewed {{ review.reviewedAtUtc | date: 'medium' }}</div>
+                  </div>
+                  <span class="badge" [ngClass]="statusBadgeClass(review.status)">{{ review.status }}</span>
+                </div>
+                <div class="text-muted mt-2" *ngIf="review.notes">{{ review.notes }}</div>
+              </div>
+            </div>
+            <ng-template #noReviews>
+              <div class="placeholder">No reviews have been submitted for this bid yet.</div>
+            </ng-template>
           </div>
 
           <form [formGroup]="reviewForm" (ngSubmit)="submitReview()" class="review-form">

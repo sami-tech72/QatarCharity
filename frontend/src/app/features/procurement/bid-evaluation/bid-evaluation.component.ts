@@ -6,7 +6,7 @@ import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { BidEvaluationService } from '../../../core/services/bid-evaluation.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PagedResult } from '../../../shared/models/pagination.model';
-import { EvaluateBidRequest, SupplierBidEvaluation } from '../../../shared/models/bid-evaluation.model';
+import { BidReview, EvaluateBidRequest, SupplierBidEvaluation } from '../../../shared/models/bid-evaluation.model';
 
 @Component({
   selector: 'app-bid-evaluation',
@@ -58,6 +58,10 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
 
   trackByBidId(_: number, bid: SupplierBidEvaluation): string {
     return bid.id;
+  }
+
+  trackByReview(_: number, review: BidReview): string {
+    return `${review.reviewerName}-${review.reviewedAtUtc}`;
   }
 
   statusBadgeClass(status: string): string {

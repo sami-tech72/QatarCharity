@@ -20,9 +20,17 @@ export interface SupplierBidEvaluation {
   evaluationNotes?: string | null;
   evaluatedAtUtc?: string | null;
   evaluatedBy?: string | null;
+  reviews: BidReview[];
 }
 
 export interface EvaluateBidRequest {
   status: string;
   reviewNotes?: string;
+}
+
+export interface BidReview {
+  reviewerName: string;
+  status: string;
+  notes?: string | null;
+  reviewedAtUtc: string;
 }

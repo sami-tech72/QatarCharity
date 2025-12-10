@@ -28,4 +28,5 @@ public interface IRfxRepository
     Task AddBidReviewAsync(SupplierBidReview review);
     Task<List<SupplierBidReview>> GetBidReviewsAsync(Guid bidId);
     Task<SupplierBidReview?> GetBidReviewForUserAsync(Guid bidId, string userId);
+    Task<Dictionary<Guid, List<SupplierBidReview>>> GetBidReviewsAsync(IEnumerable<Guid> bidIds);
 }

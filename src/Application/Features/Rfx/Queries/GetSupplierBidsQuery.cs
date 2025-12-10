@@ -4,6 +4,7 @@ using Application.Features.Rfx.Common;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Application.Models;
+using Domain.Entities;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,11 +33,19 @@ public class GetSupplierBidsQuery
         var totalCount = await _repository.CountSupplierBidsAsync(search);
         var results = await _repository.GetSupplierBidsAsync(search, pageNumber, pageSize);
 
+        var bidIds = results
+            .Where(entry => entry.Bid != null)
+            .Select(entry => entry.Bid!.Id)
+            .ToList();
+
+        var reviewsLookup = await _repository.GetBidReviewsAsync(bidIds);
+
         // collect submitted & evaluated user ids
         var userIds = results
             .Where(e => e.Bid != null)
             .Select(e => e.Bid!.SubmittedByUserId)
             .Concat(results.Select(e => e.Bid?.EvaluatedByUserId ?? string.Empty))
+            .Concat(reviewsLookup.Values.SelectMany(r => r.Select(review => review.ReviewerUserId)))
             .Where(id => !string.IsNullOrWhiteSpace(id))
             .Distinct()
             .ToList();
@@ -45,7 +54,14 @@ public class GetSupplierBidsQuery
 
         var bidResponses = results
             // list view: we don't need full reviews, so pass only basic info
-            .Select(entry => RfxMapping.BuildBidResponse(entry.Bid!, entry.Rfx!, userLookup))
+            .Select(entry =>
+            {
+                var reviews = reviewsLookup.TryGetValue(entry.Bid!.Id, out var bidReviews)
+                    ? (IReadOnlyCollection<SupplierBidReview>)bidReviews
+                    : Array.Empty<SupplierBidReview>();
+
+                return RfxMapping.BuildBidResponse(entry.Bid!, entry.Rfx!, userLookup, reviews);
+            })
             .ToList();
 
         var pagedResult = new PagedResult<SupplierBidResponse>(bidResponses, totalCount, pageNumber, pageSize);
