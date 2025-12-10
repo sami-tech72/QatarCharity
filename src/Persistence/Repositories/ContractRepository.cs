@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Application.DTOs.Contracts;
 using Application.Interfaces.Repositories;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +33,7 @@ public class ContractRepository : IContractRepository
         return await query.CountAsync();
     }
 
-    public async Task<IReadOnlyList<(Contract Contract, string ReferenceNumber)>> GetContractsAsync(
+    public async Task<IReadOnlyList<ContractWithReference>> GetContractsAsync(
         string? search,
         int pageNumber,
         int pageSize)
@@ -43,7 +44,11 @@ public class ContractRepository : IContractRepository
             .OrderByDescending(entry => entry.Contract.CreatedAtUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(entry => (entry.Contract, entry.ReferenceNumber))
+            .Select(entry => new ContractWithReference
+            {
+                Contract = entry.Contract,
+                ReferenceNumber = entry.ReferenceNumber,
+            })
             .ToListAsync();
     }
 
@@ -52,15 +57,18 @@ public class ContractRepository : IContractRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    private IQueryable<(Contract Contract, string ReferenceNumber)> BuildContractsQuery(string? search)
+    private IQueryable<ContractWithReference> BuildContractsQuery(string? search)
     {
         var query = _dbContext.Contracts
             .Join(
                 _dbContext.Rfxes,
                 contract => contract.RfxId,
                 rfx => rfx.Id,
-                (contract, rfx) => new { Contract = contract, ReferenceNumber = rfx.ReferenceNumber ?? string.Empty })
-            .Select(entry => (entry.Contract, entry.ReferenceNumber))
+                (contract, rfx) => new ContractWithReference
+                {
+                    Contract = contract,
+                    ReferenceNumber = rfx.ReferenceNumber ?? string.Empty,
+                })
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))

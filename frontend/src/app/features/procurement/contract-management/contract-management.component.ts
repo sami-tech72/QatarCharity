@@ -20,6 +20,7 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   contracts: ContractRecord[] = [];
   filteredContracts: ContractRecord[] = [];
   selectedBid?: ContractReadyBid;
+  searchTerm = '';
   summary = {
     total: 0,
     approved: 0,
@@ -62,14 +63,8 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   }
 
   onSearch(event: Event): void {
-    const query = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    this.filteredReadyBids = this.readyBids.filter((contract) =>
-      `${contract.referenceNumber} ${contract.title} ${contract.supplierName}`.toLowerCase().includes(query),
-    );
-
-    this.filteredContracts = this.contracts.filter((contract) =>
-      `${contract.referenceNumber} ${contract.title} ${contract.supplierName}`.toLowerCase().includes(query),
-    );
+    this.searchTerm = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.applySearchFilters();
   }
 
   loadReadyBids(search?: string): void {
@@ -80,18 +75,18 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result) => {
           this.readyBids = result.items || [];
-          this.filteredReadyBids = [...this.readyBids];
           this.summary = {
             total: result.totalCount,
             approved: result.totalCount,
             totalValue: this.readyBids.reduce((sum, contract) => sum + contract.bidAmount, 0),
           };
+          this.applySearchFilters();
           this.loading = false;
         },
         error: (error) => {
           this.notification.error(error.message || 'Unable to load contract-ready bids.');
           this.readyBids = [];
-          this.filteredReadyBids = [];
+          this.applySearchFilters();
           this.summary = { total: 0, approved: 0, totalValue: 0 };
           this.loading = false;
         },
@@ -105,12 +100,12 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result) => {
           this.contracts = result.items || [];
-          this.filteredContracts = [...this.contracts];
+          this.applySearchFilters();
         },
         error: (error) => {
           this.notification.error(error.message || 'Unable to load created contracts.');
           this.contracts = [];
-          this.filteredContracts = [];
+          this.applySearchFilters();
         },
       });
   }
@@ -133,6 +128,8 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
 
   closeCreateModal(): void {
     this.showCreateModal = false;
+    this.selectedBid = undefined;
+    this.createForm.reset({ status: 'Draft' });
   }
 
   onBidSelected(bidId: string): void {
@@ -168,10 +165,14 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
       .createContract(payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
+        next: (created) => {
           this.notification.success('Contract created successfully.');
           this.showCreateModal = false;
           this.createForm.reset({ status: 'Draft' });
+          this.contracts = [created, ...this.contracts];
+          this.readyBids = this.readyBids.filter((bid) => bid.bidId !== created.bidId);
+          this.applySearchFilters();
+          this.selectedBid = undefined;
           this.loadExistingContracts();
           this.loadReadyBids();
         },
@@ -191,5 +192,21 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
 
   getStatusClass(status: string): string {
     return `status-${status?.toLowerCase().replace(/\s+/g, '-')}`;
+  }
+
+  private applySearchFilters(): void {
+    if (!this.searchTerm) {
+      this.filteredReadyBids = [...this.readyBids];
+      this.filteredContracts = [...this.contracts];
+      return;
+    }
+
+    this.filteredReadyBids = this.readyBids.filter((contract) =>
+      `${contract.referenceNumber} ${contract.title} ${contract.supplierName}`.toLowerCase().includes(this.searchTerm),
+    );
+
+    this.filteredContracts = this.contracts.filter((contract) =>
+      `${contract.referenceNumber} ${contract.title} ${contract.supplierName}`.toLowerCase().includes(this.searchTerm),
+    );
   }
 }
