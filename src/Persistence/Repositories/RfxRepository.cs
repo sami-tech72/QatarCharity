@@ -11,16 +11,25 @@ namespace Persistence.Repositories;
 
 public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 {
-    public async Task<int> CountSupplierBidsAsync(string? search, string? submittedByUserId = null, string? evaluationStatus = null)
+    public async Task<int> CountSupplierBidsAsync(
+        string? search,
+        string? submittedByUserId = null,
+        string? evaluationStatus = null,
+        bool excludeWithContract = false)
     {
-        var bidsQuery = BuildBidQuery(search, submittedByUserId, evaluationStatus);
+        var bidsQuery = BuildBidQuery(search, submittedByUserId, evaluationStatus, excludeWithContract);
         return await bidsQuery.CountAsync();
     }
 
     public async Task<IReadOnlyList<(SupplierBid Bid, RfxEntity Rfx)>> GetSupplierBidsAsync(
-        string? search, string? submittedByUserId, int pageNumber, int pageSize, string? evaluationStatus = null)
+        string? search,
+        string? submittedByUserId,
+        int pageNumber,
+        int pageSize,
+        string? evaluationStatus = null,
+        bool excludeWithContract = false)
     {
-        var query = BuildBidQuery(search, submittedByUserId, evaluationStatus);
+        var query = BuildBidQuery(search, submittedByUserId, evaluationStatus, excludeWithContract);
 
         var results = await query
             .OrderByDescending(x => x.Bid.SubmittedAtUtc)
@@ -268,7 +277,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return rfxQuery;
     }
 
-    private IQueryable<BidWithRfx> BuildBidQuery(string? search, string? submittedByUserId, string? evaluationStatus)
+    private IQueryable<BidWithRfx> BuildBidQuery(string? search, string? submittedByUserId, string? evaluationStatus, bool excludeWithContract)
     {
         var bidsQuery = dbContext.SupplierBids
             .AsNoTracking()
@@ -277,6 +286,11 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
                 Bid = bid,
                 Rfx = rfx,
             });
+
+        if (excludeWithContract)
+        {
+            bidsQuery = bidsQuery.Where(entry => !dbContext.Contracts.Any(contract => contract.BidId == entry.Bid.Id));
+        }
 
         if (!string.IsNullOrWhiteSpace(submittedByUserId))
         {
