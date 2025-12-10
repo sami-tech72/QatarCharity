@@ -44,6 +44,23 @@
         >
           <!--begin::Navbar-->
           <div class="app-navbar flex-shrink-0">
+            <!--begin::Customizer toggle-->
+            <div class="app-navbar-item ms-1 ms-md-3">
+              <button
+                type="button"
+                class="btn btn-icon btn-custom btn-icon-muted btn-active-light btn-active-color-primary w-30px h-30px w-md-40px h-md-40px"
+                aria-label="Open template customizer"
+                (click)="toggleCustomizer(true)"
+              >
+                <i class="ki-duotone ki-setting-2 fs-2 fs-lg-1">
+                  <span class="path1"></span>
+                  <span class="path2"></span>
+                  <span class="path3"></span>
+                  <span class="path4"></span>
+                </i>
+              </button>
+            </div>
+            <!--end::Customizer toggle-->
             <!--begin::Theme mode-->
             <div class="app-navbar-item ms-1 ms-md-3">
               <!--begin::Menu toggle-->
@@ -350,6 +367,157 @@
   </i>
 </div>
 <!--end::Scrolltop-->
+
+<!--begin::Template Customizer-->
+<div
+  class="template-customizer"
+  [class.template-customizer--open]="isCustomizerOpen"
+  aria-hidden="true"
+  aria-label="Template customizer"
+>
+  <div class="template-customizer__header">
+    <div>
+      <h3 class="template-customizer__title mb-1">Template Customizer</h3>
+      <p class="template-customizer__subtitle mb-0">Customize and preview in real time</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-sm btn-light" (click)="setPrimaryColor(getPrimaryColor())">
+        <i class="ki-duotone ki-arrows-circle fs-5">
+          <span class="path1"></span>
+          <span class="path2"></span>
+        </i>
+      </button>
+      <button type="button" class="btn btn-icon btn-sm btn-light" aria-label="Close customizer" (click)="toggleCustomizer(false)">
+        <i class="ki-duotone ki-cross fs-3">
+          <span class="path1"></span>
+          <span class="path2"></span>
+        </i>
+      </button>
+    </div>
+  </div>
+
+  <div class="template-customizer__body">
+    <div class="template-customizer__section">
+      <span class="badge badge-light-primary fs-7 fw-semibold text-uppercase">Theming</span>
+    </div>
+
+    <div class="template-customizer__section">
+      <h6 class="fw-semibold mb-3">Primary Color</h6>
+      <div class="d-flex flex-wrap gap-2">
+        <button
+          type="button"
+          class="template-customizer__color"
+          *ngFor="let color of ['#0d6efd', '#784afa', '#eab308', '#f97316', '#ef4444', '#22c55e']"
+          [style.backgroundColor]="color"
+          [class.template-customizer__color--active]="selectedPrimaryColor === color"
+          (click)="setPrimaryColor(color)"
+        >
+          <span class="visually-hidden">Set primary color {{ color }}</span>
+        </button>
+
+        <label class="template-customizer__color template-customizer__color--picker" [class.template-customizer__color--active]="false">
+          <input
+            type="color"
+            class="template-customizer__color-input"
+            [value]="selectedPrimaryColor"
+            (input)="setPrimaryColor($any($event.target).value)"
+            aria-label="Choose custom primary color"
+          />
+          <i class="ki-duotone ki-pencil fs-2 text-muted">
+            <span class="path1"></span>
+            <span class="path2"></span>
+          </i>
+        </label>
+      </div>
+    </div>
+
+    <div class="template-customizer__section">
+      <h6 class="fw-semibold mb-3">Theme</h6>
+      <div class="d-flex flex-wrap gap-3">
+        <button
+          type="button"
+          class="template-customizer__option"
+          *ngFor="let theme of themeModes"
+          [class.template-customizer__option--active]="(themeMode$ | async) === theme.value"
+          (click)="changeTheme(theme.value)"
+        >
+          <i class="{{ theme.icon }} fs-2">
+            <span class="path1"></span>
+            <span class="path2"></span>
+            <span class="path3" *ngIf="theme.value === 'light'"></span>
+            <span class="path4" *ngIf="theme.value === 'light'"></span>
+            <span class="path5" *ngIf="theme.value === 'light'"></span>
+            <span class="path6" *ngIf="theme.value === 'light'"></span>
+            <span class="path7" *ngIf="theme.value === 'light'"></span>
+            <span class="path8" *ngIf="theme.value === 'light'"></span>
+            <span class="path9" *ngIf="theme.value === 'light'"></span>
+            <span class="path10" *ngIf="theme.value === 'light'"></span>
+            <span class="path3" *ngIf="theme.value === 'system'"></span>
+            <span class="path4" *ngIf="theme.value === 'system'"></span>
+          </i>
+          <span class="fw-semibold">{{ theme.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="template-customizer__section">
+      <h6 class="fw-semibold mb-3">Skins</h6>
+      <div class="d-flex flex-wrap gap-3">
+        <button
+          type="button"
+          class="template-customizer__option"
+          [class.template-customizer__option--active]="selectedSkin === 'default'"
+          (click)="setSkin('default')"
+        >
+          <i class="ki-duotone ki-abstract-47 fs-2">
+            <span class="path1"></span>
+            <span class="path2"></span>
+            <span class="path3"></span>
+            <span class="path4"></span>
+          </i>
+          <span class="fw-semibold">Default</span>
+        </button>
+        <button
+          type="button"
+          class="template-customizer__option"
+          [class.template-customizer__option--active]="selectedSkin === 'bordered'"
+          (click)="setSkin('bordered')"
+        >
+          <i class="ki-duotone ki-design-1 fs-2">
+            <span class="path1"></span>
+            <span class="path2"></span>
+          </i>
+          <span class="fw-semibold">Bordered</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="template-customizer__section d-flex align-items-center justify-content-between">
+      <div>
+        <h6 class="fw-semibold mb-1">Semi Dark</h6>
+        <p class="mb-0 text-muted">Change layout appearance</p>
+      </div>
+      <div class="form-check form-switch">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="semiDarkSwitch"
+          [checked]="isSemiDark"
+          (change)="toggleSemiDark($any($event.target).checked)"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="template-customizer__backdrop"
+  *ngIf="isCustomizerOpen"
+  (click)="toggleCustomizer(false)"
+  aria-hidden="true"
+></div>
+<!--end::Template Customizer-->
 </ng-container>
 
 <ng-template #authRoutes>

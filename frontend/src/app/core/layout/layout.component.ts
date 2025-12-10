@@ -42,6 +42,20 @@ export class LayoutComponent implements AfterViewInit {
 
   session: UserSession | null = null;
 
+  isCustomizerOpen = false;
+
+  selectedPrimaryColor = this.getPrimaryColor();
+
+  selectedSkin: 'default' | 'bordered' = 'default';
+
+  isSemiDark = false;
+
+  private readonly storageKeys = {
+    primary: 'app-primary-color',
+    skin: 'app-skin',
+    semiDark: 'app-semi-dark',
+  } as const;
+
   get sidebarMenu() {
     return this.authService.sidebarMenuForRole(this.currentRole, this.session);
   }
@@ -69,6 +83,8 @@ export class LayoutComponent implements AfterViewInit {
     this.authService.session$
       .pipe(takeUntilDestroyed(destroyRef))
       .subscribe((session) => this.handleSessionChange(session));
+
+    this.restoreCustomizerState();
   }
 
   ngAfterViewInit() {
@@ -90,6 +106,37 @@ export class LayoutComponent implements AfterViewInit {
   changeTheme(mode: ThemeMode) {
     this.themeService.setMode(mode);
     this.scheduleLayoutInitialization();
+  }
+
+  toggleCustomizer(open?: boolean) {
+    this.isCustomizerOpen = open ?? !this.isCustomizerOpen;
+  }
+
+  setPrimaryColor(color: string, persist = true) {
+    this.selectedPrimaryColor = color;
+    this.applyPrimaryColor(color);
+
+    if (persist) {
+      localStorage.setItem(this.storageKeys.primary, color);
+    }
+  }
+
+  setSkin(skin: 'default' | 'bordered', persist = true) {
+    this.selectedSkin = skin;
+    document.body.classList.toggle('app-skin-bordered', skin === 'bordered');
+
+    if (persist) {
+      localStorage.setItem(this.storageKeys.skin, skin);
+    }
+  }
+
+  toggleSemiDark(enabled: boolean, persist = true) {
+    this.isSemiDark = enabled;
+    document.body.classList.toggle('app-semi-dark', enabled);
+
+    if (persist) {
+      localStorage.setItem(this.storageKeys.semiDark, String(enabled));
+    }
   }
 
   private updateActivePageTitle(url: string) {
@@ -138,6 +185,26 @@ export class LayoutComponent implements AfterViewInit {
     this.scheduleLayoutInitialization();
   }
 
+  private restoreCustomizerState() {
+    const storedPrimary = localStorage.getItem(this.storageKeys.primary);
+    const storedSkin = localStorage.getItem(this.storageKeys.skin) as
+      | 'default'
+      | 'bordered'
+      | null;
+    const storedSemiDark = localStorage.getItem(this.storageKeys.semiDark);
+
+    const primaryToApply = storedPrimary || this.selectedPrimaryColor;
+    this.setPrimaryColor(primaryToApply, false);
+
+    if (storedSkin === 'default' || storedSkin === 'bordered') {
+      this.setSkin(storedSkin, false);
+    }
+
+    if (storedSemiDark !== null) {
+      this.toggleSemiDark(storedSemiDark === 'true', false);
+    }
+  }
+
   private scheduleLayoutInitialization() {
     if (!this.isAuthenticated) {
       return;
@@ -162,5 +229,40 @@ export class LayoutComponent implements AfterViewInit {
     ktWindow.KTApp?.init?.();
     ktWindow.KTMenu?.init?.();
     ktWindow.KTAppSidebar?.init?.();
+  }
+
+  getPrimaryColor() {
+    const computedStyle = getComputedStyle(document.documentElement);
+    return computedStyle.getPropertyValue('--app-primary').trim() || '#0d6efd';
+  }
+
+  private applyPrimaryColor(color: string) {
+    const rgb = this.hexToRgb(color);
+
+    document.documentElement.style.setProperty('--app-primary', color);
+    document.documentElement.style.setProperty('--bs-primary', color);
+    document.body.style.setProperty('--app-primary', color);
+    document.body.style.setProperty('--bs-primary', color);
+
+    if (rgb) {
+      document.documentElement.style.setProperty('--bs-primary-rgb', rgb.join(','));
+      document.body.style.setProperty('--bs-primary-rgb', rgb.join(','));
+    }
+  }
+
+  private hexToRgb(hex: string): [number, number, number] | null {
+    const cleaned = hex.replace('#', '');
+
+    if (cleaned.length !== 6) {
+      return null;
+    }
+
+    const bigint = parseInt(cleaned, 16);
+
+    return [
+      (bigint >> 16) & 255,
+      (bigint >> 8) & 255,
+      bigint & 255,
+    ];
   }
 }

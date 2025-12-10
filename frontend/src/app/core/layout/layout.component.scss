@@ -24,3 +24,117 @@
     margin-top: 0.4rem;
   }
 }
+
+.template-customizer {
+  position: fixed;
+  top: 0;
+  right: -420px;
+  width: min(420px, 100%);
+  height: 100vh;
+  background-color: var(--app-surface);
+  border-left: 1px solid var(--app-border);
+  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.1);
+  transition: right 0.35s ease;
+  z-index: 1090;
+  padding: 1.5rem;
+  overflow-y: auto;
+
+  &--open {
+    right: 0;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  &__subtitle {
+    color: var(--app-muted);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__color {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    &--picker {
+      background: var(--app-surface-muted);
+      border-style: dashed;
+      border-color: var(--app-border);
+    }
+
+    &-input {
+      opacity: 0;
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+    }
+
+    i {
+      pointer-events: none;
+    }
+
+    &--active {
+      border-color: var(--app-primary);
+      box-shadow: 0 10px 20px color-mix(in srgb, var(--app-primary) 30%, transparent);
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  &__option {
+    min-width: 120px;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--app-border);
+    border-radius: 0.9rem;
+    background-color: var(--app-surface-muted);
+    color: var(--app-text);
+    display: grid;
+    place-items: center;
+    gap: 0.5rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+
+    &--active {
+      border-color: var(--app-primary);
+      box-shadow: 0 12px 32px color-mix(in srgb, var(--app-primary) 24%, transparent);
+      background-color: color-mix(in srgb, var(--app-primary) 12%, transparent);
+    }
+  }
+}
+
+.template-customizer__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(2px);
+  z-index: 1085;
+}
