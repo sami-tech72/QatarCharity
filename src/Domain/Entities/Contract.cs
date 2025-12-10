@@ -6,9 +6,9 @@ public class Contract
 {
     public Guid Id { get; set; }
 
-    public Guid BidId { get; set; }
+    public Guid? BidId { get; set; }
 
-    public Guid RfxId { get; set; }
+    public Guid? RfxId { get; set; }
 
     public string Title { get; set; } = default!;
 
@@ -25,6 +25,10 @@ public class Contract
     public DateTime EndDateUtc { get; set; }
 
     public string Status { get; set; } = "Draft";
+
+    public string? SupplierSignature { get; set; }
+
+    public DateTime? SupplierSignedAtUtc { get; set; }
 
     public DateTime CreatedAtUtc { get; set; }
 }

@@ -24,8 +24,9 @@ public record ContractReadyBidResponse(
 
 public record CreateContractRequest
 {
-    public Guid BidId { get; init; }
-    public Guid RfxId { get; init; }
+    public Guid? BidId { get; init; }
+    public Guid? RfxId { get; init; }
+    public bool IsDirectContract { get; init; }
     public string Title { get; init; } = string.Empty;
     public string SupplierName { get; init; } = string.Empty;
     public string SupplierUserId { get; init; } = string.Empty;
@@ -38,8 +39,8 @@ public record CreateContractRequest
 
 public record ContractResponse(
     Guid Id,
-    Guid BidId,
-    Guid RfxId,
+    Guid? BidId,
+    Guid? RfxId,
     string ReferenceNumber,
     string Title,
     string SupplierName,
@@ -49,4 +50,6 @@ public record ContractResponse(
     DateTime StartDateUtc,
     DateTime EndDateUtc,
     string Status,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAtUtc,
+    string? SupplierSignature,
+    DateTime? SupplierSignedAtUtc);

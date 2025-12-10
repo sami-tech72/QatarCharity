@@ -25,6 +25,8 @@ public static class DependencyInjection
         services.AddScoped<GetContractReadyBidsQuery>();
         services.AddScoped<GetContractsQuery>();
         services.AddScoped<CreateContractCommand>();
+        services.AddScoped<GetSupplierContractsQuery>();
+        services.AddScoped<SignContractCommand>();
 
         services.AddScoped<GetSuppliersQuery>();
         services.AddScoped<CreateSupplierCommand>();

@@ -19,8 +19,9 @@ export interface ContractManagementQuery {
 }
 
 export interface CreateContractPayload {
-  bidId: string;
-  rfxId: string;
+  bidId?: string | null;
+  rfxId?: string | null;
+  directContract?: boolean;
   title: string;
   supplierName: string;
   supplierUserId: string;
@@ -28,13 +29,12 @@ export interface CreateContractPayload {
   currency: string;
   startDateUtc: string;
   endDateUtc: string;
-  status: string;
 }
 
 export interface ContractResponse {
   id: string;
-  bidId: string;
-  rfxId: string;
+  bidId?: string | null;
+  rfxId?: string | null;
   referenceNumber: string;
   title: string;
   supplierName: string;
@@ -45,6 +45,8 @@ export interface ContractResponse {
   endDateUtc: string;
   status: string;
   createdAtUtc: string;
+  supplierSignature?: string | null;
+  supplierSignedAtUtc?: string | null;
 }
 
 export type ContractRecord = ContractResponse;

@@ -26,8 +26,8 @@ public class GetContractReadyBidsQuery
 
         const string approvedStatus = "approved";
 
-        var totalCount = await _repository.CountSupplierBidsAsync(search, null, approvedStatus);
-        var results = await _repository.GetSupplierBidsAsync(search, null, pageNumber, pageSize, approvedStatus);
+        var totalCount = await _repository.CountSupplierBidsAsync(search, null, approvedStatus, excludeWithContract: true);
+        var results = await _repository.GetSupplierBidsAsync(search, null, pageNumber, pageSize, approvedStatus, excludeWithContract: true);
 
         var userIds = results
             .Select(entry => entry.Bid.SubmittedByUserId)
