@@ -259,7 +259,7 @@
   }
 }
 
-.modal-backdrop {
+.contract-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
@@ -270,7 +270,9 @@
   z-index: 99999; /* ensure on top of other app elements */
 }
 
-.modal {
+.contract-modal {
+  display: flex;
+  flex-direction: column;
   position: relative;
   z-index: 100000; /* ensure modal content sits above the backdrop */
   background: white;
