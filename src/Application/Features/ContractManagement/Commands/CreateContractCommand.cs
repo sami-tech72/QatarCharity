@@ -2,6 +2,7 @@ using Application.DTOs.Contracts;
 using Application.Interfaces.Repositories;
 using Application.Models;
 using Domain.Entities;
+using RfxEntity = Domain.Entities.Rfx;
 
 namespace Application.Features.ContractManagement.Commands;
 
