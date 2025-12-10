@@ -1,8 +1,8 @@
 // Global modal theming to keep overlays consistent across the app
-$app-modal-radius: 12px;
-$app-modal-shadow: 0 20px 70px rgba(15, 23, 42, 0.22);
-$app-modal-border: 1px solid #eff2f5;
-$app-modal-background: #fff;
+$app-modal-radius: var(--app-radius-lg, 12px);
+$app-modal-shadow: var(--app-layer-shadow, 0 20px 70px rgba(15, 23, 42, 0.22));
+$app-modal-border: 1px solid var(--app-border, #eff2f5);
+$app-modal-background: var(--app-surface, #fff);
 
 .app-modal-backdrop,
 .modal-backdrop.show {
@@ -54,5 +54,5 @@ $app-modal-background: #fff;
 
 .section-divider {
   height: 1px;
-  background: #eff2f5;
+  background: var(--app-border, #eff2f5);
 }

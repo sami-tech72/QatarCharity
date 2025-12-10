@@ -24,10 +24,15 @@
     let themeMode;
 
     if (document.documentElement) {
+      const storedTheme = localStorage.getItem('data-bs-theme');
+      const storedMode = localStorage.getItem('data-bs-theme-mode');
+
       if (document.documentElement.hasAttribute('data-bs-theme-mode')) {
         themeMode = document.documentElement.getAttribute('data-bs-theme-mode');
-      } else if (localStorage.getItem('data-bs-theme') !== null) {
-        themeMode = localStorage.getItem('data-bs-theme');
+      } else if (storedMode) {
+        themeMode = storedMode;
+      } else if (storedTheme) {
+        themeMode = storedTheme;
       } else {
         themeMode = defaultThemeMode;
       }
@@ -38,6 +43,9 @@
     }
 
     document.documentElement.setAttribute('data-bs-theme', themeMode);
+    document.documentElement.setAttribute('data-bs-theme-mode', themeMode);
+    document.body?.setAttribute('data-bs-theme', themeMode);
+    document.body?.setAttribute('data-bs-theme-mode', themeMode);
   </script>
   <!--end::Theme mode setup on page load-->
 </head>

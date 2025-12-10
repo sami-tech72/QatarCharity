@@ -1,9 +1,12 @@
 .auth-wrapper {
-  background: linear-gradient(120deg, #f9fafb, #eef2ff);
+  background: radial-gradient(140% 140% at 20% 20%, var(--app-surface-muted), var(--app-body-bg));
+  color: var(--app-text);
 }
 
 .auth-card {
   min-width: 420px;
-  border: none;
-  border-radius: 18px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-layer-shadow);
+  background: var(--app-surface);
 }
