@@ -6,7 +6,7 @@ import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { BidEvaluationService } from '../../../core/services/bid-evaluation.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PagedResult } from '../../../shared/models/pagination.model';
-import { EvaluateBidRequest, SupplierBidEvaluation } from '../../../shared/models/bid-evaluation.model';
+import { BidReview, EvaluateBidRequest, SupplierBidEvaluation } from '../../../shared/models/bid-evaluation.model';
 
 @Component({
   selector: 'app-bid-evaluation',
@@ -58,6 +58,10 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
 
   trackByBidId(_: number, bid: SupplierBidEvaluation): string {
     return bid.id;
+  }
+
+  trackByReview(_: number, review: BidReview): string {
+    return `${review.reviewerName}-${review.reviewedAtUtc}`;
   }
 
   statusBadgeClass(status: string): string {
@@ -130,7 +134,13 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (result: PagedResult<SupplierBidEvaluation>) => {
-          this.bids = result.items;
+          this.bids = result.items.map((bid) => ({
+            ...bid,
+            reviews: (bid.reviews || []).sort(
+              (a, b) => new Date(b.reviewedAtUtc).getTime() - new Date(a.reviewedAtUtc).getTime(),
+            ),
+            evaluationStatus: bid.evaluationStatus || 'Pending Review',
+          }));
           this.total = result.totalCount;
           this.updateSummary();
           this.loading = false;
@@ -152,15 +162,35 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
   }
 
   private updateSummary(): void {
-    const pendingReview = this.bids.filter((bid) => bid.evaluationStatus === 'Pending Review').length;
-    const underReview = this.bids.filter((bid) => bid.evaluationStatus === 'Under Review').length;
-    const approved = this.bids.filter((bid) => bid.evaluationStatus === 'Approved' || bid.evaluationStatus === 'Recommended').length;
+    const summary = this.bids.reduce(
+      (acc, bid) => {
+        const latestStatus = this.deriveBidStatus(bid);
+        acc.total += 1;
+
+        if (latestStatus === 'Pending Review') {
+          acc.pendingReview += 1;
+        } else if (latestStatus === 'Under Review' || latestStatus === 'Needs Clarification') {
+          acc.underReview += 1;
+        } else if (latestStatus === 'Approved' || latestStatus === 'Recommended') {
+          acc.approved += 1;
+        }
+
+        return acc;
+      },
+      { total: 0, pendingReview: 0, underReview: 0, approved: 0 },
+    );
 
     this.summary = {
-      total: this.total,
-      pendingReview,
-      underReview,
-      approved,
+      ...summary,
+      total: this.total || summary.total,
     };
+  }
+
+  private deriveBidStatus(bid: SupplierBidEvaluation): string {
+    if (!bid.reviews || bid.reviews.length === 0) {
+      return 'Pending Review';
+    }
+
+    return bid.reviews[0].status || 'Pending Review';
   }
 }

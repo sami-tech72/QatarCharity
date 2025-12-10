@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Application.Interfaces.Repositories;
 using Domain.Entities;
@@ -234,6 +235,29 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
     {
         return dbContext.SupplierBidReviews
             .FirstOrDefaultAsync(r => r.BidId == bidId && r.ReviewerUserId == userId);
+    }
+
+    public async Task<Dictionary<Guid, List<SupplierBidReview>>> GetBidReviewsAsync(IEnumerable<Guid> bidIds)
+    {
+        var normalizedIds = bidIds
+            .Where(id => id != Guid.Empty)
+            .Distinct()
+            .ToList();
+
+        if (normalizedIds.Count == 0)
+        {
+            return new Dictionary<Guid, List<SupplierBidReview>>();
+        }
+
+        var reviews = await dbContext.SupplierBidReviews
+            .AsNoTracking()
+            .Where(r => normalizedIds.Contains(r.BidId))
+            .OrderByDescending(r => r.ReviewedAtUtc)
+            .ToListAsync();
+
+        return reviews
+            .GroupBy(r => r.BidId)
+            .ToDictionary(group => group.Key, group => group.ToList());
     }
 
     private IQueryable<RfxEntity> BuildPublishedRfxQuery(string? search)
