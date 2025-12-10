@@ -87,7 +87,7 @@ public class ContractRepository : IContractRepository
                 (entry, rfx) => new ContractWithReference
                 {
                     Contract = entry.contract,
-                    ReferenceNumber = rfx?.ReferenceNumber ?? string.Empty,
+                    ReferenceNumber = rfx == null ? string.Empty : rfx.ReferenceNumber ?? string.Empty,
                 })
             .FirstOrDefaultAsync();
     }
@@ -110,7 +110,7 @@ public class ContractRepository : IContractRepository
                 (entry, rfx) => new ContractWithReference
                 {
                     Contract = entry.contract,
-                    ReferenceNumber = rfx?.ReferenceNumber ?? string.Empty,
+                    ReferenceNumber = rfx == null ? string.Empty : rfx.ReferenceNumber ?? string.Empty,
                 })
             .AsQueryable();
 
@@ -121,12 +121,12 @@ public class ContractRepository : IContractRepository
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var normalizedSearch = search.Trim().ToLower();
+            var normalizedSearch = search.Trim();
 
             query = query.Where(entry =>
-                (entry.Contract.Title ?? string.Empty).ToLower().Contains(normalizedSearch) ||
-                (entry.Contract.SupplierName ?? string.Empty).ToLower().Contains(normalizedSearch) ||
-                (entry.ReferenceNumber ?? string.Empty).ToLower().Contains(normalizedSearch));
+                (entry.Contract.Title ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                (entry.Contract.SupplierName ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                (entry.ReferenceNumber ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
         }
 
         return query;

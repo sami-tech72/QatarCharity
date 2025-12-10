@@ -58,12 +58,12 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var normalizedSearch = search.Trim().ToLower();
+            var normalizedSearch = search.Trim();
 
             rfxQuery = rfxQuery.Where(rfx =>
-                (rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(normalizedSearch) ||
-                (rfx.Title ?? string.Empty).ToLower().Contains(normalizedSearch) ||
-                (rfx.Category ?? string.Empty).ToLower().Contains(normalizedSearch));
+                (rfx.ReferenceNumber ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                (rfx.Title ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                (rfx.Category ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
         }
 
         return await rfxQuery
@@ -84,12 +84,12 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var normalizedSearch = search.Trim().ToLower();
+            var normalizedSearch = search.Trim();
 
             rfxQuery = rfxQuery.Where(rfx =>
-                (rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(normalizedSearch) ||
-                (rfx.Title ?? string.Empty).ToLower().Contains(normalizedSearch) ||
-                (rfx.Category ?? string.Empty).ToLower().Contains(normalizedSearch));
+                (rfx.ReferenceNumber ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                (rfx.Title ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                (rfx.Category ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
         }
 
         return await rfxQuery.CountAsync();
@@ -206,7 +206,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return await dbContext.Rfxes
             .AsNoTracking()
             .FirstOrDefaultAsync(rfx =>
-                rfx.Id == rfxId && (rfx.Status ?? string.Empty).ToLower() == "published");
+                rfx.Id == rfxId && string.Equals(rfx.Status, "published", StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task AddSupplierBidAsync(SupplierBid bid)
@@ -264,14 +264,14 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
     {
         var rfxQuery = dbContext.Rfxes
             .AsNoTracking()
-            .Where(rfx => rfx.Status != null && rfx.Status.ToLower() == "published");
+            .Where(rfx => rfx.Status != null && rfx.Status.Equals("published", StringComparison.OrdinalIgnoreCase));
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             rfxQuery = rfxQuery.Where(rfx =>
-                (rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(search) ||
-                (rfx.Title ?? string.Empty).ToLower().Contains(search) ||
-                (rfx.Category ?? string.Empty).ToLower().Contains(search));
+                (rfx.ReferenceNumber ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (rfx.Title ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (rfx.Category ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
         return rfxQuery;
@@ -299,18 +299,18 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
         if (!string.IsNullOrWhiteSpace(evaluationStatus))
         {
-            var normalizedStatus = evaluationStatus.Trim().ToLower();
-            bidsQuery = bidsQuery.Where(entry => (entry.Bid.EvaluationStatus ?? string.Empty).ToLower() == normalizedStatus);
+            var normalizedStatus = evaluationStatus.Trim();
+            bidsQuery = bidsQuery.Where(entry => string.Equals(entry.Bid.EvaluationStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase));
         }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var normalizedSearch = search.Trim().ToLower();
+            var normalizedSearch = search.Trim();
 
             bidsQuery = bidsQuery.Where(entry =>
-                (entry.Rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(normalizedSearch) ||
-                (entry.Rfx.Title ?? string.Empty).ToLower().Contains(normalizedSearch) ||
-                (entry.Bid.EvaluationStatus ?? string.Empty).ToLower().Contains(normalizedSearch));
+                (entry.Rfx.ReferenceNumber ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                (entry.Rfx.Title ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                (entry.Bid.EvaluationStatus ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
         }
 
         return bidsQuery;
