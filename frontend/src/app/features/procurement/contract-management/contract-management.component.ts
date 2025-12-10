@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule, NgIfContext } from '@angular/common';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -30,6 +30,8 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   loading = false;
   showCreateModal = false;
   createForm: FormGroup;
+
+  @ViewChild('loadingStateTpl', { static: true }) loadingStateTpl!: TemplateRef<NgIfContext<boolean>>;
 
   private readonly destroy$ = new Subject<void>();
 

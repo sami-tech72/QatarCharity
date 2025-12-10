@@ -1,4 +1,4 @@
-<div class="contract-management" *ngIf="!loading; else loadingState">
+<div class="contract-management" *ngIf="!loading; else loadingStateTpl">
   <div class="header-section">
     <div>
       <h1 class="page-title">Contract Management</h1>
@@ -25,7 +25,7 @@
     </div>
   </div>
 
-  <div class="table-section">
+  <div class="table-section app-table-card">
     <div class="table-header">
       <h2>Approved supplier bids</h2>
       <div class="search-box">
@@ -37,8 +37,8 @@
       </div>
     </div>
 
-    <div class="table-wrapper" *ngIf="filteredReadyBids.length > 0; else emptyState">
-      <table class="contracts-table">
+    <div class="table-wrapper app-table-wrapper" *ngIf="filteredReadyBids.length > 0; else emptyState">
+      <table class="contracts-table app-table">
         <thead>
           <tr>
             <th>Reference</th>
@@ -85,7 +85,6 @@
         </tbody>
       </table>
     </div>
-  </div>
 </div>
 
 <div class="contract-modal-overlay" *ngIf="showCreateModal">
@@ -178,13 +177,13 @@
   </div>
 </div>
 
-<div class="table-section" *ngIf="filteredContracts.length > 0; else noContractsState">
+<div class="table-section app-table-card" *ngIf="filteredContracts.length > 0; else noContractsState">
   <div class="table-header">
     <h2>Created contracts</h2>
   </div>
 
-  <div class="table-wrapper">
-    <table class="contracts-table">
+  <div class="table-wrapper app-table-wrapper">
+    <table class="contracts-table app-table">
       <thead>
         <tr>
           <th>Reference</th>
@@ -196,8 +195,8 @@
           <th>Status</th>
         </tr>
       </thead>
-        <tbody>
-          <tr *ngFor="let contract of filteredContracts">
+      <tbody>
+        <tr *ngFor="let contract of filteredContracts">
           <td class="contract-number">{{ contract.referenceNumber || 'Direct' }}</td>
           <td class="title">{{ contract.title }}</td>
           <td>{{ contract.supplierName }}</td>
@@ -229,6 +228,8 @@
   </div>
 </ng-template>
 
-<ng-template #loadingState>
+<ng-template #loadingStateTpl>
   <div class="loading-state">Loading contract-ready bids...</div>
 </ng-template>
+
+</div>

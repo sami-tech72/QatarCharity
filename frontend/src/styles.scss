@@ -182,32 +182,99 @@ body.app-skin-bordered .app-sidebar {
   color: var(--app-danger);
 }
 
-.table {
+.app-table-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-layer-shadow);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.app-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--app-text);
+  }
+
+  .app-table-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+}
+
+.app-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--app-border);
+  border-radius: 0.9rem;
+  background: var(--app-surface);
+}
+
+table.app-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
   color: var(--app-text);
   background-color: var(--app-surface);
-  border-color: var(--app-border);
 }
 
-.table > :not(caption) > * > * {
-  background-color: transparent;
-}
-
-.table thead th {
+table.app-table thead th {
   background-color: var(--app-table-header);
   color: var(--app-muted);
-  border-color: var(--app-border);
+  border-bottom: 1px solid var(--app-border);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 0.875rem 1rem;
+  white-space: nowrap;
 }
 
-.table tbody tr {
-  border-color: var(--app-border);
+table.app-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--app-border);
+  font-size: 0.9375rem;
+  vertical-align: middle;
 }
 
-.table-striped > tbody > tr:nth-of-type(odd) {
-  background-color: color-mix(in srgb, var(--app-surface) 88%, var(--app-surface-muted));
+table.app-table tbody tr {
+  transition: background-color 0.2s ease;
 }
 
-.table-hover > tbody > tr:hover {
-  background-color: color-mix(in srgb, var(--app-surface) 80%, var(--app-surface-muted));
+table.app-table tbody tr:hover {
+  background-color: color-mix(in srgb, var(--app-surface) 86%, var(--app-surface-muted));
+}
+
+table.app-table tbody tr:last-child td,
+table.app-table thead tr:last-child th {
+  border-bottom: none;
+}
+
+table.app-table .muted {
+  color: var(--app-muted);
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+.app-table-empty {
+  padding: 1.25rem;
+  text-align: center;
+  color: var(--app-muted);
+  background: var(--app-surface-muted);
+  border-radius: 0.75rem;
+  border: 1px dashed var(--app-border);
 }
 
 .modal-content {
