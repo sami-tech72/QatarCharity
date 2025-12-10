@@ -43,7 +43,8 @@ public class ContractManagementController : ControllerBase
 
         if (!result.Success)
         {
-            return BadRequest(ApiResponse<ContractResponse>.Fail(result.Error!, result.Message));
+            var message = result.ErrorMessage ?? "Contract creation failed.";
+            return BadRequest(ApiResponse<ContractResponse>.Fail(message, result.ErrorCode));
         }
 
         return StatusCode(StatusCodes.Status201Created, ApiResponse<ContractResponse>.Ok(result.Value!, "Contract created."));

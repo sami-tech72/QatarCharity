@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Context;
 using Persistence.Identity;
-using Persistence.Identity;
 
 namespace Persistence.Seed;
 

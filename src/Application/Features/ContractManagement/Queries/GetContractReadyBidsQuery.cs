@@ -22,7 +22,7 @@ public class GetContractReadyBidsQuery
     {
         var pageSize = Math.Clamp(query.PageSize <= 0 ? 20 : query.PageSize, 1, 100);
         var pageNumber = query.PageNumber <= 0 ? 1 : query.PageNumber;
-        var search = query.Search?.Trim().ToLowerInvariant();
+        var search = query.Search?.Trim();
 
         const string approvedStatus = "approved";
 

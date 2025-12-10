@@ -49,10 +49,12 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
         if (!string.IsNullOrWhiteSpace(search))
         {
+            var normalizedSearch = search.Trim();
+
             rfxQuery = rfxQuery.Where(rfx =>
-                rfx.ReferenceNumber.ToLower().Contains(search) ||
-                rfx.Title.ToLower().Contains(search) ||
-                rfx.Category.ToLower().Contains(search));
+                rfx.ReferenceNumber != null && rfx.ReferenceNumber.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                rfx.Title != null && rfx.Title.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                rfx.Category != null && rfx.Category.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
         }
 
         return await rfxQuery
@@ -73,10 +75,12 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
         if (!string.IsNullOrWhiteSpace(search))
         {
+            var normalizedSearch = search.Trim();
+
             rfxQuery = rfxQuery.Where(rfx =>
-                rfx.ReferenceNumber.ToLower().Contains(search) ||
-                rfx.Title.ToLower().Contains(search) ||
-                rfx.Category.ToLower().Contains(search));
+                rfx.ReferenceNumber != null && rfx.ReferenceNumber.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                rfx.Title != null && rfx.Title.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                rfx.Category != null && rfx.Category.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
         }
 
         return await rfxQuery.CountAsync();
@@ -193,7 +197,7 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
         return await dbContext.Rfxes
             .AsNoTracking()
             .FirstOrDefaultAsync(rfx =>
-                rfx.Id == rfxId && rfx.Status != null && rfx.Status.ToLower() == "published");
+                rfx.Id == rfxId && rfx.Status != null && rfx.Status.Equals("published", StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task AddSupplierBidAsync(SupplierBid bid)
@@ -281,16 +285,18 @@ public class RfxRepository(AppDbContext dbContext) : IRfxRepository
 
         if (!string.IsNullOrWhiteSpace(evaluationStatus))
         {
-            var normalizedStatus = evaluationStatus.Trim().ToLower();
-            bidsQuery = bidsQuery.Where(entry => (entry.Bid.EvaluationStatus ?? string.Empty).ToLower() == normalizedStatus);
+            var normalizedStatus = evaluationStatus.Trim();
+            bidsQuery = bidsQuery.Where(entry => string.Equals(entry.Bid.EvaluationStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase));
         }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
+            var normalizedSearch = search.Trim();
+
             bidsQuery = bidsQuery.Where(entry =>
-                (entry.Rfx.ReferenceNumber ?? string.Empty).ToLower().Contains(search) ||
-                (entry.Rfx.Title ?? string.Empty).ToLower().Contains(search) ||
-                (entry.Bid.EvaluationStatus ?? string.Empty).ToLower().Contains(search));
+                (entry.Rfx.ReferenceNumber ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                (entry.Rfx.Title ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ||
+                (entry.Bid.EvaluationStatus ?? string.Empty).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase));
         }
 
         return bidsQuery;
