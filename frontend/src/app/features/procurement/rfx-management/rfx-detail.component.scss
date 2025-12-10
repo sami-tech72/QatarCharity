@@ -1,6 +1,6 @@
 .detail-block {
-  background: #f9f9f9;
-  border: 1px dashed #e4e6ef;
+  background: var(--app-surface-muted);
+  border: 1px dashed var(--app-border);
   border-radius: 0.75rem;
   padding: 1.5rem;
 }

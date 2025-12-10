@@ -34,7 +34,7 @@
 }
 
 .signature-pad {
-  background: #f8fafc;
+  background: var(--app-surface-muted);
   height: 240px;
   display: flex;
   align-items: center;

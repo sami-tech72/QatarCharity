@@ -1,11 +1,11 @@
 .tender-bid {
   padding: 2rem 0 3rem;
-  color: #1f2933;
+  color: var(--app-text);
 }
 
 .page-header {
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-border);
   border-radius: 16px;
   padding: 1.75rem;
   display: flex;
@@ -20,7 +20,7 @@
 }
 
 .page-subtitle {
-  color: #5f6b7a;
+  color: var(--app-muted);
 }
 
 
@@ -30,8 +30,8 @@
   gap: 0.35rem;
   padding: 0.4rem 0.75rem;
   border-radius: 999px;
-  background: #e8faf3;
-  color: #13854e;
+  background: var(--app-soft-success);
+  color: var(--app-success);
   font-weight: 600;
 }
 
@@ -46,7 +46,7 @@
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.02em;
-  color: #6b7280;
+  color: var(--app-muted);
   margin-bottom: 0.25rem;
 }
 
@@ -69,10 +69,10 @@
 }
 
 .bid-panel {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--app-border);
   border-radius: 16px;
   padding: 1.5rem;
-  background: white;
+  background: var(--app-surface);
   box-shadow: 0 12px 30px rgba(17, 24, 39, 0.06);
 }
 
@@ -95,11 +95,11 @@
 
 .requirement-doc,
 .requirement-input {
-  border: 1px solid #eef2f7;
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 0.75rem;
   margin-bottom: 0.75rem;
-  background: #fafbfd;
+  background: var(--app-surface-muted);
 }
 
 .requirement-doc:last-child,
@@ -120,5 +120,5 @@
 
 .loading-state {
   padding: 2rem 0;
-  color: #6b7280;
+  color: var(--app-muted);
 }
