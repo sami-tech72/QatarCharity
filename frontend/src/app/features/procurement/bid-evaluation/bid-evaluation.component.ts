@@ -64,6 +64,22 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
     return `${review.reviewerName}-${review.reviewedAtUtc}`;
   }
 
+  reviewerNames(bid: SupplierBidEvaluation | null): string[] {
+    if (!bid?.reviews?.length) {
+      return [];
+    }
+
+    const names = new Set<string>();
+    bid.reviews.forEach((review) => {
+      const name = review.reviewerName?.trim();
+      if (name) {
+        names.add(name);
+      }
+    });
+
+    return Array.from(names.values());
+  }
+
   statusBadgeClass(status: string): string {
     switch (status) {
       case 'Approved':

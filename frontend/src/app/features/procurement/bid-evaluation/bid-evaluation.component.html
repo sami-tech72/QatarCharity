@@ -87,6 +87,9 @@
                 <div class="text-muted small" *ngIf="bid.reviews?.[0]">
                   Last updated {{ bid.reviews[0].reviewedAtUtc | date: 'mediumDate' }}
                 </div>
+                <div class="text-muted small" *ngIf="reviewerNames(bid).length">
+                  Reviewers: {{ reviewerNames(bid).join(', ') }}
+                </div>
               </td>
               <td>{{ bid.submittedAtUtc | date: 'mediumDate' }}</td>
               <td class="text-end">
@@ -138,6 +141,18 @@
             <div class="d-flex align-items-center justify-content-between gap-3 mb-2 flex-wrap">
               <div class="fw-semibold mb-0">Review history</div>
               <span class="badge badge-light-primary">{{ selectedBid?.reviews?.length || 0 }} recorded review(s)</span>
+            </div>
+
+            <p class="text-muted small mb-3">
+              Each reviewer logs their own decision; entries below are ordered from newest to oldest so you can quickly see the
+              latest consensus.
+            </p>
+
+            <div class="reviewer-overview" *ngIf="reviewerNames(selectedBid).length">
+              <div class="text-muted small">Reviewers involved</div>
+              <div class="chip-group">
+                <span class="chip" *ngFor="let reviewer of reviewerNames(selectedBid)">{{ reviewer }}</span>
+              </div>
             </div>
 
             <div *ngIf="selectedBid?.reviews?.length; else noReviews" class="review-history">

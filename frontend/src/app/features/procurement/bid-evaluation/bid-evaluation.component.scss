@@ -90,6 +90,31 @@
   background: #f9fafb;
 }
 
+.reviewer-overview {
+  background: #f8f5ff;
+  border: 1px solid #e9d7fe;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.chip {
+  background: #fff;
+  border: 1px solid #e9d7fe;
+  color: #5b21b6;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 @media (max-width: 992px) {
   .search-box {
     width: 100%;
