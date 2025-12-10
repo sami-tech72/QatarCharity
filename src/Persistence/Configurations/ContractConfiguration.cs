@@ -12,6 +12,12 @@ public class ContractConfiguration : IEntityTypeConfiguration<Contract>
 
         builder.HasKey(c => c.Id);
 
+        builder.Property(c => c.BidId)
+            .IsRequired(false);
+
+        builder.Property(c => c.RfxId)
+            .IsRequired(false);
+
         builder.Property(c => c.Title)
             .HasMaxLength(200)
             .IsRequired();
