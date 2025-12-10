@@ -52,12 +52,6 @@ namespace Persistence.Migrations
                     b.Property<DateTime>("StartDateUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("SupplierSignedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SupplierSignature")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -67,6 +61,12 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("SupplierSignature")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("SupplierSignedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("SupplierUserId")
                         .IsRequired()

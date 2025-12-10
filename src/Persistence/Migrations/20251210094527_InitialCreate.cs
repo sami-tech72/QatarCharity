@@ -26,6 +26,30 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Contracts",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    BidId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    RfxId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    SupplierName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    SupplierUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    ContractValue = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    StartDateUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDateUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    SupplierSignature = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SupplierSignedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Contracts", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProcurementPermissionDefinitions",
                 columns: table => new
                 {
@@ -601,6 +625,9 @@ namespace Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "Contracts");
 
             migrationBuilder.DropTable(
                 name: "ProcurementRoleAvatars");
