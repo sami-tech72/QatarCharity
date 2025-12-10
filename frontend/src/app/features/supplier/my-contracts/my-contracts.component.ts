@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -25,6 +25,8 @@ interface Statistics {
   styleUrls: ['./my-contracts.component.scss'],
 })
 export class MyContractsComponent implements OnInit {
+  @ViewChild('signatureCanvas') signatureCanvas?: ElementRef<HTMLCanvasElement>;
+
   statistics: Statistics = {
     totalContracts: 0,
     activeContracts: 0,
@@ -36,6 +38,11 @@ export class MyContractsComponent implements OnInit {
   filteredContracts: SupplierContract[] = [];
   loading = false;
   signingContractIds = new Set<string>();
+  signatureModalOpen = false;
+  activeContract: SupplierContract | null = null;
+  private ctx: CanvasRenderingContext2D | null = null;
+  private isDrawing = false;
+  private hasSignature = false;
 
   constructor(
     private readonly supplierContractsService: SupplierContractsService,
@@ -98,23 +105,106 @@ export class MyContractsComponent implements OnInit {
     return contract.status.toLowerCase() === 'draft' && !this.signingContractIds.has(contract.id);
   }
 
-  signContract(contract: SupplierContract): void {
+  openSignatureModal(contract: SupplierContract): void {
     if (!this.canSign(contract)) {
       return;
     }
 
-    const signature = (prompt('Type your signature to activate this contract:') || '').trim();
-    if (!signature) {
-      this.notification.warning('Signature is required to activate the contract.');
+    this.activeContract = contract;
+    this.signatureModalOpen = true;
+    this.hasSignature = false;
+
+    setTimeout(() => this.initializeCanvas(), 0);
+  }
+
+  closeSignatureModal(): void {
+    this.signatureModalOpen = false;
+    this.activeContract = null;
+    this.clearSignature();
+  }
+
+  initializeCanvas(): void {
+    const canvas = this.signatureCanvas?.nativeElement;
+    if (!canvas) {
       return;
     }
 
-    this.signingContractIds.add(contract.id);
+    const parentWidth = canvas.parentElement?.clientWidth || 500;
+    canvas.width = parentWidth;
+    canvas.height = 220;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return;
+    }
+
+    context.lineWidth = 2;
+    context.lineCap = 'round';
+    context.strokeStyle = '#1f2937';
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    this.ctx = context;
+  }
+
+  startDrawing(event: MouseEvent | TouchEvent): void {
+    if (!this.ctx || !this.signatureCanvas?.nativeElement) {
+      return;
+    }
+
+    event.preventDefault();
+    const { x, y } = this.getPosition(event);
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y);
+    this.isDrawing = true;
+  }
+
+  drawStroke(event: MouseEvent | TouchEvent): void {
+    if (!this.isDrawing || !this.ctx) {
+      return;
+    }
+
+    event.preventDefault();
+    const { x, y } = this.getPosition(event);
+    this.ctx.lineTo(x, y);
+    this.ctx.stroke();
+    this.hasSignature = true;
+  }
+
+  finishDrawing(): void {
+    this.isDrawing = false;
+  }
+
+  clearSignature(): void {
+    const canvas = this.signatureCanvas?.nativeElement;
+    if (!canvas || !this.ctx) {
+      return;
+    }
+
+    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.fillRect(0, 0, canvas.width, canvas.height);
+    this.hasSignature = false;
+  }
+
+  submitSignature(): void {
+    if (!this.activeContract || !this.signatureCanvas?.nativeElement) {
+      return;
+    }
+
+    if (!this.hasSignature) {
+      this.notification.warning('Please provide a digital signature to continue.');
+      return;
+    }
+
+    const signature = this.signatureCanvas.nativeElement.toDataURL('image/png');
+    this.signingContractIds.add(this.activeContract.id);
+
     this.supplierContractsService
-      .signContract(contract.id, { signature })
+      .signContract(this.activeContract.id, { signature })
       .pipe(
         finalize(() => {
-          this.signingContractIds.delete(contract.id);
+          this.signingContractIds.delete(this.activeContract?.id || '');
         }),
       )
       .subscribe({
@@ -123,10 +213,27 @@ export class MyContractsComponent implements OnInit {
           this.contracts = this.contracts.map((c) => (c.id === updated.id ? { ...c, ...updated } : c));
           this.filteredContracts = this.filteredContracts.map((c) => (c.id === updated.id ? { ...c, ...updated } : c));
           this.calculateStatistics();
+          this.closeSignatureModal();
         },
         error: (error) => {
           this.notification.error(error.message || 'Unable to sign the contract.');
         },
       });
+  }
+
+  private getPosition(event: MouseEvent | TouchEvent): { x: number; y: number } {
+    const canvas = this.signatureCanvas?.nativeElement;
+    if (!canvas) {
+      return { x: 0, y: 0 };
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
+    const clientY = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
+
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top,
+    };
   }
 }
