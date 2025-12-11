@@ -16,13 +16,16 @@ namespace Api.Controllers;
 public class SupplierContractsController : ControllerBase
 {
     private readonly GetSupplierContractsQuery _getSupplierContractsQuery;
+    private readonly GetSupplierContractByIdQuery _getSupplierContractByIdQuery;
     private readonly SignContractCommand _signContractCommand;
 
     public SupplierContractsController(
         GetSupplierContractsQuery getSupplierContractsQuery,
+        GetSupplierContractByIdQuery getSupplierContractByIdQuery,
         SignContractCommand signContractCommand)
     {
         _getSupplierContractsQuery = getSupplierContractsQuery;
+        _getSupplierContractByIdQuery = getSupplierContractByIdQuery;
         _signContractCommand = signContractCommand;
     }
 
@@ -39,6 +42,31 @@ public class SupplierContractsController : ControllerBase
 
         var result = await _getSupplierContractsQuery.HandleAsync(currentUserId, query);
         return Ok(ApiResponse<PagedResult<SupplierContractResponse>>.Ok(result.Value!, "Supplier contracts retrieved successfully."));
+    }
+
+    [HttpGet("{contractId:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<ContractDetailResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<ContractDetailResponse>>> GetContract(Guid contractId)
+    {
+        var currentUserId = User?.FindFirst("sub")?.Value ?? User?.Identity?.Name ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(currentUserId))
+        {
+            return Unauthorized(ApiResponse<ContractDetailResponse>.Fail("Unauthorized", "auth_invalid_token"));
+        }
+
+        var result = await _getSupplierContractByIdQuery.HandleAsync(contractId, currentUserId);
+        if (!result.Success)
+        {
+            var status = result.ErrorCode switch
+            {
+                "forbidden" => StatusCodes.Status403Forbidden,
+                _ => StatusCodes.Status404NotFound,
+            };
+
+            return StatusCode(status, ApiResponse<ContractDetailResponse>.Fail(result.ErrorMessage ?? "Contract not found.", result.ErrorCode));
+        }
+
+        return Ok(ApiResponse<ContractDetailResponse>.Ok(result.Value!, "Contract retrieved successfully."));
     }
 
     [HttpPost("{contractId:guid}/sign")]

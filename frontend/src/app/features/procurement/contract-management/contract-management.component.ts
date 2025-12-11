@@ -234,9 +234,12 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
   }
 
   viewContract(contract: ContractReadyBid | ContractRecord): void {
-    const identifier = 'id' in contract && contract.id ? contract.id : contract.bidId || contract.referenceNumber;
+    if (!('id' in contract) || !contract.id) {
+      this.notification.error('Only created contracts can be opened. Please create the contract first.');
+      return;
+    }
 
-    this.router.navigate(['/procurement/contract-management/view', identifier], {
+    this.router.navigate(['/procurement/contract-management/view', contract.id], {
       state: {
         contract,
       },

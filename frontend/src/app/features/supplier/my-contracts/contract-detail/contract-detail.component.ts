@@ -3,8 +3,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
-import { ContractDetail } from '../../../shared/models/contract-management.model';
-import { ContractManagementService } from '../../../core/services/contract-management.service';
+import { SupplierContractsService } from '../../../../core/services/supplier-contracts.service';
+import { ContractDetail } from '../../../../shared/models/contract-management.model';
 
 type LineItem = {
   name: string;
@@ -15,13 +15,13 @@ type LineItem = {
 };
 
 @Component({
-  selector: 'app-contract-detail',
+  selector: 'app-supplier-contract-detail',
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './contract-detail.component.html',
   styleUrls: ['./contract-detail.component.scss'],
 })
-export class ContractDetailComponent implements OnInit, OnDestroy {
+export class SupplierContractDetailComponent implements OnInit, OnDestroy {
   contract?: ContractDetail;
   lineItems: LineItem[] = [];
   totals = { subtotal: 0, tax: 0, total: 0 };
@@ -42,7 +42,7 @@ export class ContractDetailComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly location: Location,
-    private readonly contractManagementService: ContractManagementService,
+    private readonly supplierContractsService: SupplierContractsService,
   ) {}
 
   ngOnInit(): void {
@@ -57,7 +57,7 @@ export class ContractDetailComponent implements OnInit, OnDestroy {
     const identifier = this.route.snapshot.paramMap.get('id');
 
     if (identifier) {
-      this.contractManagementService
+      this.supplierContractsService
         .loadContract(identifier)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
@@ -67,7 +67,7 @@ export class ContractDetailComponent implements OnInit, OnDestroy {
           error: () => {
             this.loading = false;
             this.missingContractMessage =
-              'Contract details could not be loaded. Please return to Contract Management and open the contract again.';
+              'Contract details could not be loaded. Please return to My Contracts and open the contract again.';
           },
         });
     } else if (!this.contract) {
@@ -82,7 +82,7 @@ export class ContractDetailComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/procurement/contract-management']);
+    this.router.navigate(['/supplier/my-contracts']);
   }
 
   formatDate(value?: string | null): string {

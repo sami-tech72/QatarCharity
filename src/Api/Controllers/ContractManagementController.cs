@@ -19,14 +19,17 @@ public class ContractManagementController : ControllerBase
     private readonly CreateContractCommand _createContractCommand;
     private readonly GetContractReadyBidsQuery _getContractReadyBidsQuery;
     private readonly GetContractsQuery _getContractsQuery;
+    private readonly GetContractByIdQuery _getContractByIdQuery;
 
     public ContractManagementController(
         GetContractReadyBidsQuery getContractReadyBidsQuery,
         GetContractsQuery getContractsQuery,
+        GetContractByIdQuery getContractByIdQuery,
         CreateContractCommand createContractCommand)
     {
         _getContractReadyBidsQuery = getContractReadyBidsQuery;
         _getContractsQuery = getContractsQuery;
+        _getContractByIdQuery = getContractByIdQuery;
         _createContractCommand = createContractCommand;
     }
 
@@ -38,6 +41,23 @@ public class ContractManagementController : ControllerBase
         var result = await _getContractsQuery.HandleAsync(query);
 
         return Ok(ApiResponse<PagedResult<ContractResponse>>.Ok(result.Value!, "Contracts retrieved."));
+    }
+
+    [HttpGet("{contractId:guid}")]
+    [Authorize(Policy = ProcurementPolicies.ContractManagementRead)]
+    [ProducesResponseType(typeof(ApiResponse<ContractDetailResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<ContractDetailResponse>>> GetContract(Guid contractId)
+    {
+        var result = await _getContractByIdQuery.HandleAsync(contractId);
+
+        if (!result.Success)
+        {
+            return NotFound(ApiResponse<ContractDetailResponse>.Fail(
+                result.ErrorMessage ?? "Contract not found.",
+                result.ErrorCode));
+        }
+
+        return Ok(ApiResponse<ContractDetailResponse>.Ok(result.Value!, "Contract details retrieved."));
     }
 
     [HttpGet("ready")]

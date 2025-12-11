@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { NotificationService } from '../../../core/services/notification.service';
@@ -20,7 +21,7 @@ interface Statistics {
 @Component({
   selector: 'app-my-contracts',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './my-contracts.component.html',
   styleUrls: ['./my-contracts.component.scss'],
 })

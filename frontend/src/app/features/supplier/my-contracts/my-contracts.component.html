@@ -47,15 +47,17 @@
               <td>{{ contract.startDateUtc | date: 'M/d/y' }}</td>
               <td>{{ contract.endDateUtc | date: 'M/d/y' }}</td>
               <td class="text-end">
-                <button
-                  class="btn btn-sm btn-primary"
-                  [disabled]="!canSign(contract)"
-                  (click)="openSignatureModal(contract)"
-                  *ngIf="contract.status.toLowerCase() === 'draft'"
-                >
-                  {{ signingContractIds.has(contract.id) ? 'Signing…' : 'Sign Contract' }}
-                </button>
-                <span class="text-muted" *ngIf="contract.status.toLowerCase() !== 'draft'">No actions</span>
+                <div class="d-inline-flex justify-content-end align-items-center gap-2">
+                  <a class="btn btn-sm btn-light" [routerLink]="['/supplier/my-contracts', contract.id]">View</a>
+                  <button
+                    class="btn btn-sm btn-primary"
+                    [disabled]="!canSign(contract)"
+                    (click)="openSignatureModal(contract)"
+                    *ngIf="contract.status.toLowerCase() === 'draft'"
+                  >
+                    {{ signingContractIds.has(contract.id) ? 'Signing…' : 'Sign Contract' }}
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

@@ -8,6 +8,7 @@ import {
   SupplierContractQuery,
   SupplierContractResponse,
 } from '../../shared/models/supplier-contract.model';
+import { ContractDetail } from '../../shared/models/contract-management.model';
 import { ApiService } from './api.service';
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +31,10 @@ export class SupplierContractsService {
     return this.api
       .post<SupplierContract>(`supplier/contracts/${contractId}/sign`, payload)
       .pipe(map((response) => this.unwrap(response)));
+  }
+
+  loadContract(contractId: string): Observable<ContractDetail> {
+    return this.api.get<ContractDetail>(`supplier/contracts/${contractId}`).pipe(map((response) => this.unwrap(response)));
   }
 
   private unwrap<T>(response: ApiResponse<T>): T {

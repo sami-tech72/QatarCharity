@@ -8,6 +8,7 @@ import {
   CreateContractPayload,
   ContractResponse,
   ContractRecord,
+  ContractDetail,
 } from '../../shared/models/contract-management.model';
 import { PagedResult } from '../../shared/models/pagination.model';
 import { ApiService } from './api.service';
@@ -42,6 +43,10 @@ export class ContractManagementService {
         },
       })
       .pipe(map((response) => this.unwrap(response)));
+  }
+
+  loadContract(contractId: string): Observable<ContractDetail> {
+    return this.api.get<ContractDetail>(`contracts/${contractId}`).pipe(map((response) => this.unwrap(response)));
   }
 
   private unwrap<T>(response: ApiResponse<T>): T {
