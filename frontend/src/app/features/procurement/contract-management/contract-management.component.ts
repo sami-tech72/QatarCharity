@@ -233,8 +233,8 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
       });
   }
 
-  viewContract(contract: ContractReadyBid): void {
-    const identifier = contract.bidId || contract.referenceNumber;
+  viewContract(contract: ContractReadyBid | ContractRecord): void {
+    const identifier = 'id' in contract && contract.id ? contract.id : contract.bidId || contract.referenceNumber;
 
     this.router.navigate(['/procurement/contract-management/view', identifier], {
       state: {
