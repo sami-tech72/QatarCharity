@@ -11,6 +11,10 @@
   --app-border: #eff2f5;
   --app-text: #0f172a;
   --app-muted: #4b5675;
+  --app-sidebar-bg: #ffffff;
+  --app-sidebar-text: #0f172a;
+  --app-sidebar-muted: #4b5675;
+  --app-sidebar-border: #eff2f5;
   --app-primary: #0d6efd;
   --app-success: #24a770;
   --app-info: #0ea5e9;
@@ -35,6 +39,10 @@
   --app-border: rgba(255, 255, 255, 0.08);
   --app-text: #e2e8f0;
   --app-muted: #cbd5e1;
+  --app-sidebar-bg: #111827;
+  --app-sidebar-text: #e2e8f0;
+  --app-sidebar-muted: #cbd5e1;
+  --app-sidebar-border: rgba(255, 255, 255, 0.08);
   --app-primary: #84b1ff;
   --app-success: #22c55e;
   --app-info: #38bdf8;
@@ -66,8 +74,8 @@ body {
 }
 
 .app-sidebar {
-  background: var(--app-header-bg);
-  color: var(--app-text);
+  background: var(--app-sidebar-bg, var(--app-header-bg));
+  color: var(--app-sidebar-text, var(--app-text));
 }
 
 .app-sidebar.app-semi-dark {
@@ -110,7 +118,7 @@ body.app-skin-bordered .app-footer {
 }
 
 body.app-skin-bordered .app-sidebar {
-  background: color-mix(in srgb, var(--app-surface) 92%, transparent);
+  background: color-mix(in srgb, var(--app-sidebar-bg, var(--app-surface)) 92%, transparent);
 }
 
 .form-control,
