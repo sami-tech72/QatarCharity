@@ -37,6 +37,16 @@ public class ProcurementRolesController : ControllerBase
             .OrderBy(p => p.Id)
             .ToListAsync();
 
+        var userCounts = await _dbContext.Users
+            .Where(user => user.ProcurementRoleTemplateId != null)
+            .GroupBy(user => user.ProcurementRoleTemplateId!.Value)
+            .Select(group => new
+            {
+                TemplateId = group.Key,
+                TotalUsers = group.Count(),
+            })
+            .ToDictionaryAsync(group => group.TemplateId, group => group.TotalUsers);
+
         var roleTemplates = await _dbContext.ProcurementRoleTemplates
             .Include(r => r.Avatars)
             .Include(r => r.Permissions)
@@ -55,15 +65,21 @@ public class ProcurementRolesController : ControllerBase
             .ToList();
 
         var subRoles = roleTemplates
-            .Select(template => new ProcurementSubRole(
-                Id: template.Id,
-                Name: template.Name,
-                Description: template.Description,
-                TotalUsers: template.TotalUsers,
-                NewUsers: template.NewUsers,
-                Avatars: template.Avatars.Select(a => a.FileName).ToList(),
-                ExtraCount: template.ExtraCount,
-                Permissions: MapPermissions(template.Permissions, permissionDefinitions)))
+            .Select(template =>
+            {
+                var totalUsers = userCounts.GetValueOrDefault(template.Id, template.TotalUsers);
+                var newUsers = template.NewUsers > 0 ? template.NewUsers : totalUsers;
+
+                return new ProcurementSubRole(
+                    Id: template.Id,
+                    Name: template.Name,
+                    Description: template.Description,
+                    TotalUsers: totalUsers,
+                    NewUsers: newUsers,
+                    Avatars: template.Avatars.Select(a => a.FileName).ToList(),
+                    ExtraCount: template.ExtraCount,
+                    Permissions: MapPermissions(template.Permissions, permissionDefinitions));
+            })
             .ToList();
 
         var response = new ProcurementRolesResponse(

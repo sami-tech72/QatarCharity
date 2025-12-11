@@ -251,6 +251,13 @@ public class UsersController : ControllerBase
             }
         }
 
+        if (procurementRoleTemplate is not null)
+        {
+            procurementRoleTemplate.TotalUsers += 1;
+            procurementRoleTemplate.NewUsers += 1;
+            await _dbContext.SaveChangesAsync();
+        }
+
         var response = new UserResponse(
             Id: user.Id,
             DisplayName: user.DisplayName ?? user.UserName ?? string.Empty,
