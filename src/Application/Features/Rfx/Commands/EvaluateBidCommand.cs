@@ -17,7 +17,8 @@ public class EvaluateBidCommand(IRfxRepository repository, IUserDirectoryService
         Guid rfxId,
         Guid bidId,
         EvaluateBidRequest request,
-        string currentUserId)
+        string currentUserId,
+        bool canApprove)
     {
         var validation = RfxValidation.ValidateBidStatus(request);
         if (validation is not null)
@@ -26,6 +27,11 @@ public class EvaluateBidCommand(IRfxRepository repository, IUserDirectoryService
         }
 
         var normalizedStatus = RfxValidation.NormalizeBidStatus(request.Status)!;
+
+        if (string.Equals(normalizedStatus, "Approved", StringComparison.OrdinalIgnoreCase) && !canApprove)
+        {
+            return Result<SupplierBidResponse>.Fail("forbidden", "Only Procurement role users can approve bids.");
+        }
 
         var rfx = await repository.GetRfxByIdAsync(rfxId);
         if (rfx is null)

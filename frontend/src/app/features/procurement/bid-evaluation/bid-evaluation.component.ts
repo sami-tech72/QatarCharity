@@ -3,6 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
 
+import { AuthService } from '../../../core/services/auth.service';
 import { BidEvaluationService } from '../../../core/services/bid-evaluation.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PagedResult } from '../../../shared/models/pagination.model';
@@ -16,7 +17,7 @@ import { BidReview, EvaluateBidRequest, SupplierBidEvaluation } from '../../../s
   styleUrls: ['./bid-evaluation.component.scss'],
 })
 export class BidEvaluationComponent implements OnInit, OnDestroy {
-  readonly statuses = ['Pending Review', 'Under Review', 'Recommended', 'Approved', 'Rejected', 'Needs Clarification'];
+  statuses: string[] = [];
   readonly searchControl = new FormControl('', { nonNullable: true });
   readonly reviewForm = new FormGroup({
     status: new FormControl<string>('Under Review', { nonNullable: true, validators: [Validators.required] }),
@@ -35,15 +36,19 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
     underReview: 0,
     approved: 0,
   };
+  canApprove = false;
 
   private readonly destroy$ = new Subject<void>();
 
   constructor(
+    private readonly authService: AuthService,
     private readonly bidEvaluationService: BidEvaluationService,
     private readonly notification: NotificationService,
   ) {}
 
   ngOnInit(): void {
+    this.canApprove = this.isProcurementApprover();
+    this.statuses = this.buildStatuses();
     this.loadBids();
 
     this.searchControl.valueChanges.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe((term) => {
@@ -82,6 +87,7 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
 
   selectBid(bid: SupplierBidEvaluation): void {
     this.selectedBid = bid;
+    this.statuses = this.buildStatuses(bid.evaluationStatus);
     this.reviewForm.setValue({
       status: bid.evaluationStatus || 'Under Review',
       reviewNotes: bid.evaluationNotes ?? '',
@@ -192,5 +198,21 @@ export class BidEvaluationComponent implements OnInit, OnDestroy {
     }
 
     return bid.reviews[0].status || 'Pending Review';
+  }
+
+  private buildStatuses(currentStatus?: string | null): string[] {
+    const allStatuses = ['Pending Review', 'Under Review', 'Recommended', 'Approved', 'Rejected', 'Needs Clarification'];
+
+    if (this.canApprove || currentStatus === 'Approved') {
+      return allStatuses;
+    }
+
+    return allStatuses.filter((status) => status !== 'Approved');
+  }
+
+  private isProcurementApprover(): boolean {
+    const session = this.authService.currentSession();
+
+    return session?.role === 'Procurement' && !session.procurementRole;
   }
 }
