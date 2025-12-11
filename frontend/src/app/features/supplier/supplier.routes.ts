@@ -35,11 +35,6 @@ export const supplierRoutes: Routes = [
           import('./my-contracts/my-contracts.component').then((m) => m.MyContractsComponent),
       },
       {
-        path: 'performance',
-        title: 'Performance',
-        loadComponent: () => import('./performance/performance.component').then((m) => m.PerformanceComponent),
-      },
-      {
         path: 'company-profile',
         title: 'Company Profile',
         loadComponent: () =>
