@@ -1,0 +1,40 @@
+:host {
+  display: block;
+}
+
+.contract-print-area {
+  background: #fff;
+}
+
+@media print {
+  :host,
+  .contract-print-area {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .contract-print-area .card {
+    box-shadow: none !important;
+  }
+
+  .app-footer,
+  .footer,
+  .app-footer * {
+    display: none !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .contract-print-area,
+  .contract-print-area * {
+    visibility: visible;
+  }
+
+  .contract-print-area {
+    position: absolute;
+    inset: 0;
+    width: auto;
+  }
+}

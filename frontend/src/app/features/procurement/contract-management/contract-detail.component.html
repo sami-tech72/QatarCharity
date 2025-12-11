@@ -1,6 +1,6 @@
 <ng-container *ngIf="!loading && contract; else loadingStateTpl">
   <!--begin::Content-->
-  <div id="kt_app_content" class="app-content flex-column-fluid">
+  <div id="kt_app_content" #contractContent class="app-content flex-column-fluid contract-print-area">
     <!--begin::Content container-->
     <div id="kt_app_content_container" class="app-container container-xxl">
       <!--begin::Invoice 2 main-->
@@ -21,7 +21,21 @@
                   </a>
                   <!--end::Logo-->
                   <!--begin::Action-->
-                  <span class="badge" [ngClass]="statusClass">{{ statusBadge }}</span>
+                  <div class="d-flex align-items-center gap-3">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-light-primary d-print-none"
+                      (click)="downloadPdf()"
+                      [disabled]="generatingPdf"
+                    >
+                      <span class="indicator-label" *ngIf="!generatingPdf">Download PDF</span>
+                      <span class="indicator-progress" *ngIf="generatingPdf">
+                        Preparing...
+                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                      </span>
+                    </button>
+                    <span class="badge" [ngClass]="statusClass">{{ statusBadge }}</span>
+                  </div>
                   <!--end::Action-->
                 </div>
                 <!--end::Top-->
