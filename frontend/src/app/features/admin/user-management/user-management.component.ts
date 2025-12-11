@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, AfterViewInit, inject } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
@@ -24,7 +24,7 @@ import { ProcurementRolesResponse, ProcurementSubRole } from '../../../shared/mo
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss',
 })
-export class UserManagementComponent implements OnInit, OnDestroy {
+export class UserManagementComponent implements OnInit, OnDestroy, AfterViewInit {
   users: ManagedUser[] = [];
   usersPage: PagedResult<ManagedUser> | null = null;
   roleOptions: Array<{ value: UserRole; title: string; description: string }> = [
@@ -56,6 +56,8 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   private prefilledRole: UserRole | null = null;
   private prefilledProcurementRoleId: number | null = null;
   private prefillApplied = false;
+  private viewReady = false;
+  private pendingModalId: string | null = null;
   private readonly destroy$ = new Subject<void>();
 
   paginationState: UserQueryRequest = {
@@ -105,6 +107,15 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     });
     this.loadProcurementRoles();
     this.loadUsers();
+  }
+
+  ngAfterViewInit(): void {
+    this.viewReady = true;
+
+    if (this.pendingModalId) {
+      this.showModal(this.pendingModalId);
+      this.pendingModalId = null;
+    }
   }
 
   ngOnDestroy(): void {
@@ -393,7 +404,12 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       procurementRoleTemplateId: this.prefilledProcurementRoleId,
     });
     this.updateProcurementRoleValidators('Procurement');
-    this.showModal('kt_modal_add_user');
+
+    if (this.viewReady) {
+      this.showModal('kt_modal_add_user');
+    } else {
+      this.pendingModalId = 'kt_modal_add_user';
+    }
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {
