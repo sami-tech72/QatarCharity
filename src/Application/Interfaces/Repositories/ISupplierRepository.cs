@@ -10,6 +10,8 @@ public interface ISupplierRepository
 
     Task<Supplier?> GetByIdAsync(Guid id);
 
+    Task<Supplier?> GetByPortalUserIdAsync(string portalUserId);
+
     Task<bool> PortalEmailInUseAsync(string normalizedEmail, Guid? excludeId = null);
 
     Task<bool> PortalUserInUseAsync(string portalUserId, Guid? excludeId = null);

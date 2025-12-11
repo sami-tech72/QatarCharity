@@ -31,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<GetSuppliersQuery>();
         services.AddScoped<CreateSupplierCommand>();
         services.AddScoped<UpdateSupplierCommand>();
+        services.AddScoped<GetCurrentSupplierProfileQuery>();
+        services.AddScoped<UpdateCurrentSupplierProfileCommand>();
 
         return services;
     }
