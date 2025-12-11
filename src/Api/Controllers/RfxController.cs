@@ -114,7 +114,9 @@ public class RfxController : ControllerBase
     public async Task<ActionResult<ApiResponse<SupplierBidResponse>>> EvaluateBid(Guid rfxId, Guid bidId, [FromBody] EvaluateBidRequest request)
     {
         var currentUserId = GetCurrentUserId();
-        var result = await _evaluateBid.HandleAsync(rfxId, bidId, request, currentUserId);
+        var canApprove = User.IsInRole(Roles.Procurement) && !User.HasClaim(claim => claim.Type == "procurement_role_id");
+
+        var result = await _evaluateBid.HandleAsync(rfxId, bidId, request, currentUserId, canApprove);
 
         if (!result.Success)
         {
