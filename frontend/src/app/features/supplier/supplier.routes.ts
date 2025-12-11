@@ -30,9 +30,16 @@ export const supplierRoutes: Routes = [
       },
       {
         path: 'my-contracts',
+        pathMatch: 'full',
         title: 'My Contracts',
         loadComponent: () =>
           import('./my-contracts/my-contracts.component').then((m) => m.MyContractsComponent),
+      },
+      {
+        path: 'my-contracts/:id',
+        title: 'Contract Details',
+        loadComponent: () =>
+          import('./my-contracts/contract-detail/contract-detail.component').then((m) => m.SupplierContractDetailComponent),
       },
       {
         path: 'company-profile',
