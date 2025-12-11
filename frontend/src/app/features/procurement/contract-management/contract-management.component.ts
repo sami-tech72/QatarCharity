@@ -1,6 +1,7 @@
 import { CommonModule, NgIfContext } from '@angular/common';
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
 import { ContractManagementService } from '../../../core/services/contract-management.service';
@@ -39,6 +40,7 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
     private readonly contractManagementService: ContractManagementService,
     private readonly notification: NotificationService,
     private readonly formBuilder: FormBuilder,
+    private readonly router: Router,
   ) {
     this.createForm = this.formBuilder.group({
       title: ['', [Validators.required, Validators.maxLength(200)]],
@@ -231,8 +233,14 @@ export class ContractManagementComponent implements OnInit, OnDestroy {
       });
   }
 
-  viewContract(contract: ContractReadyBid): void {
-    this.notification.info(`View contract for ${contract.supplierName} - ${contract.referenceNumber}`);
+  viewContract(contract: ContractReadyBid | ContractRecord): void {
+    const identifier = 'id' in contract && contract.id ? contract.id : contract.bidId || contract.referenceNumber;
+
+    this.router.navigate(['/procurement/contract-management/view', identifier], {
+      state: {
+        contract,
+      },
+    });
   }
 
   editContract(contract: ContractReadyBid): void {
