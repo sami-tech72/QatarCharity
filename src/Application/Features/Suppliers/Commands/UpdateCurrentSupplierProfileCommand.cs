@@ -10,11 +10,9 @@ public class UpdateCurrentSupplierProfileCommand(ISupplierRepository repository)
     public async Task<Result<SupplierResponse>> HandleAsync(string portalUserId, SupplierProfileRequest request)
     {
         var supplier = await repository.GetByPortalUserIdAsync(portalUserId);
+        var isNewSupplier = supplier is null;
 
-        if (supplier is null)
-        {
-            return Result<SupplierResponse>.Fail("suppliers_not_found", "Supplier not found.");
-        }
+        supplier ??= SupplierProfileFactory.CreateFromRequest(portalUserId, request);
 
         supplier.CompanyName = request.CompanyName.Trim();
         supplier.RegistrationNumber = request.RegistrationNumber.Trim();
@@ -26,6 +24,14 @@ public class UpdateCurrentSupplierProfileCommand(ISupplierRepository repository)
         supplier.YearEstablished = request.YearEstablished;
         supplier.NumberOfEmployees = request.NumberOfEmployees;
         supplier.ContactPerson = request.PrimaryContactName.Trim();
+        supplier.PortalUserId ??= portalUserId;
+        supplier.PortalUserEmail ??= request.PrimaryContactEmail.Trim();
+        supplier.HasPortalAccess = true;
+
+        if (isNewSupplier)
+        {
+            await repository.AddAsync(supplier);
+        }
 
         await repository.SaveChangesAsync();
 
