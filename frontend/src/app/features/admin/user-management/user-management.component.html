@@ -175,6 +175,7 @@
                                     type="radio"
                                     [value]="role.value"
                                     [id]="'kt_modal_update_role_option_' + idx"
+                                    [disabled]="isRolePrefilled && !editingUser"
                                   />
                                   <label
                                     class="form-check-label"
@@ -202,7 +203,7 @@
                           <select
                             class="form-select form-select-solid"
                             formControlName="procurementRoleTemplateId"
-                            [disabled]="isLoadingProcurementRoles"
+                            [disabled]="isLoadingProcurementRoles || (isRolePrefilled && !editingUser)"
                           >
                             <option [ngValue]="null">Select a sub-role</option>
                             <option *ngFor="let role of procurementRoles" [ngValue]="role.id">

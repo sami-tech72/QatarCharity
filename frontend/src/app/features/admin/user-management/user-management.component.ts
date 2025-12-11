@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, AfterViewInit, inject } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { Modal } from 'bootstrap';
 
@@ -23,7 +24,7 @@ import { ProcurementRolesResponse, ProcurementSubRole } from '../../../shared/mo
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss',
 })
-export class UserManagementComponent implements OnInit, OnDestroy {
+export class UserManagementComponent implements OnInit, OnDestroy, AfterViewInit {
   users: ManagedUser[] = [];
   usersPage: PagedResult<ManagedUser> | null = null;
   roleOptions: Array<{ value: UserRole; title: string; description: string }> = [
@@ -51,6 +52,12 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   readonly searchControl = new FormControl('', { nonNullable: true });
   procurementRoles: ProcurementSubRole[] = [];
   isLoadingProcurementRoles = false;
+  isRolePrefilled = false;
+  private prefilledRole: UserRole | null = null;
+  private prefilledProcurementRoleId: number | null = null;
+  private prefillApplied = false;
+  private viewReady = false;
+  private pendingModalId: string | null = null;
   private readonly destroy$ = new Subject<void>();
 
   paginationState: UserQueryRequest = {
@@ -63,6 +70,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   private readonly userService = inject(UserManagementService);
   private readonly notifier = inject(NotificationService);
   private readonly procurementRolesService = inject(ProcurementRolesService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly userForm = this.fb.nonNullable.group({
     displayName: ['', [Validators.required, Validators.maxLength(100)]],
@@ -85,8 +93,29 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       .subscribe((role) => this.updateProcurementRoleValidators(role));
 
     this.updateProcurementRoleValidators(this.userForm.controls.role.value);
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      const roleParam = params.get('role');
+      const subRoleParam = params.get('procurementRoleTemplateId');
+      const parsedSubRoleId = subRoleParam ? Number(subRoleParam) : null;
+
+      if (roleParam === 'Procurement') {
+        this.prefilledRole = 'Procurement';
+        this.prefilledProcurementRoleId = parsedSubRoleId && !Number.isNaN(parsedSubRoleId) ? parsedSubRoleId : null;
+        this.isRolePrefilled = true;
+        this.maybeApplyPrefilledRole();
+      }
+    });
     this.loadProcurementRoles();
     this.loadUsers();
+  }
+
+  ngAfterViewInit(): void {
+    this.viewReady = true;
+
+    if (this.pendingModalId) {
+      this.showModal(this.pendingModalId);
+      this.pendingModalId = null;
+    }
   }
 
   ngOnDestroy(): void {
@@ -127,15 +156,15 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       this.userService
         .updateUser(this.editingUser.id, { displayName, email, role, procurementRoleTemplateId })
         .subscribe({
-        next: (user) => {
-          this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
-          this.refreshFromServer();
-          this.finishSubmit('User updated successfully.', 'success');
-        },
-        error: (error) => {
-          this.finishSubmit(this.getErrorMessage(error, 'Unable to update user.'), 'danger');
-        },
-      });
+          next: (user) => {
+            this.users = this.users.map((existing) => (existing.id === user.id ? user : existing));
+            this.refreshFromServer();
+            this.finishSubmit('User updated successfully.', 'success');
+          },
+          error: (error) => {
+            this.finishSubmit(this.getErrorMessage(error, 'Unable to update user.'), 'danger');
+          },
+        });
     } else {
       const payload = this.userForm.getRawValue() as CreateUserRequest;
 
@@ -264,12 +293,15 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   }
 
   private resetForm(): void {
+    const role = this.prefilledRole ?? 'Supplier';
+    const procurementRoleTemplateId = role === 'Procurement' ? this.prefilledProcurementRoleId : null;
+
     this.userForm.reset({
       displayName: '',
       email: '',
       password: '',
-      role: 'Supplier',
-      procurementRoleTemplateId: null,
+      role,
+      procurementRoleTemplateId,
     });
   }
 
@@ -293,6 +325,18 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     const modal = Modal.getInstance(element) ?? new Modal(element);
     modal.hide();
 
+    this.removeStaleBackdrops();
+  }
+
+  private showModal(modalId: string): void {
+    const element = document.getElementById(modalId);
+
+    if (!element) {
+      return;
+    }
+
+    const modal = Modal.getInstance(element) ?? new Modal(element);
+    modal.show();
     this.removeStaleBackdrops();
   }
 
@@ -337,13 +381,35 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         next: (response: ProcurementRolesResponse) => {
           this.procurementRoles = response.subRoles;
           this.isLoadingProcurementRoles = false;
+          this.maybeApplyPrefilledRole();
         },
         error: () => {
           this.procurementRoles = [];
           this.isLoadingProcurementRoles = false;
           this.notifier.error('Unable to load procurement sub-roles.');
+          this.maybeApplyPrefilledRole();
         },
       });
+  }
+
+  private maybeApplyPrefilledRole(): void {
+    if (this.prefillApplied || this.prefilledRole !== 'Procurement') {
+      return;
+    }
+
+    this.prefillApplied = true;
+    this.startCreate();
+    this.userForm.patchValue({
+      role: 'Procurement',
+      procurementRoleTemplateId: this.prefilledProcurementRoleId,
+    });
+    this.updateProcurementRoleValidators('Procurement');
+
+    if (this.viewReady) {
+      this.showModal('kt_modal_add_user');
+    } else {
+      this.pendingModalId = 'kt_modal_add_user';
+    }
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

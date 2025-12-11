@@ -37,6 +37,16 @@ public class ProcurementRolesController : ControllerBase
             .OrderBy(p => p.Id)
             .ToListAsync();
 
+        var userCounts = await _dbContext.Users
+            .Where(user => user.ProcurementRoleTemplateId != null)
+            .GroupBy(user => user.ProcurementRoleTemplateId!.Value)
+            .Select(group => new
+            {
+                TemplateId = group.Key,
+                TotalUsers = group.Count(),
+            })
+            .ToDictionaryAsync(group => group.TemplateId, group => group.TotalUsers);
+
         var roleTemplates = await _dbContext.ProcurementRoleTemplates
             .Include(r => r.Avatars)
             .Include(r => r.Permissions)
@@ -55,15 +65,21 @@ public class ProcurementRolesController : ControllerBase
             .ToList();
 
         var subRoles = roleTemplates
-            .Select(template => new ProcurementSubRole(
-                Id: template.Id,
-                Name: template.Name,
-                Description: template.Description,
-                TotalUsers: template.TotalUsers,
-                NewUsers: template.NewUsers,
-                Avatars: template.Avatars.Select(a => a.FileName).ToList(),
-                ExtraCount: template.ExtraCount,
-                Permissions: MapPermissions(template.Permissions, permissionDefinitions)))
+            .Select(template =>
+            {
+                var totalUsers = userCounts.GetValueOrDefault(template.Id, template.TotalUsers);
+                var newUsers = template.NewUsers > 0 ? template.NewUsers : totalUsers;
+
+                return new ProcurementSubRole(
+                    Id: template.Id,
+                    Name: template.Name,
+                    Description: template.Description,
+                    TotalUsers: totalUsers,
+                    NewUsers: newUsers,
+                    Avatars: template.Avatars.Select(a => a.FileName).ToList(),
+                    ExtraCount: template.ExtraCount,
+                    Permissions: MapPermissions(template.Permissions, permissionDefinitions));
+            })
             .ToList();
 
         var response = new ProcurementRolesResponse(
@@ -115,6 +131,57 @@ public class ProcurementRolesController : ControllerBase
         return StatusCode(
             StatusCodes.Status201Created,
             ApiResponse<ProcurementSubRole>.Ok(subRole, "Procurement role created successfully."));
+    }
+
+    [HttpPut("{id:int}")]
+    [Authorize(Policy = ProcurementPolicies.RolesPermissionsWrite)]
+    [ProducesResponseType(typeof(ApiResponse<ProcurementSubRole>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<ProcurementSubRole>>> UpdateProcurementRole(
+        int id,
+        [FromBody] UpdateProcurementRoleRequest request)
+    {
+        var template = await _dbContext.ProcurementRoleTemplates
+            .Include(role => role.Avatars)
+            .Include(role => role.Permissions)
+            .FirstOrDefaultAsync(role => role.Id == id);
+
+        if (template is null)
+        {
+            return NotFound(ApiResponse<object>.Fail(
+                "Procurement role not found.",
+                errorCode: "procurement_role_not_found"));
+        }
+
+        var permissionDefinitions = await _dbContext.ProcurementPermissionDefinitions
+            .AsNoTracking()
+            .OrderBy(permission => permission.Id)
+            .ToListAsync();
+
+        var permissionsByName = (request.Permissions ?? Array.Empty<ProcurementPermission>())
+            .ToDictionary(permission => permission.Name, permission => permission.Actions, StringComparer.OrdinalIgnoreCase);
+
+        _dbContext.ProcurementRolePermissions.RemoveRange(template.Permissions);
+
+        template.Name = request.Name.Trim();
+        template.Description = string.IsNullOrWhiteSpace(request.Description)
+            ? "Custom procurement role"
+            : request.Description.Trim();
+        template.Permissions = MapRolePermissions(permissionDefinitions, permissionsByName);
+
+        await _dbContext.SaveChangesAsync();
+
+        var subRole = new ProcurementSubRole(
+            Id: template.Id,
+            Name: template.Name,
+            Description: template.Description,
+            TotalUsers: template.TotalUsers,
+            NewUsers: template.NewUsers,
+            Avatars: template.Avatars.Select(avatar => avatar.FileName).ToList(),
+            ExtraCount: template.ExtraCount,
+            Permissions: MapPermissions(template.Permissions, permissionDefinitions));
+
+        return Ok(ApiResponse<ProcurementSubRole>.Ok(subRole, "Procurement role updated successfully."));
     }
 
     private static IReadOnlyList<ProcurementPermission> MapPermissions(
