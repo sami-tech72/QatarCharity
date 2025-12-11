@@ -26,6 +26,11 @@ public class SupplierRepository(AppDbContext dbContext) : ISupplierRepository
         return await dbContext.Suppliers.FindAsync(id);
     }
 
+    public async Task<Supplier?> GetByPortalUserIdAsync(string portalUserId)
+    {
+        return await dbContext.Suppliers.FirstOrDefaultAsync(supplier => supplier.PortalUserId == portalUserId);
+    }
+
     public async Task<bool> PortalEmailInUseAsync(string normalizedEmail, Guid? excludeId = null)
     {
         return await dbContext.Suppliers
