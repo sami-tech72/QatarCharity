@@ -37,6 +37,65 @@
     </div>
 
     <div class="bid-shell">
+      <div class="requirements-panel" aria-label="Tender requirements and expectations">
+        <div class="requirements-panel__header">
+          <div>
+            <p class="detail-label mb-1">Tender requirements</p>
+            <h4 class="mb-0">What you must provide</h4>
+          </div>
+          <span class="badge badge-soft-secondary">Review before applying</span>
+        </div>
+
+        <div class="requirements-grid">
+          <div class="requirements-card requirement--full">
+            <p class="requirement-label">Required details</p>
+            <ul class="requirement-list" *ngIf="tender.requiredDetails?.length; else noDetails">
+              <li *ngFor="let detail of tender.requiredDetails">{{ detail }}</li>
+            </ul>
+            <ng-template #noDetails>
+              <p class="mb-0">No specific detailed requirements provided.</p>
+            </ng-template>
+          </div>
+
+          <div class="requirements-card">
+            <p class="requirement-label">Scope &amp; summary</p>
+            <p class="mb-0">{{ tender.scope || 'No scope provided.' }}</p>
+          </div>
+          <div class="requirements-card">
+            <p class="requirement-label">Technical specification</p>
+            <p class="mb-0">{{ tender.technicalSpecification || 'No technical specification provided.' }}</p>
+          </div>
+          <div class="requirements-card">
+            <p class="requirement-label">Deliverables</p>
+            <p class="mb-0">{{ tender.deliverables || 'No deliverables listed.' }}</p>
+          </div>
+          <div class="requirements-card">
+            <p class="requirement-label">Timeline</p>
+            <p class="mb-0">{{ tender.timeline || 'No timeline provided.' }}</p>
+          </div>
+
+          <div class="requirements-card requirement--full">
+            <p class="requirement-label">Required items &amp; documents</p>
+            <ul class="requirement-list" *ngIf="tender.requiredDocuments?.length; else noDocuments">
+              <li *ngFor="let doc of tender.requiredDocuments">{{ doc }}</li>
+            </ul>
+            <ng-template #noDocuments>
+              <p class="mb-0">No supporting documents are specified for this tender.</p>
+            </ng-template>
+          </div>
+
+          <div class="requirements-card requirement--full">
+            <p class="requirement-label">Required input data</p>
+            <ul class="requirement-list" *ngIf="tender.requiredInputs?.length; else noInputs">
+              <li *ngFor="let input of tender.requiredInputs">{{ input }}</li>
+            </ul>
+            <ng-template #noInputs>
+              <p class="mb-0">No special input data is required beyond the bid form.</p>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+
       <div class="bid-panel">
         <div class="bid-panel__header">
           <div>
