@@ -1,0 +1,119 @@
+<div class="contract-detail" *ngIf="contract; else missingContract">
+  <div class="detail-header">
+    <div class="brand">
+      <div class="logo">C</div>
+      <div>
+        <h1>Contract</h1>
+        <p class="muted">Procurement & Vendor Management</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="goBack()">Back to list</button>
+      <button class="btn-primary">Pay Now</button>
+    </div>
+  </div>
+
+  <section class="detail-grid">
+    <div class="meta">
+      <div class="meta-block">
+        <p class="muted">Contract #</p>
+        <h2>{{ referenceNumber }}</h2>
+      </div>
+      <div class="meta-block">
+        <p class="muted">Created on</p>
+        <h3>{{ formatDate(createdDate) }}</h3>
+        <p class="muted">Start Date: {{ formatDate(startDate) }}</p>
+        <p class="muted">End Date: {{ formatDate(endDate) }}</p>
+      </div>
+      <div class="meta-block align-right">
+        <span class="status" [ngClass]="statusClass">{{ statusBadge }}</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Issued To</h3>
+      <p class="strong">{{ supplierName }}</p>
+      <p class="muted">Supplier User ID: {{ contract?.supplierUserId || 'Not provided' }}</p>
+    </div>
+
+    <div class="panel">
+      <h3>Payment Details</h3>
+      <div class="payment-grid">
+        <div>
+          <p class="muted">Payment Method</p>
+          <p class="strong">Bank Transfer</p>
+          <p class="muted">Direct settlement as per contract terms.</p>
+        </div>
+        <div>
+          <p class="muted">Currency</p>
+          <p class="strong">{{ currency }}</p>
+          <p class="muted">Contract value is set in this currency.</p>
+        </div>
+        <div>
+          <p class="muted">Payment Terms</p>
+          <p class="strong">Net 15 days</p>
+          <p class="muted">Upon invoice submission and approval.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="items">
+    <div class="section-title">
+      <h3>Contract Items</h3>
+      <p class="muted">Summary of deliverables and engagement timeline.</p>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Description</th>
+            <th class="number">Qty</th>
+            <th class="number">Rate</th>
+            <th class="number">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of lineItems">
+            <td>{{ item.name }}</td>
+            <td>{{ item.description }}</td>
+            <td class="number">{{ item.quantity }}</td>
+            <td class="number">{{ item.rate | currency: currency }}</td>
+            <td class="number">{{ item.total | currency: currency }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="totals">
+      <div>
+        <p class="muted">Sub Total</p>
+        <p class="strong">{{ totals.subtotal | currency: currency }}</p>
+        <p class="muted">Tax (0%)</p>
+        <p class="strong">{{ totals.tax | currency: currency }}</p>
+      </div>
+      <div class="grand-total">
+        <p class="muted">Total</p>
+        <p class="grand">{{ totals.total | currency: currency }}</p>
+        <p class="muted">Due on start date</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <p class="strong">Project Overview</p>
+    <p class="muted">
+      {{ contract?.title }} — contract reference {{ referenceNumber }} with {{ supplierName }}.
+      The agreement period runs from {{ formatDate(startDate) }} to {{ formatDate(endDate) }}.
+    </p>
+  </section>
+</div>
+
+<ng-template #missingContract>
+  <div class="missing">
+    <h2>Contract details unavailable</h2>
+    <p>{{ missingContractMessage }}</p>
+    <button class="btn-primary" (click)="goBack()">Return to Contract Management</button>
+  </div>
+</ng-template>

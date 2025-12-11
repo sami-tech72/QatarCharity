@@ -51,6 +51,14 @@ export const procurementRoutes: Routes = [
           import('./tender-committee/tender-committee.component').then((m) => m.TenderCommitteeComponent),
       },
       {
+        path: 'contract-management/view/:id',
+        title: 'Contract Details',
+        canMatch: [procurementPermissionGuard],
+        data: { permission: 'Contract Management', permissionAction: 'read' },
+        loadComponent: () =>
+          import('./contract-management/contract-detail.component').then((m) => m.ContractDetailComponent),
+      },
+      {
         path: 'contract-management',
         title: 'Contract Management',
         canMatch: [procurementPermissionGuard],
