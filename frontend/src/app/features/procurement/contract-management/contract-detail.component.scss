@@ -1,0 +1,55 @@
+ .detail-card-grid {
+  --detail-card-border: #e4e6ef;
+  --detail-card-bg: #f9fafb;
+}
+
+.detail-card {
+  background: var(--detail-card-bg);
+  border: 1px solid var(--detail-card-border);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.detail-label {
+  color: #7e8299;
+  font-size: 0.825rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.detail-value {
+  color: #181c32;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.contact-card {
+  border: 1px dashed var(--detail-card-border);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(24, 28, 50, 0.03);
+}
+
+.contact-card .card-label {
+  color: #7e8299;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.35rem;
+}
+
+.contact-card .card-title {
+  color: #181c32;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 0.35rem;
+}
+
+.contact-card .card-meta {
+  color: #5e6278;
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
