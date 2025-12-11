@@ -13,6 +13,16 @@
     print-color-adjust: exact;
   }
 
+  .contract-print-area .card {
+    box-shadow: none !important;
+  }
+
+  .app-footer,
+  .footer,
+  .app-footer * {
+    display: none !important;
+  }
+
   body * {
     visibility: hidden;
   }
