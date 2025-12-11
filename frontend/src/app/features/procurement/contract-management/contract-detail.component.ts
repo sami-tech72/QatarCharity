@@ -1,10 +1,11 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
 import { ContractDetail } from '../../../shared/models/contract-management.model';
 import { ContractManagementService } from '../../../core/services/contract-management.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 type LineItem = {
   name: string;
@@ -35,6 +36,9 @@ export class ContractDetailComponent implements OnInit, OnDestroy {
   createdDate?: string | null;
   missingContractMessage = '';
   loading = true;
+  generatingPdf = false;
+
+  @ViewChild('contractContent') contractContent?: ElementRef<HTMLDivElement>;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -43,6 +47,7 @@ export class ContractDetailComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly location: Location,
     private readonly contractManagementService: ContractManagementService,
+    private readonly notification: NotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -83,6 +88,25 @@ export class ContractDetailComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     this.router.navigate(['/procurement/contract-management']);
+  }
+
+  downloadPdf(): void {
+    if (!this.contractContent || !this.contract) {
+      return;
+    }
+
+    this.generatingPdf = true;
+
+    // Ensure the print styles are applied to the contract view only
+    setTimeout(() => {
+      try {
+        window.print();
+      } catch (error) {
+        this.notification.error('Unable to generate PDF. Please try again.');
+      } finally {
+        this.generatingPdf = false;
+      }
+    });
   }
 
   formatDate(value?: string | null): string {
