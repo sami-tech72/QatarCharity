@@ -53,3 +53,35 @@ public record ContractResponse(
     DateTime CreatedAtUtc,
     string? SupplierSignature,
     DateTime? SupplierSignedAtUtc);
+
+public record ContractCompanyDetails(
+    string Name,
+    string Address,
+    string ContactEmail,
+    string ContactPhone);
+
+public record ContractSupplierDetails(
+    string CompanyName,
+    string ContactName,
+    string ContactEmail,
+    string ContactPhone,
+    string CompanyAddress,
+    string SupplierName,
+    string SupplierUserId);
+
+public record ContractDetailResponse(
+    Guid Id,
+    Guid? BidId,
+    Guid? RfxId,
+    string ReferenceNumber,
+    string Title,
+    decimal ContractValue,
+    string Currency,
+    DateTime StartDateUtc,
+    DateTime EndDateUtc,
+    string Status,
+    DateTime CreatedAtUtc,
+    string? SupplierSignature,
+    DateTime? SupplierSignedAtUtc,
+    ContractSupplierDetails Supplier,
+    ContractCompanyDetails IssuerCompany);

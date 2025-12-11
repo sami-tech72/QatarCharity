@@ -1,10 +1,10 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 
-import { ContractReadyBid, ContractRecord } from '../../../shared/models/contract-management.model';
-
-type ContractData = ContractReadyBid | ContractRecord;
+import { ContractDetail } from '../../../shared/models/contract-management.model';
+import { ContractManagementService } from '../../../core/services/contract-management.service';
 
 type LineItem = {
   name: string;
@@ -21,8 +21,8 @@ type LineItem = {
   templateUrl: './contract-detail.component.html',
   styleUrls: ['./contract-detail.component.scss'],
 })
-export class ContractDetailComponent implements OnInit {
-  contract?: ContractData;
+export class ContractDetailComponent implements OnInit, OnDestroy {
+  contract?: ContractDetail;
   lineItems: LineItem[] = [];
   totals = { subtotal: 0, tax: 0, total: 0 };
   statusBadge = 'Pending';
@@ -34,27 +34,51 @@ export class ContractDetailComponent implements OnInit {
   endDate?: string | null;
   createdDate?: string | null;
   missingContractMessage = '';
+  loading = true;
+
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly location: Location,
+    private readonly contractManagementService: ContractManagementService,
   ) {}
 
   ngOnInit(): void {
-    const navigationState = (this.router.getCurrentNavigation()?.extras.state as { contract?: ContractData })?.contract;
-    const locationState = (this.location.getState() as { contract?: ContractData })?.contract;
+    const navigationState = (this.router.getCurrentNavigation()?.extras.state as { contract?: unknown })?.contract;
+    const locationState = (this.location.getState() as { contract?: unknown })?.contract;
 
-    this.contract = navigationState || locationState;
-
-    if (this.contract) {
-      this.populateView(this.contract);
-    } else {
-      const identifier = this.route.snapshot.paramMap.get('id');
-      this.missingContractMessage = identifier
-        ? 'Contract details could not be loaded. Please return to Contract Management and open the contract again.'
-        : 'No contract details were provided.';
+    const initialContract = this.extractContractDetail(navigationState) || this.extractContractDetail(locationState);
+    if (initialContract) {
+      this.populateView(initialContract);
     }
+
+    const identifier = this.route.snapshot.paramMap.get('id');
+
+    if (identifier) {
+      this.contractManagementService
+        .loadContract(identifier)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (contract) => {
+            this.populateView(contract);
+          },
+          error: () => {
+            this.loading = false;
+            this.missingContractMessage =
+              'Contract details could not be loaded. Please return to Contract Management and open the contract again.';
+          },
+        });
+    } else if (!this.contract) {
+      this.loading = false;
+      this.missingContractMessage = 'No contract details were provided.';
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   goBack(): void {
@@ -74,12 +98,35 @@ export class ContractDetailComponent implements OnInit {
     return new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).format(date);
   }
 
-  private populateView(contract: ContractData): void {
-    const monetaryValue = 'contractValue' in contract ? contract.contractValue : contract.bidAmount;
+  isImageSignature(signature?: string | null): boolean {
+    if (!signature) {
+      return false;
+    }
+
+    return /^data:image\//i.test(signature.trim());
+  }
+
+  private extractContractDetail(value: unknown): ContractDetail | undefined {
+    if (!value || typeof value !== 'object') {
+      return undefined;
+    }
+
+    const candidate = value as ContractDetail;
+    if (candidate.issuerCompany && candidate.supplier) {
+      return candidate;
+    }
+
+    return undefined;
+  }
+
+  private populateView(contract: ContractDetail): void {
+    this.contract = contract;
+
+    const monetaryValue = contract.contractValue;
     const contractCurrency = contract.currency || 'USD';
-    const startDate = 'startDateUtc' in contract ? contract.startDateUtc : contract.submittedAtUtc;
-    const endDate = 'endDateUtc' in contract ? contract.endDateUtc : contract.evaluatedAtUtc;
-    const status = 'status' in contract ? contract.status : contract.evaluationStatus;
+    const startDate = contract.startDateUtc;
+    const endDate = contract.endDateUtc;
+    const status = contract.status;
 
     this.lineItems = [
       {
@@ -111,6 +158,7 @@ export class ContractDetailComponent implements OnInit {
     this.statusClass = (status || 'pending').toLowerCase().replace(/\s+/g, '-');
     this.startDate = startDate;
     this.endDate = endDate;
-    this.createdDate = 'createdAtUtc' in contract ? contract.createdAtUtc : contract.submittedAtUtc;
+    this.createdDate = contract.createdAtUtc;
+    this.loading = false;
   }
 }

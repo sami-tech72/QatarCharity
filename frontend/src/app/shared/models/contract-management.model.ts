@@ -50,3 +50,25 @@ export interface ContractResponse {
 }
 
 export type ContractRecord = ContractResponse;
+
+export interface ContractCompanyDetails {
+  name: string;
+  address: string;
+  contactEmail: string;
+  contactPhone: string;
+}
+
+export interface ContractSupplierDetails {
+  companyName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  companyAddress: string;
+  supplierName: string;
+  supplierUserId: string;
+}
+
+export interface ContractDetail extends ContractResponse {
+  issuerCompany: ContractCompanyDetails;
+  supplier: ContractSupplierDetails;
+}
