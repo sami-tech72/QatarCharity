@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { ProcurementRolesService } from '../../../core/services/procurement-roles.service';
 import {
   CreateProcurementRoleRequest,
@@ -11,6 +10,8 @@ import {
   UpdateProcurementRoleRequest,
 } from '../../../shared/models/procurement-roles.model';
 import { procurementSidebarMenu } from '../models/menu';
+import { UserManagementService } from '../../../core/services/user-management.service';
+import { CreateUserRequest } from '../../../shared/models/user-management.model';
 
 interface RoleCard {
   id: number;
@@ -36,6 +37,14 @@ export class RolesPermissionsComponent implements OnInit {
   administratorAccess = false;
   selectAll = false;
 
+  showAddUserModal = false;
+  newUserName = '';
+  newUserEmail = '';
+  newUserPassword = '';
+  userSubmissionError = '';
+  isCreatingUser = false;
+  selectedRoleForUser: ProcurementSubRole | null = null;
+
   permissions: Permission[] = [];
   roles: RoleCard[] = [];
   mainRole = '';
@@ -47,7 +56,7 @@ export class RolesPermissionsComponent implements OnInit {
 
   constructor(
     private readonly procurementRolesService: ProcurementRolesService,
-    private readonly router: Router,
+    private readonly userManagementService: UserManagementService,
   ) {}
 
   ngOnInit(): void {
@@ -158,6 +167,14 @@ export class RolesPermissionsComponent implements OnInit {
     this.showAddRoleModal = true;
   }
 
+  private resetAddUserForm(): void {
+    this.newUserName = '';
+    this.newUserEmail = '';
+    this.newUserPassword = '';
+    this.userSubmissionError = '';
+    this.isCreatingUser = false;
+  }
+
   startEditRole(roleId: number): void {
     const role = this.subRoles.find((existing) => existing.id === roleId);
 
@@ -175,14 +192,66 @@ export class RolesPermissionsComponent implements OnInit {
   addUserToRole(roleId: number): void {
     const role = this.subRoles.find((existing) => existing.id === roleId);
 
-    if (!role) {
+    if (!role || this.isCreatingUser) {
       return;
     }
 
-    this.router.navigate(['/admin/user-management'], {
-      queryParams: {
-        role: 'Procurement',
-        procurementRoleTemplateId: role.id,
+    this.selectedRoleForUser = role;
+    this.resetAddUserForm();
+    this.showAddUserModal = true;
+  }
+
+  closeAddUserModal(): void {
+    if (this.isCreatingUser) {
+      return;
+    }
+
+    this.showAddUserModal = false;
+    this.resetAddUserForm();
+    this.selectedRoleForUser = null;
+  }
+
+  submitAddUser(): void {
+    this.userSubmissionError = '';
+
+    if (!this.newUserName.trim() || !this.newUserEmail.trim() || !this.newUserPassword.trim()) {
+      this.userSubmissionError = 'Please provide a name, email, and password to create the user.';
+      return;
+    }
+
+    if (!this.selectedRoleForUser || this.isCreatingUser) {
+      return;
+    }
+
+    const payload: CreateUserRequest = {
+      displayName: this.newUserName.trim(),
+      email: this.newUserEmail.trim(),
+      password: this.newUserPassword,
+      role: 'Procurement',
+      procurementRoleTemplateId: this.selectedRoleForUser.id,
+    };
+
+    this.isCreatingUser = true;
+
+    this.userManagementService.createUser(payload).subscribe({
+      next: () => {
+        const targetRoleId = this.selectedRoleForUser?.id;
+
+        if (targetRoleId) {
+          this.subRoles = this.subRoles.map((role) =>
+            role.id === targetRoleId
+              ? { ...role, totalUsers: role.totalUsers + 1, newUsers: role.newUsers + 1 }
+              : role,
+          );
+          this.roles = this.subRoles.map((role) => this.mapToRoleCard(role));
+        }
+
+        this.isCreatingUser = false;
+        this.closeAddUserModal();
+      },
+      error: (error) => {
+        this.isCreatingUser = false;
+        this.userSubmissionError = error?.message || 'Unable to create user at this time.';
       },
     });
   }

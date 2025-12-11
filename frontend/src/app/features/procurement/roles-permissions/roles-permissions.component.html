@@ -85,7 +85,11 @@
     </div>
   </div>
 
-  <div class="app-modal-backdrop" *ngIf="showAddRoleModal" (click)="closeAddRoleModal()"></div>
+  <div
+    class="app-modal-backdrop"
+    *ngIf="showAddRoleModal || showAddUserModal"
+    (click)="showAddRoleModal ? closeAddRoleModal() : closeAddUserModal()"
+  ></div>
   <div class="app-modal" *ngIf="showAddRoleModal">
     <div class="app-modal-dialog app-modal-dialog--wide">
       <div class="modal-content app-modal-content">
@@ -200,6 +204,88 @@
             (click)="submitAddRole()"
           >
             {{ isSubmitting ? 'Saving...' : editingRoleId ? 'Update' : 'Submit' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-modal" *ngIf="showAddUserModal">
+    <div class="app-modal-dialog app-modal-dialog--wide">
+      <div class="modal-content app-modal-content">
+        <div class="modal-header app-modal-header px-6 py-4">
+          <div>
+            <h3 class="modal-title mb-1">Add User</h3>
+            <div class="text-muted">Invite a user directly to this procurement sub-role.</div>
+          </div>
+          <button type="button" class="btn btn-icon btn-sm btn-light" aria-label="Close" (click)="closeAddUserModal()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <div class="modal-body app-modal-body px-6 pb-6 pt-0">
+          <form class="needs-validation" novalidate>
+            <div class="row g-4">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold">Full Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter the user's name"
+                  [(ngModel)]="newUserName"
+                  name="newUserName"
+                />
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold">Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  placeholder="name@example.com"
+                  [(ngModel)]="newUserEmail"
+                  name="newUserEmail"
+                />
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold">Password</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  placeholder="Enter a password"
+                  [(ngModel)]="newUserPassword"
+                  name="newUserPassword"
+                />
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold">Assign to role</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [value]="selectedRoleForUser?.name"
+                  readonly
+                />
+              </div>
+            </div>
+
+            <div *ngIf="userSubmissionError" class="alert alert-danger mt-4 mb-0" role="alert">
+              {{ userSubmissionError }}
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer app-modal-footer px-6 py-4 justify-content-end gap-3">
+          <button type="button" class="btn btn-light" (click)="closeAddUserModal()">Cancel</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="isCreatingUser || !newUserName.trim() || !newUserEmail.trim() || !newUserPassword.trim()"
+            (click)="submitAddUser()"
+          >
+            <span *ngIf="isCreatingUser" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+            Add User
           </button>
         </div>
       </div>
