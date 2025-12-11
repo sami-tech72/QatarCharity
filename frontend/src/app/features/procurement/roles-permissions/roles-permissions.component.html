@@ -54,7 +54,10 @@
                   <span class="symbol-label fw-semibold text-gray-800">+{{ role.extraCount }}</span>
                 </div>
               </div>
-              <a class="btn btn-sm btn-outline btn-outline-dashed btn-outline-default fw-bold">
+              <a
+                class="btn btn-sm btn-outline btn-outline-dashed btn-outline-default fw-bold"
+                (click)="addUserToRole(role.id)"
+              >
                 {{ role.actionLabel }}
               </a>
             </div>

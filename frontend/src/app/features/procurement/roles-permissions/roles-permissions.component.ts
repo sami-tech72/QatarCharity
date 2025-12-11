@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ProcurementRolesService } from '../../../core/services/procurement-roles.service';
 import {
   CreateProcurementRoleRequest,
@@ -44,7 +45,10 @@ export class RolesPermissionsComponent implements OnInit {
   submissionError = '';
   editingRoleId: number | null = null;
 
-  constructor(private readonly procurementRolesService: ProcurementRolesService) {}
+  constructor(
+    private readonly procurementRolesService: ProcurementRolesService,
+    private readonly router: Router,
+  ) {}
 
   ngOnInit(): void {
     this.loadRoles();
@@ -166,6 +170,21 @@ export class RolesPermissionsComponent implements OnInit {
     this.permissions = this.mergeMenuPermissions(role.permissions);
     this.updateSelectAllState();
     this.showAddRoleModal = true;
+  }
+
+  addUserToRole(roleId: number): void {
+    const role = this.subRoles.find((existing) => existing.id === roleId);
+
+    if (!role) {
+      return;
+    }
+
+    this.router.navigate(['/admin/user-management'], {
+      queryParams: {
+        role: 'Procurement',
+        procurementRoleTemplateId: role.id,
+      },
+    });
   }
 
   private createDefaultPermissions(): Permission[] {
