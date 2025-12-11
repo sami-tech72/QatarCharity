@@ -7,6 +7,7 @@ import {
   CreateProcurementRoleRequest,
   ProcurementRolesResponse,
   ProcurementSubRole,
+  UpdateProcurementRoleRequest,
 } from '../../shared/models/procurement-roles.model';
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +20,12 @@ export class ProcurementRolesService {
 
   createRole(payload: CreateProcurementRoleRequest): Observable<ProcurementSubRole> {
     return this.api.post<ProcurementSubRole>('procurement/roles', payload).pipe(map((response) => this.unwrap(response)));
+  }
+
+  updateRole(id: number, payload: UpdateProcurementRoleRequest): Observable<ProcurementSubRole> {
+    return this.api
+      .put<ProcurementSubRole>(`procurement/roles/${id}`, payload)
+      .pipe(map((response) => this.unwrap(response)));
   }
 
   private unwrap<T>(response: ApiResponse<T>): T {

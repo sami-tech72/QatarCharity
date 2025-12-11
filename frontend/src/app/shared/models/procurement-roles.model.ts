@@ -10,6 +10,12 @@ export interface CreateProcurementRoleRequest {
   permissions: ProcurementPermission[];
 }
 
+export interface UpdateProcurementRoleRequest {
+  name: string;
+  description?: string;
+  permissions: ProcurementPermission[];
+}
+
 export interface ProcurementSubRole {
   id: number;
   name: string;
