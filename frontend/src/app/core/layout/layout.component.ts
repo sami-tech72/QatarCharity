@@ -89,6 +89,10 @@ export class LayoutComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.scheduleLayoutInitialization();
+
+    if (this.isSemiDark) {
+      this.applySemiDarkToSidebar(true);
+    }
   }
 
   logout() {
@@ -132,10 +136,19 @@ export class LayoutComponent implements AfterViewInit {
 
   toggleSemiDark(enabled: boolean, persist = true) {
     this.isSemiDark = enabled;
-    document.body.classList.toggle('app-semi-dark', enabled);
+    document.body.classList.remove('app-semi-dark');
+    this.applySemiDarkToSidebar(enabled);
 
     if (persist) {
       localStorage.setItem(this.storageKeys.semiDark, String(enabled));
+    }
+  }
+
+  private applySemiDarkToSidebar(enabled: boolean) {
+    const sidebar = document.getElementById('kt_app_sidebar');
+
+    if (sidebar) {
+      sidebar.classList.toggle('app-semi-dark', enabled);
     }
   }
 
